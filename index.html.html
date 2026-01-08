@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pedidos + Catálogo por categoría (Período)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{margin:0;background:#f5f5f5}
+    .app{max-width:560px;margin:0 auto;padding:14px}
+    h1{font-size:18px;margin:0 0 10px;text-align:center}
+
+    details{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:10px;overflow:hidden}
+    summary{list-style:none;cursor:pointer;padding:12px 12px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:space-between}
+    summary::-webkit-details-marker{display:none}
+    .chev{font-weight:900;opacity:.65}
+    details[open] .chev{transform:rotate(90deg)}
+    .content{padding:0 12px 12px}
+
+    .muted{color:#666;font-size:12.5px;line-height:1.3}
+    .hr{height:1px;background:#eee;margin:10px 0}
+
+    .input-group{margin-bottom:10px}
+    label{font-size:13.5px;display:block;margin-bottom:6px;font-weight:650}
+    input[type="text"],input[type="number"],select,textarea{
+      width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ccc;font-size:14px;outline:none
+    }
+    input:focus,select:focus,textarea:focus{border-color:#007bff}
+    input[type="file"]{font-size:13px;width:100%}
+    textarea{resize:vertical}
+
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .row > *{flex:1}
+
+    .btn{border:none;border-radius:10px;padding:10px 12px;font-size:14px;cursor:pointer}
+    .btn-primary{background:#007bff;color:#fff}
+    .btn-secondary{background:#e5e5e5;color:#333}
+    .btn-green{background:#16a34a;color:#fff}
+    .btn-danger{background:#dc2626;color:#fff}
+
+    .results-count{font-size:13px;color:#444;margin:6px 0 8px}
+    .results{display:flex;flex-direction:column;gap:8px}
+    .item{background:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.08);
+      display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+    .item-desc{font-size:14px;font-weight:800}
+    .item-sub{font-size:12px;color:#666;margin-top:2px}
+    .item-right{font-size:12.5px;font-weight:800;color:#555;text-align:right}
+    .tag{display:inline-block;margin-top:4px;font-size:11px;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#4338ca}
+    .tag-oferta{background:#fee2e2;color:#b91c1c}
+    .no-results{color:#999;text-align:center;margin:14px 0;font-size:14px}
+
+    .pedido-header{font-size:13px;white-space:pre-line}
+    .pedido-item{padding:10px;border:1px solid #eee;border-radius:12px;background:#fafafa;display:flex;gap:10px;margin-bottom:8px}
+    .pedido-main{flex:1}
+    .pedido-title{font-size:13.5px;font-weight:900;margin-bottom:4px}
+    .pedido-meta{font-size:12.5px;color:#444}
+    .pedido-meta strong{color:#111}
+    .pedido-remove{font-size:12px;border:none;background:#fee2e2;color:#b91c1c;border-radius:10px;padding:8px 10px;cursor:pointer;height:fit-content}
+    .pedido-total{font-weight:1000;font-size:16px;margin-top:6px}
+
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999}
+    .modal{background:#fff;border-radius:14px;padding:12px;max-width:560px;width:92%}
+    .modal h2{font-size:15px;margin:0 0 6px}
+    .modal .sub{font-size:12px;color:#666;margin-bottom:10px}
+    .prices-list{list-style:none;padding:0;margin:8px 0}
+    .prices-list li{margin-bottom:8px;font-size:14px}
+    .modal .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .modal .actions button{flex:1}
+
+    .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .kpi{border:1px solid #eee;border-radius:12px;padding:10px;background:#fafafa}
+    .kpi .t{font-size:12px;color:#555;margin-bottom:4px}
+    .kpi .v{font-size:16px;font-weight:1000}
+
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th,td{border-bottom:1px solid #eee;padding:8px 6px;text-align:left;vertical-align:top}
+    th{font-size:12px;color:#555}
+
+    input, textarea, select { -webkit-appearance: none; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Pedidos + Catálogo por categoría</h1>
+
+    <!-- 0 CLIENTE -->
+    <details open>
+      <summary>0) Cliente <span class="chev">›</span></summary>
+      <div class="content">
+        <div class="input-group">
+          <label for="cliente-nombre">Nombre del cliente *</label>
+          <input id="cliente-nombre" type="text" placeholder="Ej. Don Chuy" />
+        </div>
+        <div class="input-group">
+          <label for="cliente-direccion">Dirección *</label>
+          <input id="cliente-direccion" type="text" placeholder="Ej. Calle 5 de Mayo #852" />
+        </div>
+        <div class="muted">El cliente se guarda dentro del pedido confirmado.</div>
+      </div>
+    </details>
+
+    <!-- 1 CARGA ARCHIVOS -->
+    <details>
+      <summary>1) Cargar productos y ofertas <span class="chev">›</span></summary>
+      <div class="content">
+        <div class="input-group">
+          <label for="archivo-productos">Productos (.csv con ID, Categoria, Descripcion, Costo)</label>
+          <input id="archivo-productos" type="file" accept=".csv" />
+          <div id="status-productos" class="muted" style="margin-top:6px;">Sin productos cargados.</div>
+        </div>
+
+        <div class="input-group">
+          <label for="archivo-ofertas">Ofertas (.csv con ID, PrecioOferta, DescripcionOferta)</label>
+          <input id="archivo-ofertas" type="file" accept=".csv" />
+          <div id="status-ofertas" class="muted" style="margin-top:6px;">Sin ofertas cargadas.</div>
+        </div>
+
+        <div class="muted">
+          Productos: <strong>ID,Categoria,Descripcion,Costo</strong><br>
+          Ofertas: <strong>ID,PrecioOferta,DescripcionOferta</strong>
+        </div>
+      </div>
+    </details>
+
+    <!-- 2 BUSCAR -->
+    <details open>
+      <summary>2) Buscar producto <span class="chev">›</span></summary>
+      <div class="content">
+        <div class="input-group">
+          <label for="buscador">Buscar por palabra o ID (min 2 letras)</label>
+          <input id="buscador" type="text" placeholder="Ej. 123, Fabu..." disabled />
+        </div>
+        <div class="row" style="margin-bottom:6px;">
+          <button id="btn-ver-ofertas" class="btn btn-secondary" type="button">Mostrar ofertas</button>
+          <button id="btn-ocultar" class="btn btn-secondary" type="button">Ocultar</button>
+        </div>
+        <div id="results-count" class="results-count"></div>
+        <div id="results" class="results"></div>
+      </div>
+    </details>
+
+    <!-- 2B CATÁLOGO POR CATEGORÍA -->
+    <details open>
+      <summary>2B) Catálogo por categoría <span class="chev">›</span></summary>
+      <div class="content">
+        <div class="input-group">
+          <label for="categoria-select">Selecciona categoría</label>
+          <select id="categoria-select" disabled>
+            <option value="">— Carga productos primero —</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="categoria-buscador">Filtrar dentro de la categoría (opcional)</label>
+          <input id="categoria-buscador" type="text" placeholder="Ej. pañal, cloro..." disabled />
+        </div>
+
+        <div class="row" style="margin-bottom:6px;">
+          <button id="btn-cat-todos" class="btn btn-secondary" type="button">Ver todos (categoría)</button>
+          <button id="btn-cat-ocultar" class="btn btn-secondary" type="button">Ocultar</button>
+        </div>
+
+        <div id="cat-count" class="results-count"></div>
+        <div id="cat-results" class="results"></div>
+
+        <div class="muted">
+          Esto te sirve como “catálogo” para recorrer rápido una sección (bebés, limpieza, hogar…).
+        </div>
+      </div>
+    </details>
+
+    <!-- 3 PEDIDO -->
+    <details open>
+      <summary>3) Pedido actual <span class="chev">›</span></summary>
+      <div class="content">
+        <div id="pedido-cliente" class="pedido-header muted">Sin cliente.</div>
+
+        <div class="hr"></div>
+
+        <div id="pedido-lista"></div>
+        <div id="pedido-total" class="pedido-total"></div>
+
+        <div class="input-group" style="margin-top:10px;">
+          <label for="pedido-notas">Notas del pedido</label>
+          <textarea id="pedido-notas" rows="2" placeholder="Ej. Entregar antes de las 5 pm..."></textarea>
+        </div>
+
+        <div class="row">
+          <button id="btn-vaciar" class="btn btn-secondary" type="button">Vaciar</button>
+          <button id="btn-copiar" class="btn btn-primary" type="button">Copiar resumen</button>
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <button id="btn-confirmar" class="btn btn-green" type="button">✅ Confirmar pedido (Guardar al período)</button>
+        </div>
+
+        <div id="status-guardado" class="muted" style="margin-top:8px;"></div>
+      </div>
+    </details>
+
+    <!-- 4 REPORTE PERÍODO -->
+    <details>
+      <summary>4) Reporte del período <span class="chev">›</span></summary>
+      <div class="content">
+        <div class="muted" id="periodo-info"></div>
+
+        <div class="row" style="margin-top:8px;">
+          <button id="btn-iniciar-periodo" class="btn btn-danger" type="button">🧹 Iniciar período (Reset)</button>
+          <button id="btn-exportar" class="btn btn-secondary" type="button">Exportar CSV</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div id="kpis" class="kpi-grid"></div>
+
+        <div class="hr"></div>
+
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Venta</th>
+                <th>Utilidad</th>
+                <th>Margen</th>
+              </tr>
+            </thead>
+            <tbody id="tabla"></tbody>
+          </table>
+        </div>
+
+        <div class="muted" style="margin-top:8px;">
+          *La utilidad se calcula internamente con el costo.
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- MODAL DETALLE -->
+  <div id="overlay" class="overlay">
+    <div class="modal">
+      <h2 id="m-desc"></h2>
+      <div class="sub" id="m-id"></div>
+
+      <div class="muted" style="margin-bottom:8px;">
+        • <strong>Precio 1</strong>: pieza &nbsp; • <strong>Precio 2</strong>: media caja &nbsp; • <strong>Precio 3</strong>: caja
+      </div>
+
+      <div style="font-size:13px;font-weight:800;margin-top:8px;">Selecciona precio</div>
+      <ul class="prices-list" id="m-precios"></ul>
+
+      <div style="font-size:13px;font-weight:800;margin-top:8px;">Precio personalizado (opcional)</div>
+      <div class="input-group">
+        <label for="m-custom">Ingresa precio final</label>
+        <input id="m-custom" type="number" min="0" step="0.01" />
+      </div>
+      <div id="m-custom-info" class="muted"></div>
+      <div style="margin:6px 0 10px;">
+        <label>
+          <input type="radio" name="m-opcion" value="custom" id="m-custom-radio" />
+          <span id="m-custom-label">Usar precio personalizado</span>
+        </label>
+      </div>
+
+      <div class="input-group">
+        <label for="m-cant">Cantidad</label>
+        <input id="m-cant" type="number" min="1" step="1" value="1" />
+      </div>
+
+      <div class="actions">
+        <button id="m-cancel" class="btn btn-secondary" type="button">Cancelar</button>
+        <button id="m-add" class="btn btn-primary" type="button">Agregar al pedido</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function normalizar(txt){
+      return (txt||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    }
+    function money(v){ return "$"+Number(v).toFixed(2); }
+    function nowISO(){ return new Date().toISOString(); }
+    function shortDT(iso){
+      const d=new Date(iso);
+      return d.toLocaleString([], {year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+    }
+
+    const NIVELES = [
+      { nombre:"Precio 1", tipo:"Pieza", margen:0.11 },
+      { nombre:"Precio 2", tipo:"Media caja", margen:0.065 },
+      { nombre:"Precio 3", tipo:"Caja", margen:0.04 },
+    ];
+
+    const LS_PRODUCTS = "fav_productos_v3_cat";
+    const LS_OFFERS   = "fav_ofertas_v3_cat";
+    const LS_PERIOD   = "fav_periodo_v3_cat";
+
+    function loadJSON(key, fallback){
+      try{ const raw=localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+      catch{ return fallback; }
+    }
+    function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+    let productos = loadJSON(LS_PRODUCTS, []);
+    let ofertasPorId = loadJSON(LS_OFFERS, {});
+    let pedido = [];
+    let pedidoNotas = "";
+
+    let selProducto = null;
+    let opciones = [];
+
+    const el = (id)=>document.getElementById(id);
+
+    function parseProductosCSV(text){
+      const lineas=text.trim().split(/\r?\n/); if(lineas.length<2) return [];
+      const headers=lineas[0].split(",").map(h=>normalizar(h.trim()));
+
+      let idxId=headers.findIndex(h=>h==="id"||h==="sku"||h==="codigo"||h==="código");
+      let idxCat=headers.findIndex(h=>h==="categoria"||h==="categoría"||h==="cat");
+      let idxDesc=headers.findIndex(h=>h==="descripcion"||h==="descripción"||h==="desc");
+      let idxCosto=headers.findIndex(h=>h==="costo"||h==="costounitario"||h==="costo_neto");
+
+      if(idxId===-1) idxId=0;
+      if(idxCat===-1) idxCat=1;
+      if(idxDesc===-1) idxDesc=2;
+      if(idxCosto===-1) idxCosto=3;
+
+      const out=[];
+      for(let i=1;i<lineas.length;i++){
+        const ln=lineas[i].trim(); if(!ln) continue;
+        const p=ln.split(",");
+        const id=(p[idxId]||"").trim();
+        const categoria=(p[idxCat]||"").trim() || "Sin categoría";
+        const descripcion=(p[idxDesc]||"").trim();
+        const costo=parseFloat(((p[idxCosto]||"").trim()).replace(",","."));
+        if(!id||!descripcion||isNaN(costo)) continue;
+        out.push({id,categoria,descripcion,costo});
+      }
+      return out;
+    }
+
+    function parseOfertasCSV(text){
+      const lineas=text.trim().split(/\r?\n/);
+      const map={};
+      for(let i=1;i<lineas.length;i++){
+        const ln=lineas[i].trim(); if(!ln) continue;
+        const p=ln.split(","); if(p.length<2) continue;
+        const id=(p[0]||"").trim(); if(!id) continue;
+        const precio=parseFloat(((p[1]||"").trim()).replace(",","."));
+        if(isNaN(precio)) continue;
+        const descripcion=(p[2]||"").trim() || "Oferta";
+        if(!map[id]) map[id]=[];
+        map[id].push({precio,descripcion});
+      }
+      return map;
+    }
+
+    function getPeriodo(){
+      let per = loadJSON(LS_PERIOD, null);
+      if(!per || !per.startISO || !Array.isArray(per.orders)){
+        per = { startISO: nowISO(), orders: [] };
+        saveJSON(LS_PERIOD, per);
+      }
+      return per;
+    }
+    function setPeriodo(per){ saveJSON(LS_PERIOD, per); }
+
+    function clienteValido(){
+      const n=el("cliente-nombre").value.trim();
+      const d=el("cliente-direccion").value.trim();
+      return n && d;
+    }
+    function clienteTexto(){
+      const n=el("cliente-nombre").value.trim();
+      const d=el("cliente-direccion").value.trim();
+      if(!n && !d) return "Sin cliente.";
+      return `👤 ${n||"—"}\n📍 ${d||"—"}`;
+    }
+
+    function totalPedido(){ return pedido.reduce((a,it)=>a+it.subtotal,0); }
+    function utilidadPedido(){ return pedido.reduce((a,it)=>a + ((it.precioUnit-it.costoUnit)*it.cantidad),0); }
+
+    function renderPedido(){
+      el("pedido-cliente").textContent = clienteTexto();
+      const list=el("pedido-lista");
+      list.innerHTML="";
+
+      if(pedido.length===0){
+        list.innerHTML="<div class='muted'>Aún no hay productos en el pedido.</div>";
+        el("pedido-total").textContent="";
+        return;
+      }
+
+      pedido.forEach((it, idx)=>{
+        const row=document.createElement("div");
+        row.className="pedido-item";
+
+        const main=document.createElement("div");
+        main.className="pedido-main";
+
+        const t=document.createElement("div");
+        t.className="pedido-title";
+        t.textContent=it.descripcion;
+
+        const m=document.createElement("div");
+        m.className="pedido-meta";
+        m.innerHTML=`Pz: <strong>${it.cantidad}</strong> &nbsp;|&nbsp; PU: <strong>${money(it.precioUnit)}</strong> &nbsp;|&nbsp; Importe: <strong>${money(it.subtotal)}</strong>`;
+        main.appendChild(t); main.appendChild(m);
+
+        const b=document.createElement("button");
+        b.className="pedido-remove"; b.textContent="Quitar";
+        b.onclick=()=>{ pedido.splice(idx,1); renderPedido(); };
+
+        row.appendChild(main); row.appendChild(b);
+        list.appendChild(row);
+      });
+
+      el("pedido-total").textContent="TOTAL: "+money(Math.round(totalPedido()*100)/100);
+    }
+
+    function renderResultados(lista, containerId, countId){
+      const out=el(containerId);
+      const c=el(countId);
+      out.innerHTML="";
+      c.textContent=`${lista.length} resultado(s)`;
+
+      if(lista.length===0){
+        out.innerHTML="<div class='no-results'>No se encontraron productos.</div>";
+        return;
+      }
+
+      lista.forEach(p=>{
+        const div=document.createElement("div");
+        div.className="item";
+
+        const left=document.createElement("div");
+        const d=document.createElement("div");
+        d.className="item-desc";
+        d.textContent=p.descripcion;
+
+        const sub=document.createElement("div");
+        sub.className="item-sub";
+        sub.textContent="Categoría: "+(p.categoria||"Sin categoría");
+
+        left.appendChild(d); left.appendChild(sub);
+
+        const right=document.createElement("div");
+        right.className="item-right";
+        right.innerHTML="Ver precios<br>";
+        const ofs=ofertasPorId[p.id]||[];
+        const tag=document.createElement("span");
+        tag.className=ofs.length? "tag tag-oferta":"tag";
+        tag.textContent=ofs.length? "OFERTA":"pieza / media / caja";
+        right.appendChild(tag);
+
+        div.appendChild(left); div.appendChild(right);
+        div.onclick=()=>openModal(p);
+        out.appendChild(div);
+      });
+    }
+
+    function buscar(qRaw){
+      const q=normalizar(qRaw.trim());
+      if(!q || q.length<2){
+        el("results").innerHTML="";
+        el("results-count").textContent=q? "Escribe al menos 2 caracteres.":"";
+        return;
+      }
+      const hits=productos.filter(p=>{
+        const d=normalizar(p.descripcion);
+        const id=normalizar(p.id);
+        return d.includes(q) || id.includes(q);
+      });
+      renderResultados(hits,"results","results-count");
+    }
+
+    function mostrarOfertas(){
+      const lista=productos.filter(p=>(ofertasPorId[p.id]||[]).length>0);
+      renderResultados(lista,"results","results-count");
+    }
+    function ocultarResultados(){
+      el("results").innerHTML="";
+      el("results-count").textContent="";
+    }
+
+    // ====== CATEGORÍAS (FUNCIÓN QUE FALTABA) ======
+    function construirCategorias(){
+      const sel=el("categoria-select");
+      const filtro=el("categoria-buscador");
+
+      if(!productos.length){
+        sel.disabled=true; filtro.disabled=true;
+        sel.innerHTML='<option value="">— Carga productos primero —</option>';
+        el("cat-results").innerHTML="";
+        el("cat-count").textContent="";
+        return;
+      }
+
+      const cats=[...new Set(productos.map(p=> (p.categoria||"Sin categoría").trim() || "Sin categoría"))]
+        .sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+
+      sel.disabled=false; filtro.disabled=false;
+      sel.innerHTML='<option value="">— Selecciona —</option>';
+
+      cats.forEach(c=>{
+        const count=productos.filter(p=>((p.categoria||"Sin categoría").trim()===c)).length;
+        const opt=document.createElement("option");
+        opt.value=c;
+        opt.textContent=`${c} (${count})`;
+        sel.appendChild(opt);
+      });
+
+      el("cat-results").innerHTML="";
+      el("cat-count").textContent="";
+      filtro.value="";
+    }
+
+    function renderCategoria(){
+      const cat=el("categoria-select").value;
+      const q=normalizar(el("categoria-buscador").value.trim());
+
+      if(!cat){
+        el("cat-results").innerHTML="";
+        el("cat-count").textContent="";
+        return;
+      }
+
+      let lista=productos.filter(p=>((p.categoria||"Sin categoría").trim()===cat));
+      if(q){
+        lista=lista.filter(p=>normalizar(p.descripcion).includes(q) || normalizar(p.id).includes(q));
+      }
+      renderResultados(lista,"cat-results","cat-count");
+    }
+
+    function verTodosCategoria(){
+      el("categoria-buscador").value="";
+      renderCategoria();
+    }
+
+    function ocultarCategoria(){
+      el("cat-results").innerHTML="";
+      el("cat-count").textContent="";
+    }
+    // ============================================
+
+    // Modal (precios)
+    function openModal(prod){
+      if(!clienteValido()){
+        alert("Primero llena Nombre y Dirección del cliente.");
+        return;
+      }
+      selProducto=prod;
+      opciones=[];
+
+      el("m-desc").textContent=prod.descripcion;
+      el("m-id").textContent=`ID: ${prod.id} | ${prod.categoria||"Sin categoría"}`;
+
+      el("m-precios").innerHTML="";
+      el("m-custom").value="";
+      el("m-custom-info").textContent="";
+      el("m-custom-info").style.color="#666";
+      el("m-custom-label").textContent="Usar precio personalizado";
+      el("m-custom-radio").checked=false;
+      el("m-cant").value=1;
+
+      NIVELES.forEach((n, idx)=>{
+        const pu=Math.round(prod.costo*(1+n.margen)*100)/100;
+        const id="std-"+idx;
+        opciones.push({id,precioUnit:pu});
+
+        const li=document.createElement("li");
+        const lab=document.createElement("label");
+        const r=document.createElement("input");
+        r.type="radio"; r.name="m-opcion"; r.value=id;
+        if(idx===0) r.checked=true;
+        lab.appendChild(r);
+        lab.appendChild(document.createTextNode(` ${n.nombre} – ${n.tipo}: ${money(pu)}`));
+        li.appendChild(lab);
+        el("m-precios").appendChild(li);
+      });
+
+      const ofs=ofertasPorId[prod.id]||[];
+      if(ofs.length){
+        const sep=document.createElement("div");
+        sep.className="muted";
+        sep.style.margin="8px 0";
+        sep.innerHTML="<strong>Ofertas disponibles:</strong>";
+        el("m-precios").appendChild(sep);
+
+        ofs.forEach((o, idx)=>{
+          const id="of-"+idx;
+          const pu=Math.round(o.precio*100)/100;
+          opciones.push({id,precioUnit:pu});
+
+          const li=document.createElement("li");
+          const lab=document.createElement("label");
+          const r=document.createElement("input");
+          r.type="radio"; r.name="m-opcion"; r.value=id;
+          lab.appendChild(r);
+          lab.appendChild(document.createTextNode(` Oferta – ${o.descripcion}: ${money(pu)}`));
+          li.appendChild(lab);
+          el("m-precios").appendChild(li);
+        });
+      }
+
+      el("overlay").style.display="flex";
+    }
+
+    function closeModal(){
+      el("overlay").style.display="none";
+      selProducto=null; opciones=[];
+    }
+
+    function onCustomInput(){
+      if(!selProducto) return;
+      const val=parseFloat((el("m-custom").value||"").replace(",","."));
+      if(isNaN(val)||val<=0){
+        el("m-custom-info").textContent="";
+        el("m-custom-label").textContent="Usar precio personalizado";
+        return;
+      }
+      const costo=selProducto.costo;
+      if(val<=costo){
+        el("m-custom-info").textContent="No se puede vender abajo del costo.";
+        el("m-custom-info").style.color="#b91c1c";
+        el("m-custom-label").textContent="Precio personalizado (no válido)";
+      }else{
+        const m=((val-costo)/costo)*100;
+        el("m-custom-info").textContent="Margen estimado: "+(Math.round(m*10)/10).toFixed(1)+" %";
+        el("m-custom-info").style.color="#15803d";
+        el("m-custom-label").textContent="Precio personalizado: "+money(val);
+      }
+    }
+
+    function addToPedido(){
+      if(!selProducto) return;
+
+      const radios=document.querySelectorAll('input[name="m-opcion"]');
+      let opcionId=null;
+      radios.forEach(r=>{ if(r.checked) opcionId=r.value; });
+      if(!opcionId && radios.length) opcionId=radios[0].value;
+      if(!opcionId){ alert("Selecciona un precio."); return; }
+
+      let pu=null;
+      if(opcionId==="custom"){
+        const val=parseFloat((el("m-custom").value||"").replace(",","."));
+        if(isNaN(val)||val<=0){ alert("Precio personalizado inválido."); return; }
+        if(val<=selProducto.costo){ alert("No se puede vender abajo del costo."); return; }
+        pu=Math.round(val*100)/100;
+      }else{
+        const opt=opciones.find(o=>o.id===opcionId);
+        if(!opt){ alert("Precio inválido."); return; }
+        pu=opt.precioUnit;
+      }
+
+      let cant=parseInt(el("m-cant").value,10);
+      if(isNaN(cant)||cant<1) cant=1;
+
+      const subtotal=Math.round(pu*cant*100)/100;
+
+      pedido.push({
+        id: selProducto.id,
+        categoria: selProducto.categoria||"Sin categoría",
+        descripcion: selProducto.descripcion,
+        cantidad: cant,
+        precioUnit: pu,
+        costoUnit: selProducto.costo,
+        subtotal
+      });
+
+      renderPedido();
+      closeModal();
+    }
+
+    // Confirmar pedido -> guarda en período
+    function confirmarPedido(){
+      if(!clienteValido()){
+        alert("Falta Nombre o Dirección del cliente.");
+        return;
+      }
+      if(pedido.length===0){
+        alert("No hay productos en el pedido.");
+        return;
+      }
+
+      const per=getPeriodo();
+      const venta=Math.round(totalPedido()*100)/100;
+      const util=Math.round(utilidadPedido()*100)/100;
+      const margen=venta>0 ? Math.round((util/venta)*1000)/10 : 0;
+
+      const order={
+        orderId:"ORD-"+Date.now(),
+        createdISO: nowISO(),
+        cliente:{
+          nombre: el("cliente-nombre").value.trim(),
+          direccion: el("cliente-direccion").value.trim()
+        },
+        notas:(pedidoNotas||"").trim(),
+        items: pedido.map(it=>({
+          id: it.id,
+          categoria: it.categoria,
+          descripcion: it.descripcion,
+          cantidad: it.cantidad,
+          precioUnit: it.precioUnit,
+          costoUnit: it.costoUnit,
+          subtotal: it.subtotal,
+          utilidad: Math.round(((it.precioUnit-it.costoUnit)*it.cantidad)*100)/100
+        })),
+        totals:{ venta, utilidad: util, margenPct: margen }
+      };
+
+      per.orders.push(order);
+      setPeriodo(per);
+
+      pedido=[];
+      pedidoNotas="";
+      el("pedido-notas").value="";
+      el("status-guardado").textContent="✅ Pedido guardado en el período.";
+      renderPedido();
+      renderReporte();
+    }
+
+    function copiarResumen(){
+      if(pedido.length===0){ alert("No hay pedido para copiar."); return; }
+      const nombre=el("cliente-nombre").value.trim();
+      const dir=el("cliente-direccion").value.trim();
+
+      let txt="📦 PEDIDO\n\n";
+      txt += `👤 ${nombre}\n📍 ${dir}\n\n`;
+
+      let total=0;
+      pedido.forEach(it=>{
+        total += it.subtotal;
+        txt += `- ${it.descripcion}\n`;
+        txt += `  Pz: ${it.cantidad}  |  PU: ${money(it.precioUnit)}  |  Importe: ${money(it.subtotal)}\n\n`;
+      });
+      total=Math.round(total*100)/100;
+      txt += "====================\n";
+      txt += `TOTAL: ${money(total)}\n`;
+
+      if((pedidoNotas||"").trim()){
+        txt += "====================\n";
+        txt += `📝 Notas: ${(pedidoNotas||"").trim()}\n`;
+      }
+
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(
+          ()=>alert("Resumen copiado. Pégalo en WhatsApp."),
+          ()=>fallbackCopy(txt)
+        );
+      }else fallbackCopy(txt);
+    }
+
+    function fallbackCopy(texto){
+      const o=document.createElement("div");
+      o.className="overlay"; o.style.display="flex";
+      const m=document.createElement("div");
+      m.className="modal";
+      const p=document.createElement("div");
+      p.style.fontWeight="900"; p.style.marginBottom="6px";
+      p.textContent="Copia este texto:";
+      const ta=document.createElement("textarea");
+      ta.value=texto; ta.rows=10;
+      const b=document.createElement("button");
+      b.className="btn btn-primary"; b.style.marginTop="8px"; b.textContent="Cerrar";
+      b.onclick=()=>document.body.removeChild(o);
+      m.appendChild(p); m.appendChild(ta); m.appendChild(b);
+      o.appendChild(m); document.body.appendChild(o);
+      ta.focus(); ta.select();
+    }
+
+    // Reporte período
+    function renderReporte(){
+      const per=getPeriodo();
+      el("periodo-info").textContent=`Período iniciado: ${shortDT(per.startISO)} | Pedidos: ${per.orders.length}`;
+
+      const totalVentas=Math.round(per.orders.reduce((a,o)=>a+(o.totals?.venta||0),0)*100)/100;
+      const totalUtil=Math.round(per.orders.reduce((a,o)=>a+(o.totals?.utilidad||0),0)*100)/100;
+      const margen=totalVentas>0 ? Math.round((totalUtil/totalVentas)*1000)/10 : 0;
+
+      el("kpis").innerHTML=`
+        <div class="kpi"><div class="t">Pedidos</div><div class="v">${per.orders.length}</div></div>
+        <div class="kpi"><div class="t">Ventas</div><div class="v">${money(totalVentas)}</div></div>
+        <div class="kpi"><div class="t">Utilidad</div><div class="v">${money(totalUtil)}</div></div>
+        <div class="kpi"><div class="t">Margen prom.</div><div class="v">${margen.toFixed(1)}%</div></div>
+      `;
+
+      const tb=el("tabla");
+      tb.innerHTML="";
+      if(per.orders.length===0){
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td colspan="5" class="muted">Aún no hay pedidos confirmados en este período.</td>`;
+        tb.appendChild(tr);
+        return;
+      }
+
+      per.orders.forEach((o, idx)=>{
+        const venta=o.totals?.venta||0;
+        const util=o.totals?.utilidad||0;
+        const m=o.totals?.margenPct ?? (venta>0?(util/venta*100):0);
+
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td>${idx+1}<br><span class="muted">${shortDT(o.createdISO)}</span></td>
+          <td>${o.cliente?.nombre||"—"}<br><span class="muted">${o.cliente?.direccion||""}</span></td>
+          <td>${money(venta)}</td>
+          <td>${money(util)}</td>
+          <td>${Number(m).toFixed(1)}%</td>
+        `;
+        tb.appendChild(tr);
+      });
+    }
+
+    function iniciarPeriodoReset(){
+      if(!confirm("Esto borrará TODOS los pedidos guardados en el período actual. ¿Seguro?")) return;
+      setPeriodo({ startISO: nowISO(), orders: [] });
+      renderReporte();
+      alert("Período reiniciado.");
+    }
+
+    function exportarCSV(){
+      const per=getPeriodo();
+      const filas=[];
+      filas.push("PeriodoInicio,PedidoFechaHora,Cliente,Direccion,Venta,Utilidad,MargenPct,Notas");
+      const clean=(s)=>String(s||"").replace(/[\n\r]/g," ").replace(/,/g," ");
+      per.orders.forEach(o=>{
+        const venta=o.totals?.venta||0;
+        const util=o.totals?.utilidad||0;
+        const m=o.totals?.margenPct ?? (venta>0?(util/venta*100):0);
+        filas.push([
+          per.startISO,
+          o.createdISO,
+          clean(o.cliente?.nombre),
+          clean(o.cliente?.direccion),
+          venta.toFixed(2),
+          util.toFixed(2),
+          Number(m).toFixed(1),
+          clean(o.notas)
+        ].join(","));
+      });
+
+      const blob=new Blob([filas.join("\n")],{type:"text/csv;charset=utf-8;"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url; a.download="Reporte_Periodo.csv";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function updateProductosStatus(){
+      el("status-productos").textContent = productos.length ? `Productos cargados: ${productos.length}` : "Sin productos cargados.";
+      el("buscador").disabled = productos.length===0;
+    }
+    function updateOfertasStatus(){
+      const total = Object.values(ofertasPorId||{}).reduce((a,arr)=>a+(arr?.length||0),0);
+      el("status-ofertas").textContent = total ? `Ofertas cargadas: ${total}` : "Sin ofertas cargadas.";
+    }
+
+    document.addEventListener("DOMContentLoaded",()=>{
+      updateProductosStatus();
+      updateOfertasStatus();
+      construirCategorias();
+      renderPedido();
+      renderReporte();
+
+      el("archivo-productos").addEventListener("change",(e)=>{
+        const file=e.target.files[0]; if(!file) return;
+        el("status-productos").textContent="Cargando productos...";
+        const r=new FileReader();
+        r.onload=(ev)=>{
+          try{
+            productos=parseProductosCSV(ev.target.result);
+            saveJSON(LS_PRODUCTS, productos);
+            updateProductosStatus();
+            construirCategorias();
+            el("categoria-select").value="";
+            el("categoria-buscador").value="";
+            ocultarResultados();
+            el("buscador").value="";
+            el("buscador").focus();
+          }catch(err){
+            console.error(err);
+            el("status-productos").textContent="Error al leer productos.";
+          }
+        };
+        r.onerror=()=>el("status-productos").textContent="Error al leer el archivo.";
+        r.readAsText(file,"UTF-8");
+      });
+
+      el("archivo-ofertas").addEventListener("change",(e)=>{
+        const file=e.target.files[0]; if(!file) return;
+        el("status-ofertas").textContent="Cargando ofertas...";
+        const r=new FileReader();
+        r.onload=(ev)=>{
+          try{
+            ofertasPorId=parseOfertasCSV(ev.target.result);
+            saveJSON(LS_OFFERS, ofertasPorId);
+            updateOfertasStatus();
+            renderCategoria(); // refresca catálogo si está abierto
+          }catch(err){
+            console.error(err);
+            el("status-ofertas").textContent="Error al leer ofertas.";
+          }
+        };
+        r.onerror=()=>el("status-ofertas").textContent="Error al leer el archivo.";
+        r.readAsText(file,"UTF-8");
+      });
+
+      el("buscador").addEventListener("input",(e)=>buscar(e.target.value));
+      el("btn-ver-ofertas").addEventListener("click",mostrarOfertas);
+      el("btn-ocultar").addEventListener("click",ocultarResultados);
+
+      // Categorías
+      el("categoria-select").addEventListener("change",renderCategoria);
+      el("categoria-buscador").addEventListener("input",renderCategoria);
+      el("btn-cat-todos").addEventListener("click",verTodosCategoria);
+      el("btn-cat-ocultar").addEventListener("click",ocultarCategoria);
+
+      el("pedido-notas").addEventListener("input",(e)=>{ pedidoNotas=e.target.value; });
+
+      el("btn-vaciar").addEventListener("click",()=>{
+        if(pedido.length===0) return;
+        if(confirm("¿Vaciar el pedido actual?")){
+          pedido=[]; pedidoNotas=""; el("pedido-notas").value="";
+          renderPedido();
+        }
+      });
+      el("btn-copiar").addEventListener("click",copiarResumen);
+      el("btn-confirmar").addEventListener("click",confirmarPedido);
+
+      el("btn-iniciar-periodo").addEventListener("click",iniciarPeriodoReset);
+      el("btn-exportar").addEventListener("click",exportarCSV);
+
+      el("m-cancel").addEventListener("click",closeModal);
+      el("overlay").addEventListener("click",(e)=>{ if(e.target.id==="overlay") closeModal(); });
+      el("m-add").addEventListener("click",addToPedido);
+      el("m-custom").addEventListener("input",onCustomInput);
+      el("m-custom").addEventListener("focus",()=>{ el("m-custom-radio").checked=true; });
+
+      el("cliente-nombre").addEventListener("input",renderPedido);
+      el("cliente-direccion").addEventListener("input",renderPedido);
+    });
+  </script>
+</body>
+</html>
