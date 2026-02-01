@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Pedidos Mayoreo</title>
   <style>
     :root{
@@ -14,20 +14,23 @@
     body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
     .app{max-width:640px;margin:0 auto;padding:14px}
     h1{font-size:18px;margin:6px 0 12px;text-align:center}
+
     details{background:var(--card);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:10px;overflow:hidden;border:1px solid rgba(0,0,0,.04)}
-    summary{list-style:none;cursor:pointer;padding:12px 12px;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    summary{list-style:none;cursor:pointer;padding:12px 12px;font-weight:900;display:flex;align-items:center;justify-content:space-between;gap:10px}
     summary::-webkit-details-marker{display:none}
     .chev{opacity:.6;font-weight:900;transition:transform .2s}
     details[open] .chev{transform:rotate(90deg)}
     .content{padding:12px;border-top:1px solid var(--line)}
     .row{display:flex;gap:10px;flex-wrap:wrap}
     .col{flex:1;min-width:180px}
-    label{display:block;font-size:12.5px;color:var(--muted);font-weight:700;margin:8px 0 6px}
+    label{display:block;font-size:12.5px;color:var(--muted);font-weight:800;margin:8px 0 6px}
+
     input[type="text"], input[type="number"], select, textarea{
       width:100%; padding:10px 12px; font-size:16px; border:1px solid #d1d5db; border-radius:10px; outline:none; background:#fff;
     }
     input:focus, textarea:focus, select:focus{border-color:var(--primary)}
     textarea{min-height:70px;resize:vertical}
+
     .btn{
       border:0; border-radius:10px; padding:10px 12px; font-weight:900; cursor:pointer;
       background:var(--primary); color:#fff; font-size:15px;
@@ -40,21 +43,25 @@
     .ok{color:var(--ok);font-weight:900}
     .err{color:var(--danger);font-weight:900}
     .pill{display:inline-block;background:var(--chip);color:var(--chipText);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:900}
-    .card{
-      background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;
-    }
+    .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
     .list{display:flex;flex-direction:column;gap:10px}
+
+    /* === Tarjeta producto (toda clicable) === */
     .item{
       border:1px solid var(--line); border-radius:12px; padding:10px; background:#fff;
       display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
     }
+    .item:active{transform:scale(.99)}
     .item .left{flex:1}
-    .item .desc{font-weight:900}
+    .item .desc{font-weight:1000}
     .item .sub{margin-top:4px;font-size:12.5px;color:var(--muted)}
     .item .sub strong{color:#111827}
     .item .note{margin-top:4px;font-size:12.5px;color:var(--muted)}
     .item .right{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
     .item .offerTag{background:#fee2e2;color:#991b1b;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:900}
+
     .hr{height:1px;background:var(--line);margin:10px 0}
     .mini{font-size:12px;color:var(--muted)}
     .kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -65,8 +72,49 @@
     th{position:sticky;top:0;background:#fff;text-align:left}
     .twrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
     .hint{font-size:12px;color:var(--muted);margin-top:6px}
-    .warnBox{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px;border-radius:12px;font-weight:800}
+    .warnBox{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px;border-radius:12px;font-weight:900}
     .errorBox{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px;border-radius:12px;font-weight:900}
+
+    /* ======= MODAL MOBILE (iPhone safe) ======= */
+    body.modal-open{
+      overflow:hidden;
+      position:fixed;
+      width:100%;
+    }
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:1000;
+      display:none;
+      justify-content:center;
+      align-items:flex-end; /* sheet style */
+      padding:14px;
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
+    }
+    .modal-backdrop{
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,.45);
+    }
+    .modal-content{
+      position:relative;
+      width:100%;
+      max-width:640px;
+      background:#fff;
+      border-radius:16px 16px 0 0;
+      overflow:hidden;
+      box-shadow:0 12px 40px rgba(0,0,0,.25);
+      max-height: 90vh;              /* 🔥 clave */
+      overflow-y:auto;               /* 🔥 clave */
+      -webkit-overflow-scrolling:touch; /* 🔥 clave */
+    }
+    .modal-header{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:12px;
+      border-bottom:1px solid #eee;
+      position:sticky; top:0; background:#fff; z-index:2;
+    }
+    .modal-body{padding:12px}
   </style>
 </head>
 <body>
@@ -75,12 +123,8 @@
 
   <div id="globalError" style="display:none" class="errorBox"></div>
 
-  <!-- 0) Cliente -->
   <details open>
-    <summary>
-      <span>0) Cliente</span>
-      <span class="chev">›</span>
-    </summary>
+    <summary><span>0) Cliente</span><span class="chev">›</span></summary>
     <div class="content">
       <div class="row">
         <div class="col">
@@ -92,7 +136,6 @@
           <input id="clienteDir" type="text" placeholder="Ej. Calle 5 de Mayo #852" />
         </div>
       </div>
-
       <div class="row" style="margin-top:8px">
         <div class="col">
           <label>Crédito (opcional)</label>
@@ -100,18 +143,14 @@
             <option value="no" selected>No</option>
             <option value="si">Sí</option>
           </select>
-          <div class="hint">Si es “No”, no se mostrará nada de crédito en el WhatsApp/reporte.</div>
+          <div class="hint">Si es “No”, no se mostrará nada de crédito en WhatsApp.</div>
         </div>
       </div>
     </div>
   </details>
 
-  <!-- 1) Productos y ofertas -->
   <details open>
-    <summary>
-      <span>1) Productos y ofertas</span>
-      <span class="chev">›</span>
-    </summary>
+    <summary><span>1) Productos y ofertas</span><span class="chev">›</span></summary>
     <div class="content">
       <div class="row">
         <div class="col">
@@ -134,23 +173,18 @@
       </div>
 
       <div id="panelOfertas" class="card" style="display:none">
-        <div style="font-weight:900">Ofertas cargadas</div>
+        <div style="font-weight:1000">Ofertas cargadas</div>
         <div id="listaOfertas" class="muted" style="margin-top:6px">—</div>
       </div>
 
       <div class="warnBox" style="margin-top:10px">
-        Tip: Tu archivo real funciona aunque el header sea “ARTICULO, DESCRIPCION, Costo Ultimo”.
-        Este sistema los detecta automáticamente.
+        Tip: Detecta headers como “ARTICULO, DESCRIPCION, Costo Ultimo” automáticamente.
       </div>
     </div>
   </details>
 
-  <!-- 2) Buscar -->
   <details open>
-    <summary>
-      <span>2) Buscar producto</span>
-      <span class="chev">›</span>
-    </summary>
+    <summary><span>2) Buscar producto</span><span class="chev">›</span></summary>
     <div class="content">
       <label>Buscar (ej. “fabu”, “850”, “vanish”)</label>
       <input id="buscador" type="text" placeholder="Escribe aquí..." disabled />
@@ -163,12 +197,8 @@
     </div>
   </details>
 
-  <!-- 3) Catálogo por categoría -->
   <details>
-    <summary>
-      <span>3) Catálogo por categoría</span>
-      <span class="chev">›</span>
-    </summary>
+    <summary><span>3) Catálogo por categoría</span><span class="chev">›</span></summary>
     <div class="content">
       <div class="row">
         <div class="col">
@@ -187,12 +217,8 @@
     </div>
   </details>
 
-  <!-- 4) Pedido actual -->
   <details open>
-    <summary>
-      <span>4) Pedido actual</span>
-      <span class="chev">›</span>
-    </summary>
+    <summary><span>4) Pedido actual</span><span class="chev">›</span></summary>
     <div class="content">
       <div class="muted" id="clienteResumen">Cliente: —</div>
       <div class="hr"></div>
@@ -215,16 +241,12 @@
         <button class="btn" id="btnCopiarWhats" type="button">Copiar pedido para WhatsApp</button>
         <button class="btn secondary" id="btnConfirmar" type="button">Confirmar pedido</button>
       </div>
-      <div class="hint">Confirmar pedido lo guarda en memoria del período (hasta que cierres/recargues la página).</div>
+      <div class="hint">Confirmar guarda el pedido en memoria del período (hasta recargar/cerrar).</div>
     </div>
   </details>
 
-  <!-- 5) Reporte del período -->
   <details>
-    <summary>
-      <span>5) Reporte del período</span>
-      <span class="chev">›</span>
-    </summary>
+    <summary><span>5) Reporte del período</span><span class="chev">›</span></summary>
     <div class="content">
       <div class="row">
         <button class="btn ghost" id="btnGenerarReporte" type="button">Generar reporte</button>
@@ -236,53 +258,48 @@
       </div>
     </div>
   </details>
-
 </div>
 
-<!-- Modal Selección de precio -->
-<div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); padding:14px;">
-  <div style="max-width:640px; margin:40px auto 0; background:#fff; border-radius:14px; overflow:hidden;">
-    <div style="padding:12px 12px; font-weight:1000; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee;">
-      <div>Producto seleccionado</div>
+<!-- MODAL -->
+<div id="modalProducto" class="modal">
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-content" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div style="font-weight:1000">Producto seleccionado</div>
       <button class="btn ghost small" id="btnCerrarModal" type="button">Cerrar</button>
     </div>
-    <div style="padding:12px" id="modalBody"></div>
+    <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
 
 <script>
-/* ============ Guard rails para iPhone/Safari ============ */
 (function(){
   try {
     window.addEventListener("error", function(e){
       const box = document.getElementById("globalError");
       box.style.display = "block";
-      box.textContent = "Error al iniciar: " + (e?.message || "desconocido");
+      box.textContent = "Error: " + (e?.message || "desconocido");
     });
   } catch(_) {}
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
-  /* ========= Estado ========= */
   let productos = []; // {id, descripcion, costo, categoria}
   let ofertasMap = new Map(); // id -> array [{precioOferta, descOferta}]
-  let pedidosConfirmados = []; // período en memoria
-  let pedidoActual = { items: [], notaGeneral: "" };
+  let pedidosConfirmados = [];
+  let pedidoActual = { items: [] };
 
   const MARGEN_PZA = 0.11;
   const MARGEN_MEDIA = 0.065;
   const MARGEN_CAJA = 0.04;
 
-  /* ========= Utilidades ========= */
   const $ = (id) => document.getElementById(id);
   const money = (n) => "$" + (Number(n || 0)).toFixed(2);
 
   function escapeHtml(str) {
     return String(str ?? "")
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;")
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;")
       .replace(/'/g,"&#039;");
   }
 
@@ -294,25 +311,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function toNumberLoose(x){
     const s = String(x ?? "").trim()
-      .replace(/\$/g,"")
-      .replace(/ /g,"")
-      .replace(/\./g, ".")
+      .replace(/\$/g,"").replace(/ /g,"")
       .replace(/,/g,".");
     const n = parseFloat(s);
     return isNaN(n) ? 0 : n;
   }
 
-  function calcPrecio(costo, margen){
-    return +(Number(costo) * (1 + margen)).toFixed(2);
-  }
-
+  function calcPrecio(costo, margen){ return +(Number(costo) * (1 + margen)).toFixed(2); }
   function calcMargenPct(costo, precio){
     costo = Number(costo); precio = Number(precio);
     if (!precio || precio <= 0) return 0;
     return +(((precio - costo) / precio) * 100).toFixed(1);
   }
 
-  /* ========= CSV Parser robusto (delimiter + quotes) ========= */
   function detectDelimiter(text){
     const head = (text || "").split(/\r?\n/).slice(0,3).join("\n");
     const counts = [",",";","\t"].map(d => (head.match(new RegExp("\\"+d,"g")) || []).length);
@@ -327,12 +338,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let i = 0, cur = "", inQ = false;
     let row = [];
 
-    function pushCell(){
-      row.push(cur);
-      cur = "";
-    }
+    function pushCell(){ row.push(cur); cur = ""; }
     function pushRow(){
-      // ignora filas completamente vacías
       if (row.some(c => String(c).trim() !== "")) rows.push(row);
       row = [];
     }
@@ -344,18 +351,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (inQ && text[i+1] === '"'){ cur += '"'; i += 2; continue; }
         inQ = !inQ; i++; continue;
       }
-
       if (!inQ && (ch === "\n" || ch === "\r")){
         pushCell(); pushRow();
-        // consume \r\n
         if (ch === "\r" && text[i+1] === "\n") i += 2; else i++;
         continue;
       }
-
-      if (!inQ && ch === delim){
-        pushCell(); i++; continue;
-      }
-
+      if (!inQ && ch === delim){ pushCell(); i++; continue; }
       cur += ch; i++;
     }
     pushCell(); pushRow();
@@ -364,9 +365,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function normalizeHeader(h){
     return String(h || "")
-      .trim()
-      .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g,"") // quita acentos
+      .trim().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
       .replace(/[^a-z0-9 ]/g,"")
       .replace(/\s+/g," ");
   }
@@ -390,7 +390,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ========= Carga Productos ========= */
   async function cargarProductos(file){
     const text = await readFileAsText(file);
     const data = parseCSV(text);
@@ -398,12 +397,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const headers = data[0].map(h => String(h || "").trim());
     const idxId = findHeaderIndex(headers, ["id","articulo","sku","codigo"]);
-    const idxDesc = findHeaderIndex(headers, ["descripcion","descripci�n","descripcio n","descripcion producto","producto","nombre","descripcionarticulo","descripcion articulo","descrip"]);
-    const idxCosto = findHeaderIndex(headers, ["costo","costo ultimo","costoultimo","costoúltimo","ultimocosto","costo unit","costo unitario","costo base"]);
-    const idxCat = findHeaderIndex(headers, ["categoria","categoría","departamento","rubro","familia"]);
+    const idxDesc = findHeaderIndex(headers, ["descripcion","producto","nombre","descripcion articulo","descripcionarticulo","descrip"]);
+    const idxCosto = findHeaderIndex(headers, ["costo","costo ultimo","costoultimo","costo unitario","costo base","ultimo costo"]);
+    const idxCat = findHeaderIndex(headers, ["categoria","departamento","rubro","familia"]);
 
     if (idxDesc === -1 || idxCosto === -1){
-      throw new Error("No encontré columnas de Descripción y Costo. Asegúrate que existan (ej. DESCRIPCION y Costo Ultimo).");
+      throw new Error("No encontré columnas de Descripción y Costo.");
     }
 
     const out = [];
@@ -412,14 +411,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const desc = String(row[idxDesc] ?? "").trim();
       const costo = toNumberLoose(row[idxCosto]);
       if (!desc || costo <= 0) continue;
-
       const id = idxId !== -1 ? normId(row[idxId]) : normId(desc);
       const cat = idxCat !== -1 ? String(row[idxCat] ?? "").trim() : "";
-
       out.push({ id, descripcion: desc, costo, categoria: cat });
     }
 
-    // dedup por id+desc (por si se repiten)
     const seen = new Set();
     productos = out.filter(p => {
       const k = p.id + "||" + p.descripcion;
@@ -434,10 +430,9 @@ document.addEventListener("DOMContentLoaded", () => {
     $("filtroCat").disabled = productos.length === 0;
 
     buildCategoriasUI();
-    renderResultados(""); // limpia
+    renderResultados($("buscador").value || "");
   }
 
-  /* ========= Carga Ofertas ========= */
   async function cargarOfertas(file){
     const text = await readFileAsText(file);
     const data = parseCSV(text);
@@ -445,8 +440,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const headers = data[0].map(h => String(h || "").trim());
     const idxId = findHeaderIndex(headers, ["id","articulo","sku","codigo"]);
-    const idxPrecio = findHeaderIndex(headers, ["preciooferta","precio oferta","oferta","precio","precio_promocion","preciopromo"]);
-    const idxDesc = findHeaderIndex(headers, ["descripcionoferta","descripcion oferta","ofertadescripcion","nota","descripcion"]);
+    const idxPrecio = findHeaderIndex(headers, ["preciooferta","precio oferta","oferta","precio","preciopromo","precio promocion"]);
+    const idxDesc = findHeaderIndex(headers, ["descripcionoferta","descripcion oferta","nota","descripcion"]);
 
     if (idxId === -1 || idxPrecio === -1){
       throw new Error("Ofertas: faltan columnas ID y PrecioOferta.");
@@ -466,7 +461,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ofertasMap = map;
     $("statusOfertas").innerHTML = `<span class="ok">Ofertas cargadas:</span> ${countOfertas()} (SKUs con oferta: ${ofertasMap.size})`;
     refreshPanelOfertas();
-    // refresca resultados actuales
     renderResultados($("buscador").value || "");
   }
 
@@ -489,57 +483,33 @@ document.addEventListener("DOMContentLoaded", () => {
     $("listaOfertas").innerHTML = lines.length ? lines.map(escapeHtml).join("<br>") : "—";
   }
 
-  /* ========= UI: Categorías ========= */
-  function buildCategoriasUI(){
-    const set = new Set();
-    for (const p of productos){
-      const c = (p.categoria || "").trim();
-      if (c) set.add(c);
-    }
-    const cats = Array.from(set).sort((a,b) => a.localeCompare(b));
-    const sel = $("selectCategoria");
-    sel.innerHTML = `<option value="">—</option>` + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-    $("infoCat").textContent = cats.length ? `Categorías: ${cats.length}` : "Tu CSV no trae categoría. (Puedes agregar una columna CATEGORIA).";
-    renderCategoria();
+  function minOferta(id){
+    const arr = ofertasMap.get(id) || [];
+    let m = Infinity;
+    for (const o of arr) m = Math.min(m, Number(o.precioOferta));
+    return isFinite(m) ? m : 0;
   }
 
-  function renderCategoria(){
-    const cat = $("selectCategoria").value || "";
-    const filtro = ($("filtroCat").value || "").trim().toLowerCase();
-    const box = $("listaCat");
-    box.innerHTML = "";
-
-    if (!productos.length){
-      box.innerHTML = `<div class="muted">Carga productos primero.</div>`;
-      return;
-    }
-    if (!cat){
-      box.innerHTML = `<div class="muted">Selecciona una categoría.</div>`;
-      return;
-    }
-
-    const list = productos.filter(p => (p.categoria || "") === cat)
-      .filter(p => !filtro || p.descripcion.toLowerCase().includes(filtro));
-
-    $("infoCat").textContent = `${list.length} artículo(s) en "${cat}"`;
-
-    for (const p of list.slice(0, 200)){
-      box.appendChild(buildProductCard(p));
-    }
-    if (list.length > 200){
-      const more = document.createElement("div");
-      more.className = "muted";
-      more.textContent = "Mostrando 200. Usa el filtro para afinar.";
-      box.appendChild(more);
-    }
+  /* ======= MODAL OPEN/CLOSE (fix scroll iPhone) ======= */
+  function abrirModal(){
+    document.body.classList.add("modal-open");
+    $("modalProducto").style.display = "flex";
+  }
+  function cerrarModal(){
+    document.body.classList.remove("modal-open");
+    $("modalProducto").style.display = "none";
+    $("modalBody").innerHTML = "";
   }
 
-  /* ========= Buscador ========= */
+  $("btnCerrarModal").addEventListener("click", cerrarModal);
+  $("modalBackdrop").addEventListener("click", cerrarModal);
+
   function buildProductCard(p){
     const div = document.createElement("div");
     div.className = "item";
     const hasOffer = ofertasMap.has(p.id);
     const offerText = hasOffer ? `Oferta desde ${money(minOferta(p.id))}` : "";
+
     div.innerHTML = `
       <div class="left">
         <div class="desc">${escapeHtml(p.descripcion)}</div>
@@ -547,18 +517,20 @@ document.addEventListener("DOMContentLoaded", () => {
         ${hasOffer ? `<div class="sub"><span class="offerTag">OFERTA</span> <span class="muted">${escapeHtml(offerText)}</span></div>` : ``}
       </div>
       <div class="right">
-        <button class="btn small" type="button">Ver precios</button>
+        <button class="btn small ghost" type="button">Ver precios</button>
       </div>
     `;
-    div.querySelector("button").addEventListener("click", () => abrirModalPrecios(p));
-    return div;
-  }
 
-  function minOferta(id){
-    const arr = ofertasMap.get(id) || [];
-    let m = Infinity;
-    for (const o of arr) m = Math.min(m, Number(o.precioOferta));
-    return isFinite(m) ? m : 0;
+    // ✅ Ahora: toda la tarjeta abre el modal
+    div.addEventListener("click", () => abrirModalPrecios(p));
+
+    // Evita doble click raro: si tocan el botón, también abre (pero no dispara dos veces)
+    div.querySelector("button").addEventListener("click", (e) => {
+      e.stopPropagation();
+      abrirModalPrecios(p);
+    });
+
+    return div;
   }
 
   function renderResultados(q){
@@ -575,20 +547,44 @@ document.addEventListener("DOMContentLoaded", () => {
       box.innerHTML = `<div class="muted">No se encontraron productos.</div>`;
       return;
     }
-    for (const p of list){
-      box.appendChild(buildProductCard(p));
-    }
-    if (productos.filter(p => p.descripcion.toLowerCase().includes(query)).length > 80){
-      const more = document.createElement("div");
-      more.className = "muted";
-      more.textContent = "Mostrando 80. Escribe más para filtrar.";
-      box.appendChild(more);
-    }
+    for (const p of list){ box.appendChild(buildProductCard(p)); }
   }
 
-  /* ========= Modal de precios ========= */
+  function buildCategoriasUI(){
+    const set = new Set();
+    for (const p of productos){
+      const c = (p.categoria || "").trim();
+      if (c) set.add(c);
+    }
+    const cats = Array.from(set).sort((a,b) => a.localeCompare(b));
+    const sel = $("selectCategoria");
+    sel.innerHTML = `<option value="">—</option>` + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    $("infoCat").textContent = cats.length ? `Categorías: ${cats.length}` : "Tu CSV no trae categoría. (Agrega columna CATEGORIA).";
+    renderCategoria();
+  }
+
+  function renderCategoria(){
+    const cat = $("selectCategoria").value || "";
+    const filtro = ($("filtroCat").value || "").trim().toLowerCase();
+    const box = $("listaCat");
+    box.innerHTML = "";
+    if (!productos.length){
+      box.innerHTML = `<div class="muted">Carga productos primero.</div>`;
+      return;
+    }
+    if (!cat){
+      box.innerHTML = `<div class="muted">Selecciona una categoría.</div>`;
+      return;
+    }
+    const list = productos.filter(p => (p.categoria || "") === cat)
+      .filter(p => !filtro || p.descripcion.toLowerCase().includes(filtro))
+      .slice(0, 200);
+
+    $("infoCat").textContent = `${list.length} artículo(s) en "${cat}"`;
+    for (const p of list){ box.appendChild(buildProductCard(p)); }
+  }
+
   function abrirModalPrecios(p){
-    const modal = $("modal");
     const body = $("modalBody");
 
     const p1 = calcPrecio(p.costo, MARGEN_PZA);
@@ -606,7 +602,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ` : "";
 
     body.innerHTML = `
-      <div style="font-weight:1000;font-size:16px">${escapeHtml(p.descripcion)}</div>
+      <div style="font-weight:1000;font-size:18px">${escapeHtml(p.descripcion)}</div>
       <div class="muted" style="margin-top:4px">ID: <strong>${escapeHtml(p.id)}</strong></div>
 
       <div class="hr"></div>
@@ -616,7 +612,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <div class="card">
         <label style="margin-top:0">Precio</label>
-        <div style="display:flex; flex-direction:column; gap:8px">
+        <div style="display:flex; flex-direction:column; gap:10px">
           <label style="display:flex; gap:10px; align-items:center; margin:0">
             <input type="radio" name="nivel" value="p1" checked />
             <span>Pieza: <strong>${money(p1)}</strong></span>
@@ -655,14 +651,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <input id="notaLinea" type="text" placeholder="Ej. 2 lavanda + 3 primavera, surtido..." />
       </div>
 
-      <div class="row" style="margin-top:10px">
-        <button class="btn" id="btnAgregar" type="button">Agregar al pedido</button>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="btnAgregar" type="button" style="width:100%">Agregar al pedido</button>
       </div>
-
-      <div class="hint">Las notas se verán en WhatsApp y en el reporte por artículo.</div>
+      <div class="hint">Las notas salen en WhatsApp y en el reporte por artículo.</div>
     `;
 
-    // Precio manual: cálculo de margen interno (no se muestra al cliente, pero sí al vendedor)
     const infoManual = body.querySelector("#infoManual");
     const inputManual = body.querySelector("#precioManual");
     const btnUsarManual = body.querySelector("#btnUsarManual");
@@ -684,7 +678,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     inputManual.addEventListener("input", refreshManualInfo);
-    refreshManualInfo();
 
     btnUsarManual.addEventListener("click", () => {
       const pm = toNumberLoose(inputManual.value);
@@ -693,33 +686,26 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("No se puede vender abajo del costo.");
         return;
       }
-      // marca una radio “virtual” seleccionando p1 pero guardamos manual en variable
       body.dataset.manual = String(pm);
       alert("Precio manual listo. Al agregar, se usará este precio.");
     });
 
-    // Agregar
     body.querySelector("#btnAgregar").addEventListener("click", () => {
       const qty = Math.max(1, parseInt(body.querySelector("#qty").value || "1", 10));
       const nota = (body.querySelector("#notaLinea").value || "").trim();
 
-      // Determinar precio elegido
       let precioUnit = 0;
-      let origen = "";
-
       const manual = body.dataset.manual ? toNumberLoose(body.dataset.manual) : 0;
+
       if (manual){
         if (manual < p.costo){
           alert("Precio manual inválido (menor al costo).");
           return;
         }
         precioUnit = +manual.toFixed(2);
-        origen = "manual";
       } else {
         const sel = body.querySelector('input[name="nivel"]:checked')?.value || "p1";
-        if (sel === "p2") { precioUnit = p2; origen = "media"; }
-        else if (sel === "p3") { precioUnit = p3; origen = "caja"; }
-        else { precioUnit = p1; origen = "pieza"; }
+        precioUnit = (sel === "p2") ? p2 : (sel === "p3") ? p3 : p1;
       }
 
       const subtotal = +(precioUnit * qty).toFixed(2);
@@ -733,28 +719,16 @@ document.addEventListener("DOMContentLoaded", () => {
         subtotal,
         costoUnit: p.costo,
         costoTotal,
-        nota,
-        origen
+        nota
       });
 
-      cerrarModal();
       renderPedido();
+      cerrarModal();
     });
 
-    modal.style.display = "block";
+    abrirModal();
   }
 
-  function cerrarModal(){
-    $("modal").style.display = "none";
-    $("modalBody").innerHTML = "";
-  }
-
-  $("btnCerrarModal").addEventListener("click", cerrarModal);
-  $("modal").addEventListener("click", (e) => {
-    if (e.target === $("modal")) cerrarModal();
-  });
-
-  /* ========= Pedido ========= */
   function renderClienteResumen(){
     const nom = ($("clienteNombre").value || "").trim();
     const dir = ($("clienteDir").value || "").trim();
@@ -774,18 +748,17 @@ document.addEventListener("DOMContentLoaded", () => {
       total += Number(it.subtotal || 0);
       costo += Number(it.costoTotal || 0);
     }
-    return {
-      total: +total.toFixed(2),
-      costo: +costo.toFixed(2),
-      utilidad: +(total - costo).toFixed(2),
-      margen: total > 0 ? +(((total - costo) / total) * 100).toFixed(1) : 0
-    };
+    total = +total.toFixed(2);
+    costo = +costo.toFixed(2);
+    const utilidad = +(total - costo).toFixed(2);
+    const margen = total > 0 ? +(((total - costo) / total) * 100).toFixed(1) : 0;
+    return { total, costo, utilidad, margen };
   }
 
   function renderPedido(){
     renderClienteResumen();
-
     const box = $("pedidoItems");
+
     if (!pedidoActual.items.length){
       box.className = "muted";
       box.textContent = "Aún no hay productos en el pedido.";
@@ -800,14 +773,13 @@ document.addEventListener("DOMContentLoaded", () => {
     pedidoActual.items.forEach((it, idx) => {
       const div = document.createElement("div");
       div.className = "item";
+      div.style.cursor = "default";
 
       const notaHtml = it.nota ? `<div class="note">📝 ${escapeHtml(it.nota)}</div>` : "";
       div.innerHTML = `
         <div class="left">
           <div class="desc">${escapeHtml(it.descripcion)}</div>
-          <div class="sub">
-            ${escapeHtml(it.id)} • ${it.qty} pza • ${money(it.precioUnit)} c/u • <strong>${money(it.subtotal)}</strong>
-          </div>
+          <div class="sub">${escapeHtml(it.id)} • ${it.qty} pza • ${money(it.precioUnit)} c/u • <strong>${money(it.subtotal)}</strong></div>
           ${notaHtml}
         </div>
         <div class="right">
@@ -818,7 +790,6 @@ document.addEventListener("DOMContentLoaded", () => {
         pedidoActual.items.splice(idx, 1);
         renderPedido();
       });
-
       wrap.appendChild(div);
     });
 
@@ -831,7 +802,6 @@ document.addEventListener("DOMContentLoaded", () => {
     $("utilidadPedidoMini").textContent = `Utilidad estimada: ${money(t.utilidad)} (${t.margen}% margen)`;
   }
 
-  /* ========= WhatsApp ========= */
   function buildWhatsAppText(){
     const nom = ($("clienteNombre").value || "").trim();
     const dir = ($("clienteDir").value || "").trim();
@@ -841,58 +811,39 @@ document.addEventListener("DOMContentLoaded", () => {
     const t = calcTotalesPedido();
     const lines = [];
     lines.push(`Pedido para: ${nom || "—"}${dir ? " — " + dir : ""}`);
-
-    if (cred){
-      lines.push(`Crédito: SÍ (7 días)`);
-    }
-
+    if (cred) lines.push(`Crédito: SÍ (7 días)`);
     lines.push("");
 
     for (const it of pedidoActual.items){
       lines.push(`- ${it.descripcion} x ${it.qty} = ${money(it.subtotal)}`);
-      if (it.nota) lines.push(`  Nota: ${it.nota}`);
-      // mostramos precio unitario (legible, sin decir “tipo”)
       lines.push(`  Precio: ${money(it.precioUnit)} c/u`);
+      if (it.nota) lines.push(`  Nota: ${it.nota}`);
       lines.push("");
     }
-
     lines.push(`Total: ${money(t.total)}`);
-
     if (notaGen){
       lines.push("");
       lines.push(`Notas del pedido: ${notaGen}`);
     }
-
     return lines.join("\n");
   }
 
   async function copiarTexto(txt){
-    // iOS a veces bloquea clipboard; hacemos fallback con prompt
     try{
       await navigator.clipboard.writeText(txt);
-      alert("Pedido copiado. Pégalo en WhatsApp.");
-      return;
+      alert("Copiado. Pégalo en WhatsApp.");
     } catch(e){
-      // fallback
-      prompt("No se pudo copiar automáticamente. Copia el texto:", txt);
+      prompt("No se pudo copiar automático. Copia el texto:", txt);
     }
   }
 
   $("btnCopiarWhats").addEventListener("click", () => {
-    if (!pedidoActual.items.length){
-      alert("No hay productos en el pedido.");
-      return;
-    }
+    if (!pedidoActual.items.length) return alert("No hay productos en el pedido.");
     copiarTexto(buildWhatsAppText());
   });
 
-  /* ========= Confirmar pedido (guardar período) ========= */
   $("btnConfirmar").addEventListener("click", () => {
-    if (!pedidoActual.items.length){
-      alert("No hay productos en el pedido.");
-      return;
-    }
-
+    if (!pedidoActual.items.length) return alert("No hay productos en el pedido.");
     const nom = ($("clienteNombre").value || "").trim();
     const dir = ($("clienteDir").value || "").trim();
     const cred = $("clienteCredito").value === "si";
@@ -907,83 +858,58 @@ document.addEventListener("DOMContentLoaded", () => {
       totales: t
     });
 
-    // limpia pedido actual
     pedidoActual.items = [];
     $("notaPedido").value = "";
     renderPedido();
-    alert("Pedido confirmado y guardado en el período.");
+    alert("Pedido confirmado y guardado.");
   });
 
-  /* ========= Reporte ========= */
   function agregacionPorArticulo(){
     const map = new Map();
     for (const ped of pedidosConfirmados){
       for (const it of (ped.items || [])){
         const key = String(it.id || it.descripcion);
         if (!map.has(key)){
-          map.set(key, {
-            id: it.id || "",
-            descripcion: it.descripcion || "",
-            unidades: 0,
-            ventas: 0,
-            costo: 0,
-            utilidad: 0,
-            notas: new Map()
-          });
+          map.set(key, { id: it.id||"", descripcion: it.descripcion||"", unidades:0, ventas:0, costo:0, utilidad:0, notas:new Map() });
         }
         const r = map.get(key);
-        r.unidades += Number(it.qty || 0);
-        r.ventas += Number(it.subtotal || 0);
-        r.costo += Number(it.costoTotal || 0);
-        r.utilidad += (Number(it.subtotal || 0) - Number(it.costoTotal || 0));
-
+        r.unidades += Number(it.qty||0);
+        r.ventas += Number(it.subtotal||0);
+        r.costo += Number(it.costoTotal||0);
+        r.utilidad += (Number(it.subtotal||0) - Number(it.costoTotal||0));
         if (it.nota){
           const n = it.nota.trim();
-          r.notas.set(n, (r.notas.get(n) || 0) + Number(it.qty || 0));
+          r.notas.set(n, (r.notas.get(n)||0) + Number(it.qty||0));
         }
       }
     }
-
-    const rows = Array.from(map.values()).map(r => ({
+    return Array.from(map.values()).map(r=>({
       ...r,
-      ventas: +r.ventas.toFixed(2),
-      costo: +r.costo.toFixed(2),
-      utilidad: +r.utilidad.toFixed(2),
-      margen: r.ventas > 0 ? +((r.utilidad / r.ventas) * 100).toFixed(1) : 0
-    }))
-    .sort((a,b) => b.ventas - a.ventas);
-
-    return rows;
+      ventas:+r.ventas.toFixed(2),
+      costo:+r.costo.toFixed(2),
+      utilidad:+r.utilidad.toFixed(2),
+      margen: r.ventas>0 ? +((r.utilidad/r.ventas)*100).toFixed(1) : 0
+    })).sort((a,b)=>b.ventas-a.ventas);
   }
 
   function resumenPeriodo(){
-    let pedidos = pedidosConfirmados.length;
-    let ventas = 0, costo = 0, utilidad = 0, piezas = 0;
-
+    let pedidos = pedidosConfirmados.length, ventas=0, costo=0, utilidad=0, piezas=0;
     for (const p of pedidosConfirmados){
-      ventas += Number(p.totales?.total || 0);
-      costo += Number(p.totales?.costo || 0);
-      utilidad += Number(p.totales?.utilidad || 0);
-      for (const it of (p.items || [])) piezas += Number(it.qty || 0);
+      ventas += Number(p.totales?.total||0);
+      costo += Number(p.totales?.costo||0);
+      utilidad += Number(p.totales?.utilidad||0);
+      for (const it of (p.items||[])) piezas += Number(it.qty||0);
     }
-
-    ventas = +ventas.toFixed(2);
-    costo = +costo.toFixed(2);
-    utilidad = +utilidad.toFixed(2);
-
-    const margen = ventas > 0 ? +((utilidad / ventas) * 100).toFixed(1) : 0;
-
+    ventas=+ventas.toFixed(2); costo=+costo.toFixed(2); utilidad=+utilidad.toFixed(2);
+    const margen = ventas>0 ? +((utilidad/ventas)*100).toFixed(1) : 0;
     return { pedidos, piezas, ventas, costo, utilidad, margen };
   }
 
   function buildReporteHTML(){
-    if (!pedidosConfirmados.length){
-      return `<div class="muted">Aún no hay pedidos confirmados.</div>`;
-    }
-
+    if (!pedidosConfirmados.length) return `<div class="muted">Aún no hay pedidos confirmados.</div>`;
     const r = resumenPeriodo();
     const rows = agregacionPorArticulo();
-    const top = rows.slice(0, 10);
+    const top = rows.slice(0,10);
 
     let html = `
       <div class="kpi">
@@ -995,18 +921,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <div class="hr"></div>
 
-      <div style="font-weight:1000">Top 10 artículos por ventas</div>
+      <div style="font-weight:1000">Top 10 por ventas</div>
       <div class="twrap" style="margin-top:10px">
         <table>
-          <thead>
-            <tr>
-              <th>Artículo</th>
-              <th style="text-align:right">Unid.</th>
-              <th style="text-align:right">Ventas</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Artículo</th><th style="text-align:right">Unid.</th><th style="text-align:right">Ventas</th></tr></thead>
           <tbody>
-            ${top.map(x => `
+            ${top.map(x=>`
               <tr>
                 <td><div style="font-weight:900">${escapeHtml(x.descripcion)}</div><div class="mini">${escapeHtml(x.id)}</div></td>
                 <td style="text-align:right">${x.unidades}</td>
@@ -1024,8 +944,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Artículo</th>
+              <th>ID</th><th>Artículo</th>
               <th style="text-align:right">Unid.</th>
               <th style="text-align:right">Ventas</th>
               <th style="text-align:right">Util.</th>
@@ -1033,79 +952,40 @@ document.addEventListener("DOMContentLoaded", () => {
             </tr>
           </thead>
           <tbody>
-    `;
-
-    for (const x of rows){
-      const notas = Array.from(x.notas.entries())
-        .sort((a,b)=>b[1]-a[1])
-        .slice(0,3)
-        .map(([n, q]) => `• ${escapeHtml(n)} (${q})`)
-        .join("<br>");
-
-      html += `
-        <tr>
-          <td>${escapeHtml(String(x.id || ""))}</td>
-          <td>
-            <div style="font-weight:900">${escapeHtml(x.descripcion)}</div>
-            ${notas ? `<div class="mini" style="margin-top:4px">${notas}</div>` : ``}
-          </td>
-          <td style="text-align:right">${x.unidades}</td>
-          <td style="text-align:right">${money(x.ventas)}</td>
-          <td style="text-align:right">${money(x.utilidad)}</td>
-          <td style="text-align:right">${x.margen.toFixed(1)}%</td>
-        </tr>
-      `;
-    }
-
-    html += `
+            ${rows.map(x=>{
+              const notas = Array.from(x.notas.entries()).sort((a,b)=>b[1]-a[1]).slice(0,3)
+                .map(([n,q])=>`• ${escapeHtml(n)} (${q})`).join("<br>");
+              return `
+                <tr>
+                  <td>${escapeHtml(String(x.id||""))}</td>
+                  <td>
+                    <div style="font-weight:900">${escapeHtml(x.descripcion)}</div>
+                    ${notas ? `<div class="mini" style="margin-top:4px">${notas}</div>` : ``}
+                  </td>
+                  <td style="text-align:right">${x.unidades}</td>
+                  <td style="text-align:right">${money(x.ventas)}</td>
+                  <td style="text-align:right">${money(x.utilidad)}</td>
+                  <td style="text-align:right">${x.margen.toFixed(1)}%</td>
+                </tr>
+              `;
+            }).join("")}
           </tbody>
         </table>
       </div>
-
-      <div class="hr"></div>
-
-      <div class="row">
-        <button class="btn" id="btnCopiarReporte" type="button">Copiar reporte (texto)</button>
-      </div>
-      <div class="hint">Copia un resumen por WhatsApp. (El reporte completo queda aquí en pantalla.)</div>
     `;
-
     return html;
-  }
-
-  function buildReporteTexto(){
-    const r = resumenPeriodo();
-    const rows = agregacionPorArticulo();
-
-    const lines = [];
-    lines.push("REPORTE DEL PERÍODO");
-    lines.push(`Pedidos: ${r.pedidos} | Piezas: ${r.piezas}`);
-    lines.push(`Ventas: ${money(r.ventas)} | Utilidad: ${money(r.utilidad)} (${r.margen}%)`);
-    lines.push("");
-    lines.push("TOP ARTÍCULOS:");
-    rows.slice(0,10).forEach((x,i)=>{
-      lines.push(`${i+1}) ${x.descripcion} — Unid ${x.unidades} — Ventas ${money(x.ventas)} — Util ${money(x.utilidad)}`);
-    });
-    return lines.join("\n");
   }
 
   $("btnGenerarReporte").addEventListener("click", () => {
     $("reporte").innerHTML = buildReporteHTML();
-    // bind botón interno
-    const btn = document.getElementById("btnCopiarReporte");
-    if (btn){
-      btn.addEventListener("click", () => copiarTexto(buildReporteTexto()));
-    }
   });
 
   $("btnResetPeriodo").addEventListener("click", () => {
-    const ok = confirm("¿Reiniciar período? Se borrarán pedidos confirmados del reporte.");
-    if (!ok) return;
+    if (!confirm("¿Reiniciar período?")) return;
     pedidosConfirmados = [];
     $("reporte").innerHTML = `<div class="muted">Período reiniciado.</div>`;
   });
 
-  /* ========= Botones panel ofertas ========= */
   $("btnMostrarOfertas").addEventListener("click", () => {
     $("panelOfertas").style.display = "block";
     $("btnMostrarOfertas").style.display = "none";
@@ -1118,12 +998,12 @@ document.addEventListener("DOMContentLoaded", () => {
     $("btnOcultarOfertas").style.display = "none";
   });
 
-  /* ========= Eventos ========= */
   $("clienteNombre").addEventListener("input", renderClienteResumen);
   $("clienteDir").addEventListener("input", renderClienteResumen);
   $("clienteCredito").addEventListener("change", renderClienteResumen);
 
   $("buscador").addEventListener("input", (e) => renderResultados(e.target.value));
+
   $("btnLimpiarBusqueda").addEventListener("click", () => {
     $("buscador").value = "";
     renderResultados("");
@@ -1153,7 +1033,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ========= Inicio ========= */
   renderClienteResumen();
   renderPedido();
 });
