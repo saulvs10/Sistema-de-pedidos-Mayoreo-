@@ -2,945 +2,1161 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Pedidos + Catálogo por categoría (Período)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pedidos Mayoreo</title>
   <style>
-    *{box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    body{margin:0;background:#f5f5f5}
-    .app{max-width:560px;margin:0 auto;padding:14px}
-    h1{font-size:18px;margin:0 0 10px;text-align:center}
-
-    details{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:10px;overflow:hidden}
-    summary{list-style:none;cursor:pointer;padding:12px 12px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:space-between}
-    summary::-webkit-details-marker{display:none}
-    .chev{font-weight:900;opacity:.65}
-    details[open] .chev{transform:rotate(90deg)}
-    .content{padding:0 12px 12px}
-
-    .muted{color:#666;font-size:12.5px;line-height:1.3}
-    .hr{height:1px;background:#eee;margin:10px 0}
-
-    .input-group{margin-bottom:10px}
-    label{font-size:13.5px;display:block;margin-bottom:6px;font-weight:650}
-    input[type="text"],input[type="number"],select,textarea{
-      width:100%;padding:10px 12px;border-radius:10px;border:1px solid #ccc;font-size:14px;outline:none
+    :root{
+      --bg:#f5f5f5; --card:#fff; --text:#111827; --muted:#6b7280;
+      --line:#e5e7eb; --primary:#2563eb; --danger:#dc2626; --ok:#16a34a;
+      --chip:#eef2ff; --chipText:#4338ca;
     }
-    input:focus,select:focus,textarea:focus{border-color:#007bff}
-    input[type="file"]{font-size:13px;width:100%}
-    textarea{resize:vertical}
-
-    .row{display:flex;gap:8px;flex-wrap:wrap}
-    .row > *{flex:1}
-
-    .btn{border:none;border-radius:10px;padding:10px 12px;font-size:14px;cursor:pointer}
-    .btn-primary{background:#007bff;color:#fff}
-    .btn-secondary{background:#e5e5e5;color:#333}
-    .btn-green{background:#16a34a;color:#fff}
-    .btn-danger{background:#dc2626;color:#fff}
-
-    .results-count{font-size:13px;color:#444;margin:6px 0 8px}
-    .results{display:flex;flex-direction:column;gap:8px}
-    .item{background:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.08);
-      display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-    .item-desc{font-size:14px;font-weight:800}
-    .item-sub{font-size:12px;color:#666;margin-top:2px}
-    .item-right{font-size:12.5px;font-weight:800;color:#555;text-align:right}
-    .tag{display:inline-block;margin-top:4px;font-size:11px;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#4338ca}
-    .tag-oferta{background:#fee2e2;color:#b91c1c}
-    .no-results{color:#999;text-align:center;margin:14px 0;font-size:14px}
-
-    .pedido-header{font-size:13px;white-space:pre-line}
-    .pedido-item{padding:10px;border:1px solid #eee;border-radius:12px;background:#fafafa;display:flex;gap:10px;margin-bottom:8px}
-    .pedido-main{flex:1}
-    .pedido-title{font-size:13.5px;font-weight:900;margin-bottom:4px}
-    .pedido-meta{font-size:12.5px;color:#444}
-    .pedido-meta strong{color:#111}
-    .pedido-remove{font-size:12px;border:none;background:#fee2e2;color:#b91c1c;border-radius:10px;padding:8px 10px;cursor:pointer;height:fit-content}
-    .pedido-total{font-weight:1000;font-size:16px;margin-top:6px}
-
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999}
-    .modal{background:#fff;border-radius:14px;padding:12px;max-width:560px;width:92%}
-    .modal h2{font-size:15px;margin:0 0 6px}
-    .modal .sub{font-size:12px;color:#666;margin-bottom:10px}
-    .prices-list{list-style:none;padding:0;margin:8px 0}
-    .prices-list li{margin-bottom:8px;font-size:14px}
-    .modal .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .modal .actions button{flex:1}
-
-    .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .kpi{border:1px solid #eee;border-radius:12px;padding:10px;background:#fafafa}
-    .kpi .t{font-size:12px;color:#555;margin-bottom:4px}
-    .kpi .v{font-size:16px;font-weight:1000}
-
-    table{width:100%;border-collapse:collapse;font-size:12.5px}
-    th,td{border-bottom:1px solid #eee;padding:8px 6px;text-align:left;vertical-align:top}
-    th{font-size:12px;color:#555}
-
-    input, textarea, select { -webkit-appearance: none; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+    .app{max-width:640px;margin:0 auto;padding:14px}
+    h1{font-size:18px;margin:6px 0 12px;text-align:center}
+    details{background:var(--card);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:10px;overflow:hidden;border:1px solid rgba(0,0,0,.04)}
+    summary{list-style:none;cursor:pointer;padding:12px 12px;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    summary::-webkit-details-marker{display:none}
+    .chev{opacity:.6;font-weight:900;transition:transform .2s}
+    details[open] .chev{transform:rotate(90deg)}
+    .content{padding:12px;border-top:1px solid var(--line)}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .col{flex:1;min-width:180px}
+    label{display:block;font-size:12.5px;color:var(--muted);font-weight:700;margin:8px 0 6px}
+    input[type="text"], input[type="number"], select, textarea{
+      width:100%; padding:10px 12px; font-size:16px; border:1px solid #d1d5db; border-radius:10px; outline:none; background:#fff;
+    }
+    input:focus, textarea:focus, select:focus{border-color:var(--primary)}
+    textarea{min-height:70px;resize:vertical}
+    .btn{
+      border:0; border-radius:10px; padding:10px 12px; font-weight:900; cursor:pointer;
+      background:var(--primary); color:#fff; font-size:15px;
+    }
+    .btn.secondary{background:#111827}
+    .btn.ghost{background:#f3f4f6;color:#111827;border:1px solid #e5e7eb}
+    .btn.danger{background:var(--danger)}
+    .btn.small{padding:8px 10px;font-size:13px;border-radius:999px}
+    .muted{color:var(--muted);font-size:12.5px;line-height:1.3}
+    .ok{color:var(--ok);font-weight:900}
+    .err{color:var(--danger);font-weight:900}
+    .pill{display:inline-block;background:var(--chip);color:var(--chipText);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:900}
+    .card{
+      background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;
+    }
+    .list{display:flex;flex-direction:column;gap:10px}
+    .item{
+      border:1px solid var(--line); border-radius:12px; padding:10px; background:#fff;
+      display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+    }
+    .item .left{flex:1}
+    .item .desc{font-weight:900}
+    .item .sub{margin-top:4px;font-size:12.5px;color:var(--muted)}
+    .item .sub strong{color:#111827}
+    .item .note{margin-top:4px;font-size:12.5px;color:var(--muted)}
+    .item .right{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+    .item .offerTag{background:#fee2e2;color:#991b1b;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:900}
+    .hr{height:1px;background:var(--line);margin:10px 0}
+    .mini{font-size:12px;color:var(--muted)}
+    .kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .kpi .box{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+    .kpi .big{font-size:18px;font-weight:1000}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid #f0f0f0;padding:8px;font-size:13px;vertical-align:top}
+    th{position:sticky;top:0;background:#fff;text-align:left}
+    .twrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+    .hint{font-size:12px;color:var(--muted);margin-top:6px}
+    .warnBox{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px;border-radius:12px;font-weight:800}
+    .errorBox{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px;border-radius:12px;font-weight:900}
   </style>
 </head>
 <body>
-  <div class="app">
-    <h1>Pedidos + Catálogo por categoría</h1>
+<div class="app">
+  <h1>Pedidos Mayoreo</h1>
 
-    <!-- 0 CLIENTE -->
-    <details open>
-      <summary>0) Cliente <span class="chev">›</span></summary>
-      <div class="content">
-        <div class="input-group">
-          <label for="cliente-nombre">Nombre del cliente *</label>
-          <input id="cliente-nombre" type="text" placeholder="Ej. Don Chuy" />
-        </div>
-        <div class="input-group">
-          <label for="cliente-direccion">Dirección *</label>
-          <input id="cliente-direccion" type="text" placeholder="Ej. Calle 5 de Mayo #852" />
-        </div>
-        <div class="muted">El cliente se guarda dentro del pedido confirmado.</div>
-      </div>
-    </details>
+  <div id="globalError" style="display:none" class="errorBox"></div>
 
-    <!-- 1 CARGA ARCHIVOS -->
-    <details>
-      <summary>1) Cargar productos y ofertas <span class="chev">›</span></summary>
-      <div class="content">
-        <div class="input-group">
-          <label for="archivo-productos">Productos (.csv con ID, Categoria, Descripcion, Costo)</label>
-          <input id="archivo-productos" type="file" accept=".csv" />
-          <div id="status-productos" class="muted" style="margin-top:6px;">Sin productos cargados.</div>
+  <!-- 0) Cliente -->
+  <details open>
+    <summary>
+      <span>0) Cliente</span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="content">
+      <div class="row">
+        <div class="col">
+          <label>Nombre</label>
+          <input id="clienteNombre" type="text" placeholder="Ej. Juan Pérez" />
         </div>
-
-        <div class="input-group">
-          <label for="archivo-ofertas">Ofertas (.csv con ID, PrecioOferta, DescripcionOferta)</label>
-          <input id="archivo-ofertas" type="file" accept=".csv" />
-          <div id="status-ofertas" class="muted" style="margin-top:6px;">Sin ofertas cargadas.</div>
-        </div>
-
-        <div class="muted">
-          Productos: <strong>ID,Categoria,Descripcion,Costo</strong><br>
-          Ofertas: <strong>ID,PrecioOferta,DescripcionOferta</strong>
+        <div class="col">
+          <label>Dirección</label>
+          <input id="clienteDir" type="text" placeholder="Ej. Calle 5 de Mayo #852" />
         </div>
       </div>
-    </details>
 
-    <!-- 2 BUSCAR -->
-    <details open>
-      <summary>2) Buscar producto <span class="chev">›</span></summary>
-      <div class="content">
-        <div class="input-group">
-          <label for="buscador">Buscar por palabra o ID (min 2 letras)</label>
-          <input id="buscador" type="text" placeholder="Ej. 123, Fabu..." disabled />
-        </div>
-        <div class="row" style="margin-bottom:6px;">
-          <button id="btn-ver-ofertas" class="btn btn-secondary" type="button">Mostrar ofertas</button>
-          <button id="btn-ocultar" class="btn btn-secondary" type="button">Ocultar</button>
-        </div>
-        <div id="results-count" class="results-count"></div>
-        <div id="results" class="results"></div>
-      </div>
-    </details>
-
-    <!-- 2B CATÁLOGO POR CATEGORÍA -->
-    <details open>
-      <summary>2B) Catálogo por categoría <span class="chev">›</span></summary>
-      <div class="content">
-        <div class="input-group">
-          <label for="categoria-select">Selecciona categoría</label>
-          <select id="categoria-select" disabled>
-            <option value="">— Carga productos primero —</option>
+      <div class="row" style="margin-top:8px">
+        <div class="col">
+          <label>Crédito (opcional)</label>
+          <select id="clienteCredito">
+            <option value="no" selected>No</option>
+            <option value="si">Sí</option>
           </select>
+          <div class="hint">Si es “No”, no se mostrará nada de crédito en el WhatsApp/reporte.</div>
         </div>
-
-        <div class="input-group">
-          <label for="categoria-buscador">Filtrar dentro de la categoría (opcional)</label>
-          <input id="categoria-buscador" type="text" placeholder="Ej. pañal, cloro..." disabled />
-        </div>
-
-        <div class="row" style="margin-bottom:6px;">
-          <button id="btn-cat-todos" class="btn btn-secondary" type="button">Ver todos (categoría)</button>
-          <button id="btn-cat-ocultar" class="btn btn-secondary" type="button">Ocultar</button>
-        </div>
-
-        <div id="cat-count" class="results-count"></div>
-        <div id="cat-results" class="results"></div>
-
-        <div class="muted">
-          Esto te sirve como “catálogo” para recorrer rápido una sección (bebés, limpieza, hogar…).
-        </div>
-      </div>
-    </details>
-
-    <!-- 3 PEDIDO -->
-    <details open>
-      <summary>3) Pedido actual <span class="chev">›</span></summary>
-      <div class="content">
-        <div id="pedido-cliente" class="pedido-header muted">Sin cliente.</div>
-
-        <div class="hr"></div>
-
-        <div id="pedido-lista"></div>
-        <div id="pedido-total" class="pedido-total"></div>
-
-        <div class="input-group" style="margin-top:10px;">
-          <label for="pedido-notas">Notas del pedido</label>
-          <textarea id="pedido-notas" rows="2" placeholder="Ej. Entregar antes de las 5 pm..."></textarea>
-        </div>
-
-        <div class="row">
-          <button id="btn-vaciar" class="btn btn-secondary" type="button">Vaciar</button>
-          <button id="btn-copiar" class="btn btn-primary" type="button">Copiar resumen</button>
-        </div>
-
-        <div class="row" style="margin-top:8px;">
-          <button id="btn-confirmar" class="btn btn-green" type="button">✅ Confirmar pedido (Guardar al período)</button>
-        </div>
-
-        <div id="status-guardado" class="muted" style="margin-top:8px;"></div>
-      </div>
-    </details>
-
-    <!-- 4 REPORTE PERÍODO -->
-    <details>
-      <summary>4) Reporte del período <span class="chev">›</span></summary>
-      <div class="content">
-        <div class="muted" id="periodo-info"></div>
-
-        <div class="row" style="margin-top:8px;">
-          <button id="btn-iniciar-periodo" class="btn btn-danger" type="button">🧹 Iniciar período (Reset)</button>
-          <button id="btn-exportar" class="btn btn-secondary" type="button">Exportar CSV</button>
-        </div>
-
-        <div class="hr"></div>
-
-        <div id="kpis" class="kpi-grid"></div>
-
-        <div class="hr"></div>
-
-        <div style="overflow:auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Cliente</th>
-                <th>Venta</th>
-                <th>Utilidad</th>
-                <th>Margen</th>
-              </tr>
-            </thead>
-            <tbody id="tabla"></tbody>
-          </table>
-        </div>
-
-        <div class="muted" style="margin-top:8px;">
-          *La utilidad se calcula internamente con el costo.
-        </div>
-      </div>
-    </details>
-  </div>
-
-  <!-- MODAL DETALLE -->
-  <div id="overlay" class="overlay">
-    <div class="modal">
-      <h2 id="m-desc"></h2>
-      <div class="sub" id="m-id"></div>
-
-      <div class="muted" style="margin-bottom:8px;">
-        • <strong>Precio 1</strong>: pieza &nbsp; • <strong>Precio 2</strong>: media caja &nbsp; • <strong>Precio 3</strong>: caja
-      </div>
-
-      <div style="font-size:13px;font-weight:800;margin-top:8px;">Selecciona precio</div>
-      <ul class="prices-list" id="m-precios"></ul>
-
-      <div style="font-size:13px;font-weight:800;margin-top:8px;">Precio personalizado (opcional)</div>
-      <div class="input-group">
-        <label for="m-custom">Ingresa precio final</label>
-        <input id="m-custom" type="number" min="0" step="0.01" />
-      </div>
-      <div id="m-custom-info" class="muted"></div>
-      <div style="margin:6px 0 10px;">
-        <label>
-          <input type="radio" name="m-opcion" value="custom" id="m-custom-radio" />
-          <span id="m-custom-label">Usar precio personalizado</span>
-        </label>
-      </div>
-
-      <div class="input-group">
-        <label for="m-cant">Cantidad</label>
-        <input id="m-cant" type="number" min="1" step="1" value="1" />
-      </div>
-
-      <div class="actions">
-        <button id="m-cancel" class="btn btn-secondary" type="button">Cancelar</button>
-        <button id="m-add" class="btn btn-primary" type="button">Agregar al pedido</button>
       </div>
     </div>
+  </details>
+
+  <!-- 1) Productos y ofertas -->
+  <details open>
+    <summary>
+      <span>1) Productos y ofertas</span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="content">
+      <div class="row">
+        <div class="col">
+          <label>Productos (CSV)</label>
+          <input id="fileProductos" type="file" accept=".csv,text/csv" />
+          <div id="statusProductos" class="muted" style="margin-top:6px">Sin productos cargados.</div>
+        </div>
+        <div class="col">
+          <label>Ofertas (CSV)</label>
+          <input id="fileOfertas" type="file" accept=".csv,text/csv" />
+          <div id="statusOfertas" class="muted" style="margin-top:6px">Sin ofertas cargadas.</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <button class="btn ghost" id="btnMostrarOfertas" type="button">Mostrar ofertas</button>
+        <button class="btn ghost" id="btnOcultarOfertas" type="button" style="display:none">Ocultar ofertas</button>
+      </div>
+
+      <div id="panelOfertas" class="card" style="display:none">
+        <div style="font-weight:900">Ofertas cargadas</div>
+        <div id="listaOfertas" class="muted" style="margin-top:6px">—</div>
+      </div>
+
+      <div class="warnBox" style="margin-top:10px">
+        Tip: Tu archivo real funciona aunque el header sea “ARTICULO, DESCRIPCION, Costo Ultimo”.
+        Este sistema los detecta automáticamente.
+      </div>
+    </div>
+  </details>
+
+  <!-- 2) Buscar -->
+  <details open>
+    <summary>
+      <span>2) Buscar producto</span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="content">
+      <label>Buscar (ej. “fabu”, “850”, “vanish”)</label>
+      <input id="buscador" type="text" placeholder="Escribe aquí..." disabled />
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost small" id="btnLimpiarBusqueda" type="button">Limpiar</button>
+      </div>
+
+      <div class="muted" id="infoResultados" style="margin-top:10px">0 resultados</div>
+      <div id="resultados" class="list" style="margin-top:10px"></div>
+    </div>
+  </details>
+
+  <!-- 3) Catálogo por categoría -->
+  <details>
+    <summary>
+      <span>3) Catálogo por categoría</span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="content">
+      <div class="row">
+        <div class="col">
+          <label>Categoría</label>
+          <select id="selectCategoria" disabled>
+            <option value="">—</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Buscar dentro (opcional)</label>
+          <input id="filtroCat" type="text" placeholder="Ej. suavitel, 850, jabón..." disabled />
+        </div>
+      </div>
+      <div class="muted" id="infoCat" style="margin-top:10px">Carga productos para ver categorías.</div>
+      <div id="listaCat" class="list" style="margin-top:10px"></div>
+    </div>
+  </details>
+
+  <!-- 4) Pedido actual -->
+  <details open>
+    <summary>
+      <span>4) Pedido actual</span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="content">
+      <div class="muted" id="clienteResumen">Cliente: —</div>
+      <div class="hr"></div>
+      <div id="pedidoItems" class="muted">Aún no hay productos en el pedido.</div>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <div class="col">
+          <div style="font-weight:1000;font-size:16px">Total pedido</div>
+          <div id="totalPedido" style="font-weight:1000;font-size:20px">$0.00</div>
+          <div class="mini" id="utilidadPedidoMini"></div>
+        </div>
+      </div>
+
+      <label>Notas generales del pedido</label>
+      <textarea id="notaPedido" placeholder="Ej. Entregar antes de 5pm, dejar en bodega..."></textarea>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btnCopiarWhats" type="button">Copiar pedido para WhatsApp</button>
+        <button class="btn secondary" id="btnConfirmar" type="button">Confirmar pedido</button>
+      </div>
+      <div class="hint">Confirmar pedido lo guarda en memoria del período (hasta que cierres/recargues la página).</div>
+    </div>
+  </details>
+
+  <!-- 5) Reporte del período -->
+  <details>
+    <summary>
+      <span>5) Reporte del período</span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="content">
+      <div class="row">
+        <button class="btn ghost" id="btnGenerarReporte" type="button">Generar reporte</button>
+        <button class="btn danger" id="btnResetPeriodo" type="button">Reiniciar período</button>
+      </div>
+
+      <div id="reporte" style="margin-top:12px">
+        <div class="muted">Aún no hay pedidos confirmados.</div>
+      </div>
+    </div>
+  </details>
+
+</div>
+
+<!-- Modal Selección de precio -->
+<div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); padding:14px;">
+  <div style="max-width:640px; margin:40px auto 0; background:#fff; border-radius:14px; overflow:hidden;">
+    <div style="padding:12px 12px; font-weight:1000; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee;">
+      <div>Producto seleccionado</div>
+      <button class="btn ghost small" id="btnCerrarModal" type="button">Cerrar</button>
+    </div>
+    <div style="padding:12px" id="modalBody"></div>
   </div>
-
-  <script>
-    function normalizar(txt){
-      return (txt||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-    }
-    function money(v){ return "$"+Number(v).toFixed(2); }
-    function nowISO(){ return new Date().toISOString(); }
-    function shortDT(iso){
-      const d=new Date(iso);
-      return d.toLocaleString([], {year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
-    }
-
-    const NIVELES = [
-      { nombre:"Precio 1", tipo:"Pieza", margen:0.11 },
-      { nombre:"Precio 2", tipo:"Media caja", margen:0.065 },
-      { nombre:"Precio 3", tipo:"Caja", margen:0.04 },
-    ];
-
-    const LS_PRODUCTS = "fav_productos_v3_cat";
-    const LS_OFFERS   = "fav_ofertas_v3_cat";
-    const LS_PERIOD   = "fav_periodo_v3_cat";
-
-    function loadJSON(key, fallback){
-      try{ const raw=localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
-      catch{ return fallback; }
-    }
-    function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
-
-    let productos = loadJSON(LS_PRODUCTS, []);
-    let ofertasPorId = loadJSON(LS_OFFERS, {});
-    let pedido = [];
-    let pedidoNotas = "";
-
-    let selProducto = null;
-    let opciones = [];
-
-    const el = (id)=>document.getElementById(id);
-
-    function parseProductosCSV(text){
-      const lineas=text.trim().split(/\r?\n/); if(lineas.length<2) return [];
-      const headers=lineas[0].split(",").map(h=>normalizar(h.trim()));
-
-      let idxId=headers.findIndex(h=>h==="id"||h==="sku"||h==="codigo"||h==="código");
-      let idxCat=headers.findIndex(h=>h==="categoria"||h==="categoría"||h==="cat");
-      let idxDesc=headers.findIndex(h=>h==="descripcion"||h==="descripción"||h==="desc");
-      let idxCosto=headers.findIndex(h=>h==="costo"||h==="costounitario"||h==="costo_neto");
-
-      if(idxId===-1) idxId=0;
-      if(idxCat===-1) idxCat=1;
-      if(idxDesc===-1) idxDesc=2;
-      if(idxCosto===-1) idxCosto=3;
-
-      const out=[];
-      for(let i=1;i<lineas.length;i++){
-        const ln=lineas[i].trim(); if(!ln) continue;
-        const p=ln.split(",");
-        const id=(p[idxId]||"").trim();
-        const categoria=(p[idxCat]||"").trim() || "Sin categoría";
-        const descripcion=(p[idxDesc]||"").trim();
-        const costo=parseFloat(((p[idxCosto]||"").trim()).replace(",","."));
-        if(!id||!descripcion||isNaN(costo)) continue;
-        out.push({id,categoria,descripcion,costo});
-      }
-      return out;
-    }
-
-    function parseOfertasCSV(text){
-      const lineas=text.trim().split(/\r?\n/);
-      const map={};
-      for(let i=1;i<lineas.length;i++){
-        const ln=lineas[i].trim(); if(!ln) continue;
-        const p=ln.split(","); if(p.length<2) continue;
-        const id=(p[0]||"").trim(); if(!id) continue;
-        const precio=parseFloat(((p[1]||"").trim()).replace(",","."));
-        if(isNaN(precio)) continue;
-        const descripcion=(p[2]||"").trim() || "Oferta";
-        if(!map[id]) map[id]=[];
-        map[id].push({precio,descripcion});
-      }
-      return map;
-    }
-
-    function getPeriodo(){
-      let per = loadJSON(LS_PERIOD, null);
-      if(!per || !per.startISO || !Array.isArray(per.orders)){
-        per = { startISO: nowISO(), orders: [] };
-        saveJSON(LS_PERIOD, per);
-      }
-      return per;
-    }
-    function setPeriodo(per){ saveJSON(LS_PERIOD, per); }
-
-    function clienteValido(){
-      const n=el("cliente-nombre").value.trim();
-      const d=el("cliente-direccion").value.trim();
-      return n && d;
-    }
-    function clienteTexto(){
-      const n=el("cliente-nombre").value.trim();
-      const d=el("cliente-direccion").value.trim();
-      if(!n && !d) return "Sin cliente.";
-      return `👤 ${n||"—"}\n📍 ${d||"—"}`;
-    }
-
-    function totalPedido(){ return pedido.reduce((a,it)=>a+it.subtotal,0); }
-    function utilidadPedido(){ return pedido.reduce((a,it)=>a + ((it.precioUnit-it.costoUnit)*it.cantidad),0); }
-
-    function renderPedido(){
-      el("pedido-cliente").textContent = clienteTexto();
-      const list=el("pedido-lista");
-      list.innerHTML="";
-
-      if(pedido.length===0){
-        list.innerHTML="<div class='muted'>Aún no hay productos en el pedido.</div>";
-        el("pedido-total").textContent="";
-        return;
-      }
-
-      pedido.forEach((it, idx)=>{
-        const row=document.createElement("div");
-        row.className="pedido-item";
-
-        const main=document.createElement("div");
-        main.className="pedido-main";
-
-        const t=document.createElement("div");
-        t.className="pedido-title";
-        t.textContent=it.descripcion;
-
-        const m=document.createElement("div");
-        m.className="pedido-meta";
-        m.innerHTML=`Pz: <strong>${it.cantidad}</strong> &nbsp;|&nbsp; PU: <strong>${money(it.precioUnit)}</strong> &nbsp;|&nbsp; Importe: <strong>${money(it.subtotal)}</strong>`;
-        main.appendChild(t); main.appendChild(m);
-
-        const b=document.createElement("button");
-        b.className="pedido-remove"; b.textContent="Quitar";
-        b.onclick=()=>{ pedido.splice(idx,1); renderPedido(); };
-
-        row.appendChild(main); row.appendChild(b);
-        list.appendChild(row);
-      });
-
-      el("pedido-total").textContent="TOTAL: "+money(Math.round(totalPedido()*100)/100);
-    }
-
-    function renderResultados(lista, containerId, countId){
-      const out=el(containerId);
-      const c=el(countId);
-      out.innerHTML="";
-      c.textContent=`${lista.length} resultado(s)`;
-
-      if(lista.length===0){
-        out.innerHTML="<div class='no-results'>No se encontraron productos.</div>";
-        return;
-      }
-
-      lista.forEach(p=>{
-        const div=document.createElement("div");
-        div.className="item";
-
-        const left=document.createElement("div");
-        const d=document.createElement("div");
-        d.className="item-desc";
-        d.textContent=p.descripcion;
-
-        const sub=document.createElement("div");
-        sub.className="item-sub";
-        sub.textContent="Categoría: "+(p.categoria||"Sin categoría");
-
-        left.appendChild(d); left.appendChild(sub);
-
-        const right=document.createElement("div");
-        right.className="item-right";
-        right.innerHTML="Ver precios<br>";
-        const ofs=ofertasPorId[p.id]||[];
-        const tag=document.createElement("span");
-        tag.className=ofs.length? "tag tag-oferta":"tag";
-        tag.textContent=ofs.length? "OFERTA":"pieza / media / caja";
-        right.appendChild(tag);
-
-        div.appendChild(left); div.appendChild(right);
-        div.onclick=()=>openModal(p);
-        out.appendChild(div);
-      });
-    }
-
-    function buscar(qRaw){
-      const q=normalizar(qRaw.trim());
-      if(!q || q.length<2){
-        el("results").innerHTML="";
-        el("results-count").textContent=q? "Escribe al menos 2 caracteres.":"";
-        return;
-      }
-      const hits=productos.filter(p=>{
-        const d=normalizar(p.descripcion);
-        const id=normalizar(p.id);
-        return d.includes(q) || id.includes(q);
-      });
-      renderResultados(hits,"results","results-count");
-    }
-
-    function mostrarOfertas(){
-      const lista=productos.filter(p=>(ofertasPorId[p.id]||[]).length>0);
-      renderResultados(lista,"results","results-count");
-    }
-    function ocultarResultados(){
-      el("results").innerHTML="";
-      el("results-count").textContent="";
-    }
-
-    // ====== CATEGORÍAS (FUNCIÓN QUE FALTABA) ======
-    function construirCategorias(){
-      const sel=el("categoria-select");
-      const filtro=el("categoria-buscador");
-
-      if(!productos.length){
-        sel.disabled=true; filtro.disabled=true;
-        sel.innerHTML='<option value="">— Carga productos primero —</option>';
-        el("cat-results").innerHTML="";
-        el("cat-count").textContent="";
-        return;
-      }
-
-      const cats=[...new Set(productos.map(p=> (p.categoria||"Sin categoría").trim() || "Sin categoría"))]
-        .sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
-
-      sel.disabled=false; filtro.disabled=false;
-      sel.innerHTML='<option value="">— Selecciona —</option>';
-
-      cats.forEach(c=>{
-        const count=productos.filter(p=>((p.categoria||"Sin categoría").trim()===c)).length;
-        const opt=document.createElement("option");
-        opt.value=c;
-        opt.textContent=`${c} (${count})`;
-        sel.appendChild(opt);
-      });
-
-      el("cat-results").innerHTML="";
-      el("cat-count").textContent="";
-      filtro.value="";
-    }
-
-    function renderCategoria(){
-      const cat=el("categoria-select").value;
-      const q=normalizar(el("categoria-buscador").value.trim());
-
-      if(!cat){
-        el("cat-results").innerHTML="";
-        el("cat-count").textContent="";
-        return;
-      }
-
-      let lista=productos.filter(p=>((p.categoria||"Sin categoría").trim()===cat));
-      if(q){
-        lista=lista.filter(p=>normalizar(p.descripcion).includes(q) || normalizar(p.id).includes(q));
-      }
-      renderResultados(lista,"cat-results","cat-count");
-    }
-
-    function verTodosCategoria(){
-      el("categoria-buscador").value="";
-      renderCategoria();
-    }
-
-    function ocultarCategoria(){
-      el("cat-results").innerHTML="";
-      el("cat-count").textContent="";
-    }
-    // ============================================
-
-    // Modal (precios)
-    function openModal(prod){
-      if(!clienteValido()){
-        alert("Primero llena Nombre y Dirección del cliente.");
-        return;
-      }
-      selProducto=prod;
-      opciones=[];
-
-      el("m-desc").textContent=prod.descripcion;
-      el("m-id").textContent=`ID: ${prod.id} | ${prod.categoria||"Sin categoría"}`;
-
-      el("m-precios").innerHTML="";
-      el("m-custom").value="";
-      el("m-custom-info").textContent="";
-      el("m-custom-info").style.color="#666";
-      el("m-custom-label").textContent="Usar precio personalizado";
-      el("m-custom-radio").checked=false;
-      el("m-cant").value=1;
-
-      NIVELES.forEach((n, idx)=>{
-        const pu=Math.round(prod.costo*(1+n.margen)*100)/100;
-        const id="std-"+idx;
-        opciones.push({id,precioUnit:pu});
-
-        const li=document.createElement("li");
-        const lab=document.createElement("label");
-        const r=document.createElement("input");
-        r.type="radio"; r.name="m-opcion"; r.value=id;
-        if(idx===0) r.checked=true;
-        lab.appendChild(r);
-        lab.appendChild(document.createTextNode(` ${n.nombre} – ${n.tipo}: ${money(pu)}`));
-        li.appendChild(lab);
-        el("m-precios").appendChild(li);
-      });
-
-      const ofs=ofertasPorId[prod.id]||[];
-      if(ofs.length){
-        const sep=document.createElement("div");
-        sep.className="muted";
-        sep.style.margin="8px 0";
-        sep.innerHTML="<strong>Ofertas disponibles:</strong>";
-        el("m-precios").appendChild(sep);
-
-        ofs.forEach((o, idx)=>{
-          const id="of-"+idx;
-          const pu=Math.round(o.precio*100)/100;
-          opciones.push({id,precioUnit:pu});
-
-          const li=document.createElement("li");
-          const lab=document.createElement("label");
-          const r=document.createElement("input");
-          r.type="radio"; r.name="m-opcion"; r.value=id;
-          lab.appendChild(r);
-          lab.appendChild(document.createTextNode(` Oferta – ${o.descripcion}: ${money(pu)}`));
-          li.appendChild(lab);
-          el("m-precios").appendChild(li);
-        });
-      }
-
-      el("overlay").style.display="flex";
-    }
-
-    function closeModal(){
-      el("overlay").style.display="none";
-      selProducto=null; opciones=[];
-    }
-
-    function onCustomInput(){
-      if(!selProducto) return;
-      const val=parseFloat((el("m-custom").value||"").replace(",","."));
-      if(isNaN(val)||val<=0){
-        el("m-custom-info").textContent="";
-        el("m-custom-label").textContent="Usar precio personalizado";
-        return;
-      }
-      const costo=selProducto.costo;
-      if(val<=costo){
-        el("m-custom-info").textContent="No se puede vender abajo del costo.";
-        el("m-custom-info").style.color="#b91c1c";
-        el("m-custom-label").textContent="Precio personalizado (no válido)";
-      }else{
-        const m=((val-costo)/costo)*100;
-        el("m-custom-info").textContent="Margen estimado: "+(Math.round(m*10)/10).toFixed(1)+" %";
-        el("m-custom-info").style.color="#15803d";
-        el("m-custom-label").textContent="Precio personalizado: "+money(val);
-      }
-    }
-
-    function addToPedido(){
-      if(!selProducto) return;
-
-      const radios=document.querySelectorAll('input[name="m-opcion"]');
-      let opcionId=null;
-      radios.forEach(r=>{ if(r.checked) opcionId=r.value; });
-      if(!opcionId && radios.length) opcionId=radios[0].value;
-      if(!opcionId){ alert("Selecciona un precio."); return; }
-
-      let pu=null;
-      if(opcionId==="custom"){
-        const val=parseFloat((el("m-custom").value||"").replace(",","."));
-        if(isNaN(val)||val<=0){ alert("Precio personalizado inválido."); return; }
-        if(val<=selProducto.costo){ alert("No se puede vender abajo del costo."); return; }
-        pu=Math.round(val*100)/100;
-      }else{
-        const opt=opciones.find(o=>o.id===opcionId);
-        if(!opt){ alert("Precio inválido."); return; }
-        pu=opt.precioUnit;
-      }
-
-      let cant=parseInt(el("m-cant").value,10);
-      if(isNaN(cant)||cant<1) cant=1;
-
-      const subtotal=Math.round(pu*cant*100)/100;
-
-      pedido.push({
-        id: selProducto.id,
-        categoria: selProducto.categoria||"Sin categoría",
-        descripcion: selProducto.descripcion,
-        cantidad: cant,
-        precioUnit: pu,
-        costoUnit: selProducto.costo,
-        subtotal
-      });
-
-      renderPedido();
-      closeModal();
-    }
-
-    // Confirmar pedido -> guarda en período
-    function confirmarPedido(){
-      if(!clienteValido()){
-        alert("Falta Nombre o Dirección del cliente.");
-        return;
-      }
-      if(pedido.length===0){
-        alert("No hay productos en el pedido.");
-        return;
-      }
-
-      const per=getPeriodo();
-      const venta=Math.round(totalPedido()*100)/100;
-      const util=Math.round(utilidadPedido()*100)/100;
-      const margen=venta>0 ? Math.round((util/venta)*1000)/10 : 0;
-
-      const order={
-        orderId:"ORD-"+Date.now(),
-        createdISO: nowISO(),
-        cliente:{
-          nombre: el("cliente-nombre").value.trim(),
-          direccion: el("cliente-direccion").value.trim()
-        },
-        notas:(pedidoNotas||"").trim(),
-        items: pedido.map(it=>({
-          id: it.id,
-          categoria: it.categoria,
-          descripcion: it.descripcion,
-          cantidad: it.cantidad,
-          precioUnit: it.precioUnit,
-          costoUnit: it.costoUnit,
-          subtotal: it.subtotal,
-          utilidad: Math.round(((it.precioUnit-it.costoUnit)*it.cantidad)*100)/100
-        })),
-        totals:{ venta, utilidad: util, margenPct: margen }
-      };
-
-      per.orders.push(order);
-      setPeriodo(per);
-
-      pedido=[];
-      pedidoNotas="";
-      el("pedido-notas").value="";
-      el("status-guardado").textContent="✅ Pedido guardado en el período.";
-      renderPedido();
-      renderReporte();
-    }
-
-    function copiarResumen(){
-      if(pedido.length===0){ alert("No hay pedido para copiar."); return; }
-      const nombre=el("cliente-nombre").value.trim();
-      const dir=el("cliente-direccion").value.trim();
-
-      let txt="📦 PEDIDO\n\n";
-      txt += `👤 ${nombre}\n📍 ${dir}\n\n`;
-
-      let total=0;
-      pedido.forEach(it=>{
-        total += it.subtotal;
-        txt += `- ${it.descripcion}\n`;
-        txt += `  Pz: ${it.cantidad}  |  PU: ${money(it.precioUnit)}  |  Importe: ${money(it.subtotal)}\n\n`;
-      });
-      total=Math.round(total*100)/100;
-      txt += "====================\n";
-      txt += `TOTAL: ${money(total)}\n`;
-
-      if((pedidoNotas||"").trim()){
-        txt += "====================\n";
-        txt += `📝 Notas: ${(pedidoNotas||"").trim()}\n`;
-      }
-
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(txt).then(
-          ()=>alert("Resumen copiado. Pégalo en WhatsApp."),
-          ()=>fallbackCopy(txt)
-        );
-      }else fallbackCopy(txt);
-    }
-
-    function fallbackCopy(texto){
-      const o=document.createElement("div");
-      o.className="overlay"; o.style.display="flex";
-      const m=document.createElement("div");
-      m.className="modal";
-      const p=document.createElement("div");
-      p.style.fontWeight="900"; p.style.marginBottom="6px";
-      p.textContent="Copia este texto:";
-      const ta=document.createElement("textarea");
-      ta.value=texto; ta.rows=10;
-      const b=document.createElement("button");
-      b.className="btn btn-primary"; b.style.marginTop="8px"; b.textContent="Cerrar";
-      b.onclick=()=>document.body.removeChild(o);
-      m.appendChild(p); m.appendChild(ta); m.appendChild(b);
-      o.appendChild(m); document.body.appendChild(o);
-      ta.focus(); ta.select();
-    }
-
-    // Reporte período
-    function renderReporte(){
-      const per=getPeriodo();
-      el("periodo-info").textContent=`Período iniciado: ${shortDT(per.startISO)} | Pedidos: ${per.orders.length}`;
-
-      const totalVentas=Math.round(per.orders.reduce((a,o)=>a+(o.totals?.venta||0),0)*100)/100;
-      const totalUtil=Math.round(per.orders.reduce((a,o)=>a+(o.totals?.utilidad||0),0)*100)/100;
-      const margen=totalVentas>0 ? Math.round((totalUtil/totalVentas)*1000)/10 : 0;
-
-      el("kpis").innerHTML=`
-        <div class="kpi"><div class="t">Pedidos</div><div class="v">${per.orders.length}</div></div>
-        <div class="kpi"><div class="t">Ventas</div><div class="v">${money(totalVentas)}</div></div>
-        <div class="kpi"><div class="t">Utilidad</div><div class="v">${money(totalUtil)}</div></div>
-        <div class="kpi"><div class="t">Margen prom.</div><div class="v">${margen.toFixed(1)}%</div></div>
-      `;
-
-      const tb=el("tabla");
-      tb.innerHTML="";
-      if(per.orders.length===0){
-        const tr=document.createElement("tr");
-        tr.innerHTML=`<td colspan="5" class="muted">Aún no hay pedidos confirmados en este período.</td>`;
-        tb.appendChild(tr);
-        return;
-      }
-
-      per.orders.forEach((o, idx)=>{
-        const venta=o.totals?.venta||0;
-        const util=o.totals?.utilidad||0;
-        const m=o.totals?.margenPct ?? (venta>0?(util/venta*100):0);
-
-        const tr=document.createElement("tr");
-        tr.innerHTML=`
-          <td>${idx+1}<br><span class="muted">${shortDT(o.createdISO)}</span></td>
-          <td>${o.cliente?.nombre||"—"}<br><span class="muted">${o.cliente?.direccion||""}</span></td>
-          <td>${money(venta)}</td>
-          <td>${money(util)}</td>
-          <td>${Number(m).toFixed(1)}%</td>
-        `;
-        tb.appendChild(tr);
-      });
-    }
-
-    function iniciarPeriodoReset(){
-      if(!confirm("Esto borrará TODOS los pedidos guardados en el período actual. ¿Seguro?")) return;
-      setPeriodo({ startISO: nowISO(), orders: [] });
-      renderReporte();
-      alert("Período reiniciado.");
-    }
-
-    function exportarCSV(){
-      const per=getPeriodo();
-      const filas=[];
-      filas.push("PeriodoInicio,PedidoFechaHora,Cliente,Direccion,Venta,Utilidad,MargenPct,Notas");
-      const clean=(s)=>String(s||"").replace(/[\n\r]/g," ").replace(/,/g," ");
-      per.orders.forEach(o=>{
-        const venta=o.totals?.venta||0;
-        const util=o.totals?.utilidad||0;
-        const m=o.totals?.margenPct ?? (venta>0?(util/venta*100):0);
-        filas.push([
-          per.startISO,
-          o.createdISO,
-          clean(o.cliente?.nombre),
-          clean(o.cliente?.direccion),
-          venta.toFixed(2),
-          util.toFixed(2),
-          Number(m).toFixed(1),
-          clean(o.notas)
-        ].join(","));
-      });
-
-      const blob=new Blob([filas.join("\n")],{type:"text/csv;charset=utf-8;"});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement("a");
-      a.href=url; a.download="Reporte_Periodo.csv";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    function updateProductosStatus(){
-      el("status-productos").textContent = productos.length ? `Productos cargados: ${productos.length}` : "Sin productos cargados.";
-      el("buscador").disabled = productos.length===0;
-    }
-    function updateOfertasStatus(){
-      const total = Object.values(ofertasPorId||{}).reduce((a,arr)=>a+(arr?.length||0),0);
-      el("status-ofertas").textContent = total ? `Ofertas cargadas: ${total}` : "Sin ofertas cargadas.";
-    }
-
-    document.addEventListener("DOMContentLoaded",()=>{
-      updateProductosStatus();
-      updateOfertasStatus();
-      construirCategorias();
-      renderPedido();
-      renderReporte();
-
-      el("archivo-productos").addEventListener("change",(e)=>{
-        const file=e.target.files[0]; if(!file) return;
-        el("status-productos").textContent="Cargando productos...";
-        const r=new FileReader();
-        r.onload=(ev)=>{
-          try{
-            productos=parseProductosCSV(ev.target.result);
-            saveJSON(LS_PRODUCTS, productos);
-            updateProductosStatus();
-            construirCategorias();
-            el("categoria-select").value="";
-            el("categoria-buscador").value="";
-            ocultarResultados();
-            el("buscador").value="";
-            el("buscador").focus();
-          }catch(err){
-            console.error(err);
-            el("status-productos").textContent="Error al leer productos.";
-          }
-        };
-        r.onerror=()=>el("status-productos").textContent="Error al leer el archivo.";
-        r.readAsText(file,"UTF-8");
-      });
-
-      el("archivo-ofertas").addEventListener("change",(e)=>{
-        const file=e.target.files[0]; if(!file) return;
-        el("status-ofertas").textContent="Cargando ofertas...";
-        const r=new FileReader();
-        r.onload=(ev)=>{
-          try{
-            ofertasPorId=parseOfertasCSV(ev.target.result);
-            saveJSON(LS_OFFERS, ofertasPorId);
-            updateOfertasStatus();
-            renderCategoria(); // refresca catálogo si está abierto
-          }catch(err){
-            console.error(err);
-            el("status-ofertas").textContent="Error al leer ofertas.";
-          }
-        };
-        r.onerror=()=>el("status-ofertas").textContent="Error al leer el archivo.";
-        r.readAsText(file,"UTF-8");
-      });
-
-      el("buscador").addEventListener("input",(e)=>buscar(e.target.value));
-      el("btn-ver-ofertas").addEventListener("click",mostrarOfertas);
-      el("btn-ocultar").addEventListener("click",ocultarResultados);
-
-      // Categorías
-      el("categoria-select").addEventListener("change",renderCategoria);
-      el("categoria-buscador").addEventListener("input",renderCategoria);
-      el("btn-cat-todos").addEventListener("click",verTodosCategoria);
-      el("btn-cat-ocultar").addEventListener("click",ocultarCategoria);
-
-      el("pedido-notas").addEventListener("input",(e)=>{ pedidoNotas=e.target.value; });
-
-      el("btn-vaciar").addEventListener("click",()=>{
-        if(pedido.length===0) return;
-        if(confirm("¿Vaciar el pedido actual?")){
-          pedido=[]; pedidoNotas=""; el("pedido-notas").value="";
-          renderPedido();
-        }
-      });
-      el("btn-copiar").addEventListener("click",copiarResumen);
-      el("btn-confirmar").addEventListener("click",confirmarPedido);
-
-      el("btn-iniciar-periodo").addEventListener("click",iniciarPeriodoReset);
-      el("btn-exportar").addEventListener("click",exportarCSV);
-
-      el("m-cancel").addEventListener("click",closeModal);
-      el("overlay").addEventListener("click",(e)=>{ if(e.target.id==="overlay") closeModal(); });
-      el("m-add").addEventListener("click",addToPedido);
-      el("m-custom").addEventListener("input",onCustomInput);
-      el("m-custom").addEventListener("focus",()=>{ el("m-custom-radio").checked=true; });
-
-      el("cliente-nombre").addEventListener("input",renderPedido);
-      el("cliente-direccion").addEventListener("input",renderPedido);
+</div>
+
+<script>
+/* ============ Guard rails para iPhone/Safari ============ */
+(function(){
+  try {
+    window.addEventListener("error", function(e){
+      const box = document.getElementById("globalError");
+      box.style.display = "block";
+      box.textContent = "Error al iniciar: " + (e?.message || "desconocido");
     });
-  </script>
+  } catch(_) {}
+})();
+
+document.addEventListener("DOMContentLoaded", () => {
+  /* ========= Estado ========= */
+  let productos = []; // {id, descripcion, costo, categoria}
+  let ofertasMap = new Map(); // id -> array [{precioOferta, descOferta}]
+  let pedidosConfirmados = []; // período en memoria
+  let pedidoActual = { items: [], notaGeneral: "" };
+
+  const MARGEN_PZA = 0.11;
+  const MARGEN_MEDIA = 0.065;
+  const MARGEN_CAJA = 0.04;
+
+  /* ========= Utilidades ========= */
+  const $ = (id) => document.getElementById(id);
+  const money = (n) => "$" + (Number(n || 0)).toFixed(2);
+
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+
+  function normId(x){
+    let s = String(x ?? "").trim().replace(/^"+|"+$/g,"");
+    if (/^\d+(\.0+)?$/.test(s)) s = s.split(".")[0];
+    return s;
+  }
+
+  function toNumberLoose(x){
+    const s = String(x ?? "").trim()
+      .replace(/\$/g,"")
+      .replace(/ /g,"")
+      .replace(/\./g, ".")
+      .replace(/,/g,".");
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function calcPrecio(costo, margen){
+    return +(Number(costo) * (1 + margen)).toFixed(2);
+  }
+
+  function calcMargenPct(costo, precio){
+    costo = Number(costo); precio = Number(precio);
+    if (!precio || precio <= 0) return 0;
+    return +(((precio - costo) / precio) * 100).toFixed(1);
+  }
+
+  /* ========= CSV Parser robusto (delimiter + quotes) ========= */
+  function detectDelimiter(text){
+    const head = (text || "").split(/\r?\n/).slice(0,3).join("\n");
+    const counts = [",",";","\t"].map(d => (head.match(new RegExp("\\"+d,"g")) || []).length);
+    const max = Math.max(...counts);
+    const idx = counts.indexOf(max);
+    return [",",";","\t"][idx] || ",";
+  }
+
+  function parseCSV(text){
+    const delim = detectDelimiter(text);
+    const rows = [];
+    let i = 0, cur = "", inQ = false;
+    let row = [];
+
+    function pushCell(){
+      row.push(cur);
+      cur = "";
+    }
+    function pushRow(){
+      // ignora filas completamente vacías
+      if (row.some(c => String(c).trim() !== "")) rows.push(row);
+      row = [];
+    }
+
+    while (i < text.length){
+      const ch = text[i];
+
+      if (ch === '"'){
+        if (inQ && text[i+1] === '"'){ cur += '"'; i += 2; continue; }
+        inQ = !inQ; i++; continue;
+      }
+
+      if (!inQ && (ch === "\n" || ch === "\r")){
+        pushCell(); pushRow();
+        // consume \r\n
+        if (ch === "\r" && text[i+1] === "\n") i += 2; else i++;
+        continue;
+      }
+
+      if (!inQ && ch === delim){
+        pushCell(); i++; continue;
+      }
+
+      cur += ch; i++;
+    }
+    pushCell(); pushRow();
+    return rows;
+  }
+
+  function normalizeHeader(h){
+    return String(h || "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"") // quita acentos
+      .replace(/[^a-z0-9 ]/g,"")
+      .replace(/\s+/g," ");
+  }
+
+  function findHeaderIndex(headers, candidates){
+    const normHeaders = headers.map(normalizeHeader);
+    for (const cand of candidates){
+      const c = normalizeHeader(cand);
+      const idx = normHeaders.indexOf(c);
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  }
+
+  function readFileAsText(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("No se pudo leer el archivo"));
+      reader.readAsText(file, "utf-8");
+    });
+  }
+
+  /* ========= Carga Productos ========= */
+  async function cargarProductos(file){
+    const text = await readFileAsText(file);
+    const data = parseCSV(text);
+    if (!data.length || data.length < 2) throw new Error("CSV vacío o inválido.");
+
+    const headers = data[0].map(h => String(h || "").trim());
+    const idxId = findHeaderIndex(headers, ["id","articulo","sku","codigo"]);
+    const idxDesc = findHeaderIndex(headers, ["descripcion","descripci�n","descripcio n","descripcion producto","producto","nombre","descripcionarticulo","descripcion articulo","descrip"]);
+    const idxCosto = findHeaderIndex(headers, ["costo","costo ultimo","costoultimo","costoúltimo","ultimocosto","costo unit","costo unitario","costo base"]);
+    const idxCat = findHeaderIndex(headers, ["categoria","categoría","departamento","rubro","familia"]);
+
+    if (idxDesc === -1 || idxCosto === -1){
+      throw new Error("No encontré columnas de Descripción y Costo. Asegúrate que existan (ej. DESCRIPCION y Costo Ultimo).");
+    }
+
+    const out = [];
+    for (let r = 1; r < data.length; r++){
+      const row = data[r];
+      const desc = String(row[idxDesc] ?? "").trim();
+      const costo = toNumberLoose(row[idxCosto]);
+      if (!desc || costo <= 0) continue;
+
+      const id = idxId !== -1 ? normId(row[idxId]) : normId(desc);
+      const cat = idxCat !== -1 ? String(row[idxCat] ?? "").trim() : "";
+
+      out.push({ id, descripcion: desc, costo, categoria: cat });
+    }
+
+    // dedup por id+desc (por si se repiten)
+    const seen = new Set();
+    productos = out.filter(p => {
+      const k = p.id + "||" + p.descripcion;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+
+    $("statusProductos").innerHTML = `<span class="ok">Productos cargados:</span> ${productos.length}`;
+    $("buscador").disabled = productos.length === 0;
+    $("selectCategoria").disabled = productos.length === 0;
+    $("filtroCat").disabled = productos.length === 0;
+
+    buildCategoriasUI();
+    renderResultados(""); // limpia
+  }
+
+  /* ========= Carga Ofertas ========= */
+  async function cargarOfertas(file){
+    const text = await readFileAsText(file);
+    const data = parseCSV(text);
+    if (!data.length || data.length < 2) throw new Error("CSV de ofertas vacío o inválido.");
+
+    const headers = data[0].map(h => String(h || "").trim());
+    const idxId = findHeaderIndex(headers, ["id","articulo","sku","codigo"]);
+    const idxPrecio = findHeaderIndex(headers, ["preciooferta","precio oferta","oferta","precio","precio_promocion","preciopromo"]);
+    const idxDesc = findHeaderIndex(headers, ["descripcionoferta","descripcion oferta","ofertadescripcion","nota","descripcion"]);
+
+    if (idxId === -1 || idxPrecio === -1){
+      throw new Error("Ofertas: faltan columnas ID y PrecioOferta.");
+    }
+
+    const map = new Map();
+    for (let r = 1; r < data.length; r++){
+      const row = data[r];
+      const id = normId(row[idxId]);
+      const precioOferta = toNumberLoose(row[idxPrecio]);
+      if (!id || precioOferta <= 0) continue;
+      const descOferta = idxDesc !== -1 ? String(row[idxDesc] ?? "").trim() : "OFERTA";
+      if (!map.has(id)) map.set(id, []);
+      map.get(id).push({ precioOferta: +precioOferta.toFixed(2), descOferta });
+    }
+
+    ofertasMap = map;
+    $("statusOfertas").innerHTML = `<span class="ok">Ofertas cargadas:</span> ${countOfertas()} (SKUs con oferta: ${ofertasMap.size})`;
+    refreshPanelOfertas();
+    // refresca resultados actuales
+    renderResultados($("buscador").value || "");
+  }
+
+  function countOfertas(){
+    let c = 0;
+    ofertasMap.forEach(arr => c += arr.length);
+    return c;
+  }
+
+  function refreshPanelOfertas(){
+    const lines = [];
+    let shown = 0;
+    ofertasMap.forEach((arr, id) => {
+      for (const o of arr){
+        if (shown >= 30) return;
+        lines.push(`• ${id}: ${money(o.precioOferta)} ${o.descOferta ? "(" + o.descOferta + ")" : ""}`);
+        shown++;
+      }
+    });
+    $("listaOfertas").innerHTML = lines.length ? lines.map(escapeHtml).join("<br>") : "—";
+  }
+
+  /* ========= UI: Categorías ========= */
+  function buildCategoriasUI(){
+    const set = new Set();
+    for (const p of productos){
+      const c = (p.categoria || "").trim();
+      if (c) set.add(c);
+    }
+    const cats = Array.from(set).sort((a,b) => a.localeCompare(b));
+    const sel = $("selectCategoria");
+    sel.innerHTML = `<option value="">—</option>` + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    $("infoCat").textContent = cats.length ? `Categorías: ${cats.length}` : "Tu CSV no trae categoría. (Puedes agregar una columna CATEGORIA).";
+    renderCategoria();
+  }
+
+  function renderCategoria(){
+    const cat = $("selectCategoria").value || "";
+    const filtro = ($("filtroCat").value || "").trim().toLowerCase();
+    const box = $("listaCat");
+    box.innerHTML = "";
+
+    if (!productos.length){
+      box.innerHTML = `<div class="muted">Carga productos primero.</div>`;
+      return;
+    }
+    if (!cat){
+      box.innerHTML = `<div class="muted">Selecciona una categoría.</div>`;
+      return;
+    }
+
+    const list = productos.filter(p => (p.categoria || "") === cat)
+      .filter(p => !filtro || p.descripcion.toLowerCase().includes(filtro));
+
+    $("infoCat").textContent = `${list.length} artículo(s) en "${cat}"`;
+
+    for (const p of list.slice(0, 200)){
+      box.appendChild(buildProductCard(p));
+    }
+    if (list.length > 200){
+      const more = document.createElement("div");
+      more.className = "muted";
+      more.textContent = "Mostrando 200. Usa el filtro para afinar.";
+      box.appendChild(more);
+    }
+  }
+
+  /* ========= Buscador ========= */
+  function buildProductCard(p){
+    const div = document.createElement("div");
+    div.className = "item";
+    const hasOffer = ofertasMap.has(p.id);
+    const offerText = hasOffer ? `Oferta desde ${money(minOferta(p.id))}` : "";
+    div.innerHTML = `
+      <div class="left">
+        <div class="desc">${escapeHtml(p.descripcion)}</div>
+        <div class="sub">ID: <strong>${escapeHtml(p.id)}</strong> ${p.categoria ? ` <span class="pill">${escapeHtml(p.categoria)}</span>` : ""}</div>
+        ${hasOffer ? `<div class="sub"><span class="offerTag">OFERTA</span> <span class="muted">${escapeHtml(offerText)}</span></div>` : ``}
+      </div>
+      <div class="right">
+        <button class="btn small" type="button">Ver precios</button>
+      </div>
+    `;
+    div.querySelector("button").addEventListener("click", () => abrirModalPrecios(p));
+    return div;
+  }
+
+  function minOferta(id){
+    const arr = ofertasMap.get(id) || [];
+    let m = Infinity;
+    for (const o of arr) m = Math.min(m, Number(o.precioOferta));
+    return isFinite(m) ? m : 0;
+  }
+
+  function renderResultados(q){
+    const box = $("resultados");
+    box.innerHTML = "";
+    const query = (q || "").trim().toLowerCase();
+    if (!query){
+      $("infoResultados").textContent = "0 resultados";
+      return;
+    }
+    const list = productos.filter(p => p.descripcion.toLowerCase().includes(query)).slice(0, 80);
+    $("infoResultados").textContent = `${list.length} resultado(s)`;
+    if (!list.length){
+      box.innerHTML = `<div class="muted">No se encontraron productos.</div>`;
+      return;
+    }
+    for (const p of list){
+      box.appendChild(buildProductCard(p));
+    }
+    if (productos.filter(p => p.descripcion.toLowerCase().includes(query)).length > 80){
+      const more = document.createElement("div");
+      more.className = "muted";
+      more.textContent = "Mostrando 80. Escribe más para filtrar.";
+      box.appendChild(more);
+    }
+  }
+
+  /* ========= Modal de precios ========= */
+  function abrirModalPrecios(p){
+    const modal = $("modal");
+    const body = $("modalBody");
+
+    const p1 = calcPrecio(p.costo, MARGEN_PZA);
+    const p2 = calcPrecio(p.costo, MARGEN_MEDIA);
+    const p3 = calcPrecio(p.costo, MARGEN_CAJA);
+
+    const offerArr = ofertasMap.get(p.id) || [];
+    const offerHtml = offerArr.length ? `
+      <div class="card" style="border-color:#fecaca;background:#fff5f5">
+        <div style="font-weight:1000">Ofertas disponibles</div>
+        <div class="muted" style="margin-top:6px">
+          ${offerArr.map(o => `• ${money(o.precioOferta)} ${o.descOferta ? "(" + escapeHtml(o.descOferta) + ")" : ""}`).join("<br>")}
+        </div>
+      </div>
+    ` : "";
+
+    body.innerHTML = `
+      <div style="font-weight:1000;font-size:16px">${escapeHtml(p.descripcion)}</div>
+      <div class="muted" style="margin-top:4px">ID: <strong>${escapeHtml(p.id)}</strong></div>
+
+      <div class="hr"></div>
+
+      <div style="font-weight:1000">Selecciona nivel de precio</div>
+      <div class="muted" style="margin-top:4px">Precio por pieza / media caja / caja</div>
+
+      <div class="card">
+        <label style="margin-top:0">Precio</label>
+        <div style="display:flex; flex-direction:column; gap:8px">
+          <label style="display:flex; gap:10px; align-items:center; margin:0">
+            <input type="radio" name="nivel" value="p1" checked />
+            <span>Pieza: <strong>${money(p1)}</strong></span>
+          </label>
+          <label style="display:flex; gap:10px; align-items:center; margin:0">
+            <input type="radio" name="nivel" value="p2" />
+            <span>Media caja: <strong>${money(p2)}</strong></span>
+          </label>
+          <label style="display:flex; gap:10px; align-items:center; margin:0">
+            <input type="radio" name="nivel" value="p3" />
+            <span>Caja: <strong>${money(p3)}</strong></span>
+          </label>
+
+          <div class="hr"></div>
+
+          <div style="font-weight:1000">Precio manual (opcional)</div>
+          <div class="muted">No permite vender abajo del costo. Muestra margen (interno) antes de aceptar.</div>
+          <div class="row" style="margin-top:8px">
+            <div class="col">
+              <input id="precioManual" type="number" inputmode="decimal" step="0.01" placeholder="Ej. 45.00" />
+              <div id="infoManual" class="hint"></div>
+            </div>
+            <div class="col" style="max-width:140px">
+              <button class="btn ghost" id="btnUsarManual" type="button">Usar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      ${offerHtml}
+
+      <div class="card">
+        <label style="margin-top:0">Cantidad</label>
+        <input id="qty" type="number" inputmode="numeric" min="1" step="1" value="1" />
+        <label>Notas / Variedad</label>
+        <input id="notaLinea" type="text" placeholder="Ej. 2 lavanda + 3 primavera, surtido..." />
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btnAgregar" type="button">Agregar al pedido</button>
+      </div>
+
+      <div class="hint">Las notas se verán en WhatsApp y en el reporte por artículo.</div>
+    `;
+
+    // Precio manual: cálculo de margen interno (no se muestra al cliente, pero sí al vendedor)
+    const infoManual = body.querySelector("#infoManual");
+    const inputManual = body.querySelector("#precioManual");
+    const btnUsarManual = body.querySelector("#btnUsarManual");
+
+    function refreshManualInfo(){
+      const pm = toNumberLoose(inputManual.value);
+      if (!pm){
+        infoManual.textContent = "";
+        infoManual.className = "hint";
+        return;
+      }
+      if (pm < p.costo){
+        infoManual.textContent = `No permitido: menor al costo (${money(p.costo)}).`;
+        infoManual.className = "err";
+      } else {
+        const m = calcMargenPct(p.costo, pm);
+        infoManual.textContent = `Margen estimado: ${m}% (interno).`;
+        infoManual.className = "ok";
+      }
+    }
+    inputManual.addEventListener("input", refreshManualInfo);
+    refreshManualInfo();
+
+    btnUsarManual.addEventListener("click", () => {
+      const pm = toNumberLoose(inputManual.value);
+      if (!pm) return;
+      if (pm < p.costo){
+        alert("No se puede vender abajo del costo.");
+        return;
+      }
+      // marca una radio “virtual” seleccionando p1 pero guardamos manual en variable
+      body.dataset.manual = String(pm);
+      alert("Precio manual listo. Al agregar, se usará este precio.");
+    });
+
+    // Agregar
+    body.querySelector("#btnAgregar").addEventListener("click", () => {
+      const qty = Math.max(1, parseInt(body.querySelector("#qty").value || "1", 10));
+      const nota = (body.querySelector("#notaLinea").value || "").trim();
+
+      // Determinar precio elegido
+      let precioUnit = 0;
+      let origen = "";
+
+      const manual = body.dataset.manual ? toNumberLoose(body.dataset.manual) : 0;
+      if (manual){
+        if (manual < p.costo){
+          alert("Precio manual inválido (menor al costo).");
+          return;
+        }
+        precioUnit = +manual.toFixed(2);
+        origen = "manual";
+      } else {
+        const sel = body.querySelector('input[name="nivel"]:checked')?.value || "p1";
+        if (sel === "p2") { precioUnit = p2; origen = "media"; }
+        else if (sel === "p3") { precioUnit = p3; origen = "caja"; }
+        else { precioUnit = p1; origen = "pieza"; }
+      }
+
+      const subtotal = +(precioUnit * qty).toFixed(2);
+      const costoTotal = +(p.costo * qty).toFixed(2);
+
+      pedidoActual.items.push({
+        id: p.id,
+        descripcion: p.descripcion,
+        qty,
+        precioUnit,
+        subtotal,
+        costoUnit: p.costo,
+        costoTotal,
+        nota,
+        origen
+      });
+
+      cerrarModal();
+      renderPedido();
+    });
+
+    modal.style.display = "block";
+  }
+
+  function cerrarModal(){
+    $("modal").style.display = "none";
+    $("modalBody").innerHTML = "";
+  }
+
+  $("btnCerrarModal").addEventListener("click", cerrarModal);
+  $("modal").addEventListener("click", (e) => {
+    if (e.target === $("modal")) cerrarModal();
+  });
+
+  /* ========= Pedido ========= */
+  function renderClienteResumen(){
+    const nom = ($("clienteNombre").value || "").trim();
+    const dir = ($("clienteDir").value || "").trim();
+    const cred = $("clienteCredito").value === "si";
+
+    let text = "Cliente: —";
+    if (nom || dir){
+      text = `Cliente: ${nom || "—"}${dir ? " — " + dir : ""}`;
+      if (cred) text += " • Crédito: SÍ (7 días)";
+    }
+    $("clienteResumen").textContent = text;
+  }
+
+  function calcTotalesPedido(){
+    let total = 0, costo = 0;
+    for (const it of pedidoActual.items){
+      total += Number(it.subtotal || 0);
+      costo += Number(it.costoTotal || 0);
+    }
+    return {
+      total: +total.toFixed(2),
+      costo: +costo.toFixed(2),
+      utilidad: +(total - costo).toFixed(2),
+      margen: total > 0 ? +(((total - costo) / total) * 100).toFixed(1) : 0
+    };
+  }
+
+  function renderPedido(){
+    renderClienteResumen();
+
+    const box = $("pedidoItems");
+    if (!pedidoActual.items.length){
+      box.className = "muted";
+      box.textContent = "Aún no hay productos en el pedido.";
+      $("totalPedido").textContent = "$0.00";
+      $("utilidadPedidoMini").textContent = "";
+      return;
+    }
+
+    const wrap = document.createElement("div");
+    wrap.className = "list";
+
+    pedidoActual.items.forEach((it, idx) => {
+      const div = document.createElement("div");
+      div.className = "item";
+
+      const notaHtml = it.nota ? `<div class="note">📝 ${escapeHtml(it.nota)}</div>` : "";
+      div.innerHTML = `
+        <div class="left">
+          <div class="desc">${escapeHtml(it.descripcion)}</div>
+          <div class="sub">
+            ${escapeHtml(it.id)} • ${it.qty} pza • ${money(it.precioUnit)} c/u • <strong>${money(it.subtotal)}</strong>
+          </div>
+          ${notaHtml}
+        </div>
+        <div class="right">
+          <button class="btn danger small" type="button">Quitar</button>
+        </div>
+      `;
+      div.querySelector("button").addEventListener("click", () => {
+        pedidoActual.items.splice(idx, 1);
+        renderPedido();
+      });
+
+      wrap.appendChild(div);
+    });
+
+    box.className = "";
+    box.innerHTML = "";
+    box.appendChild(wrap);
+
+    const t = calcTotalesPedido();
+    $("totalPedido").textContent = money(t.total);
+    $("utilidadPedidoMini").textContent = `Utilidad estimada: ${money(t.utilidad)} (${t.margen}% margen)`;
+  }
+
+  /* ========= WhatsApp ========= */
+  function buildWhatsAppText(){
+    const nom = ($("clienteNombre").value || "").trim();
+    const dir = ($("clienteDir").value || "").trim();
+    const cred = $("clienteCredito").value === "si";
+    const notaGen = ($("notaPedido").value || "").trim();
+
+    const t = calcTotalesPedido();
+    const lines = [];
+    lines.push(`Pedido para: ${nom || "—"}${dir ? " — " + dir : ""}`);
+
+    if (cred){
+      lines.push(`Crédito: SÍ (7 días)`);
+    }
+
+    lines.push("");
+
+    for (const it of pedidoActual.items){
+      lines.push(`- ${it.descripcion} x ${it.qty} = ${money(it.subtotal)}`);
+      if (it.nota) lines.push(`  Nota: ${it.nota}`);
+      // mostramos precio unitario (legible, sin decir “tipo”)
+      lines.push(`  Precio: ${money(it.precioUnit)} c/u`);
+      lines.push("");
+    }
+
+    lines.push(`Total: ${money(t.total)}`);
+
+    if (notaGen){
+      lines.push("");
+      lines.push(`Notas del pedido: ${notaGen}`);
+    }
+
+    return lines.join("\n");
+  }
+
+  async function copiarTexto(txt){
+    // iOS a veces bloquea clipboard; hacemos fallback con prompt
+    try{
+      await navigator.clipboard.writeText(txt);
+      alert("Pedido copiado. Pégalo en WhatsApp.");
+      return;
+    } catch(e){
+      // fallback
+      prompt("No se pudo copiar automáticamente. Copia el texto:", txt);
+    }
+  }
+
+  $("btnCopiarWhats").addEventListener("click", () => {
+    if (!pedidoActual.items.length){
+      alert("No hay productos en el pedido.");
+      return;
+    }
+    copiarTexto(buildWhatsAppText());
+  });
+
+  /* ========= Confirmar pedido (guardar período) ========= */
+  $("btnConfirmar").addEventListener("click", () => {
+    if (!pedidoActual.items.length){
+      alert("No hay productos en el pedido.");
+      return;
+    }
+
+    const nom = ($("clienteNombre").value || "").trim();
+    const dir = ($("clienteDir").value || "").trim();
+    const cred = $("clienteCredito").value === "si";
+    const notaGen = ($("notaPedido").value || "").trim();
+    const t = calcTotalesPedido();
+
+    pedidosConfirmados.push({
+      ts: Date.now(),
+      cliente: { nombre: nom, direccion: dir, credito: cred },
+      notaGeneral: notaGen,
+      items: JSON.parse(JSON.stringify(pedidoActual.items)),
+      totales: t
+    });
+
+    // limpia pedido actual
+    pedidoActual.items = [];
+    $("notaPedido").value = "";
+    renderPedido();
+    alert("Pedido confirmado y guardado en el período.");
+  });
+
+  /* ========= Reporte ========= */
+  function agregacionPorArticulo(){
+    const map = new Map();
+    for (const ped of pedidosConfirmados){
+      for (const it of (ped.items || [])){
+        const key = String(it.id || it.descripcion);
+        if (!map.has(key)){
+          map.set(key, {
+            id: it.id || "",
+            descripcion: it.descripcion || "",
+            unidades: 0,
+            ventas: 0,
+            costo: 0,
+            utilidad: 0,
+            notas: new Map()
+          });
+        }
+        const r = map.get(key);
+        r.unidades += Number(it.qty || 0);
+        r.ventas += Number(it.subtotal || 0);
+        r.costo += Number(it.costoTotal || 0);
+        r.utilidad += (Number(it.subtotal || 0) - Number(it.costoTotal || 0));
+
+        if (it.nota){
+          const n = it.nota.trim();
+          r.notas.set(n, (r.notas.get(n) || 0) + Number(it.qty || 0));
+        }
+      }
+    }
+
+    const rows = Array.from(map.values()).map(r => ({
+      ...r,
+      ventas: +r.ventas.toFixed(2),
+      costo: +r.costo.toFixed(2),
+      utilidad: +r.utilidad.toFixed(2),
+      margen: r.ventas > 0 ? +((r.utilidad / r.ventas) * 100).toFixed(1) : 0
+    }))
+    .sort((a,b) => b.ventas - a.ventas);
+
+    return rows;
+  }
+
+  function resumenPeriodo(){
+    let pedidos = pedidosConfirmados.length;
+    let ventas = 0, costo = 0, utilidad = 0, piezas = 0;
+
+    for (const p of pedidosConfirmados){
+      ventas += Number(p.totales?.total || 0);
+      costo += Number(p.totales?.costo || 0);
+      utilidad += Number(p.totales?.utilidad || 0);
+      for (const it of (p.items || [])) piezas += Number(it.qty || 0);
+    }
+
+    ventas = +ventas.toFixed(2);
+    costo = +costo.toFixed(2);
+    utilidad = +utilidad.toFixed(2);
+
+    const margen = ventas > 0 ? +((utilidad / ventas) * 100).toFixed(1) : 0;
+
+    return { pedidos, piezas, ventas, costo, utilidad, margen };
+  }
+
+  function buildReporteHTML(){
+    if (!pedidosConfirmados.length){
+      return `<div class="muted">Aún no hay pedidos confirmados.</div>`;
+    }
+
+    const r = resumenPeriodo();
+    const rows = agregacionPorArticulo();
+    const top = rows.slice(0, 10);
+
+    let html = `
+      <div class="kpi">
+        <div class="box"><div class="mini">Pedidos</div><div class="big">${r.pedidos}</div></div>
+        <div class="box"><div class="mini">Piezas</div><div class="big">${r.piezas}</div></div>
+        <div class="box"><div class="mini">Ventas</div><div class="big">${money(r.ventas)}</div></div>
+        <div class="box"><div class="mini">Utilidad</div><div class="big">${money(r.utilidad)}</div><div class="mini">Margen: ${r.margen}%</div></div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div style="font-weight:1000">Top 10 artículos por ventas</div>
+      <div class="twrap" style="margin-top:10px">
+        <table>
+          <thead>
+            <tr>
+              <th>Artículo</th>
+              <th style="text-align:right">Unid.</th>
+              <th style="text-align:right">Ventas</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${top.map(x => `
+              <tr>
+                <td><div style="font-weight:900">${escapeHtml(x.descripcion)}</div><div class="mini">${escapeHtml(x.id)}</div></td>
+                <td style="text-align:right">${x.unidades}</td>
+                <td style="text-align:right">${money(x.ventas)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hr"></div>
+
+      <div style="font-weight:1000">Reporte por artículo (detallado)</div>
+      <div class="twrap" style="margin-top:10px">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Artículo</th>
+              <th style="text-align:right">Unid.</th>
+              <th style="text-align:right">Ventas</th>
+              <th style="text-align:right">Util.</th>
+              <th style="text-align:right">Margen</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    for (const x of rows){
+      const notas = Array.from(x.notas.entries())
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0,3)
+        .map(([n, q]) => `• ${escapeHtml(n)} (${q})`)
+        .join("<br>");
+
+      html += `
+        <tr>
+          <td>${escapeHtml(String(x.id || ""))}</td>
+          <td>
+            <div style="font-weight:900">${escapeHtml(x.descripcion)}</div>
+            ${notas ? `<div class="mini" style="margin-top:4px">${notas}</div>` : ``}
+          </td>
+          <td style="text-align:right">${x.unidades}</td>
+          <td style="text-align:right">${money(x.ventas)}</td>
+          <td style="text-align:right">${money(x.utilidad)}</td>
+          <td style="text-align:right">${x.margen.toFixed(1)}%</td>
+        </tr>
+      `;
+    }
+
+    html += `
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <button class="btn" id="btnCopiarReporte" type="button">Copiar reporte (texto)</button>
+      </div>
+      <div class="hint">Copia un resumen por WhatsApp. (El reporte completo queda aquí en pantalla.)</div>
+    `;
+
+    return html;
+  }
+
+  function buildReporteTexto(){
+    const r = resumenPeriodo();
+    const rows = agregacionPorArticulo();
+
+    const lines = [];
+    lines.push("REPORTE DEL PERÍODO");
+    lines.push(`Pedidos: ${r.pedidos} | Piezas: ${r.piezas}`);
+    lines.push(`Ventas: ${money(r.ventas)} | Utilidad: ${money(r.utilidad)} (${r.margen}%)`);
+    lines.push("");
+    lines.push("TOP ARTÍCULOS:");
+    rows.slice(0,10).forEach((x,i)=>{
+      lines.push(`${i+1}) ${x.descripcion} — Unid ${x.unidades} — Ventas ${money(x.ventas)} — Util ${money(x.utilidad)}`);
+    });
+    return lines.join("\n");
+  }
+
+  $("btnGenerarReporte").addEventListener("click", () => {
+    $("reporte").innerHTML = buildReporteHTML();
+    // bind botón interno
+    const btn = document.getElementById("btnCopiarReporte");
+    if (btn){
+      btn.addEventListener("click", () => copiarTexto(buildReporteTexto()));
+    }
+  });
+
+  $("btnResetPeriodo").addEventListener("click", () => {
+    const ok = confirm("¿Reiniciar período? Se borrarán pedidos confirmados del reporte.");
+    if (!ok) return;
+    pedidosConfirmados = [];
+    $("reporte").innerHTML = `<div class="muted">Período reiniciado.</div>`;
+  });
+
+  /* ========= Botones panel ofertas ========= */
+  $("btnMostrarOfertas").addEventListener("click", () => {
+    $("panelOfertas").style.display = "block";
+    $("btnMostrarOfertas").style.display = "none";
+    $("btnOcultarOfertas").style.display = "inline-block";
+  });
+
+  $("btnOcultarOfertas").addEventListener("click", () => {
+    $("panelOfertas").style.display = "none";
+    $("btnMostrarOfertas").style.display = "inline-block";
+    $("btnOcultarOfertas").style.display = "none";
+  });
+
+  /* ========= Eventos ========= */
+  $("clienteNombre").addEventListener("input", renderClienteResumen);
+  $("clienteDir").addEventListener("input", renderClienteResumen);
+  $("clienteCredito").addEventListener("change", renderClienteResumen);
+
+  $("buscador").addEventListener("input", (e) => renderResultados(e.target.value));
+  $("btnLimpiarBusqueda").addEventListener("click", () => {
+    $("buscador").value = "";
+    renderResultados("");
+    $("buscador").focus();
+  });
+
+  $("selectCategoria").addEventListener("change", renderCategoria);
+  $("filtroCat").addEventListener("input", renderCategoria);
+
+  $("fileProductos").addEventListener("change", async (e) => {
+    try{
+      const file = e.target.files?.[0];
+      if (!file) return;
+      await cargarProductos(file);
+    } catch(err){
+      $("statusProductos").innerHTML = `<span class="err">Error:</span> ${escapeHtml(err.message || String(err))}`;
+    }
+  });
+
+  $("fileOfertas").addEventListener("change", async (e) => {
+    try{
+      const file = e.target.files?.[0];
+      if (!file) return;
+      await cargarOfertas(file);
+    } catch(err){
+      $("statusOfertas").innerHTML = `<span class="err">Error:</span> ${escapeHtml(err.message || String(err))}`;
+    }
+  });
+
+  /* ========= Inicio ========= */
+  renderClienteResumen();
+  renderPedido();
+});
+</script>
 </body>
 </html>
