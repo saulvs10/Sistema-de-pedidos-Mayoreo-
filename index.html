@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Pedidos Mayoreo (Móvil)</title>
+  <title>Sistema de pedidos Super Mass</title>
   <style>
     :root{
       --bg:#f6f7fb; --card:#fff; --text:#0f172a; --muted:#64748b;
@@ -151,14 +151,8 @@
   <div class="app">
     <div class="top">
       <div class="brand">
-        <h1>Pedidos Mayoreo</h1>
+        <h1>Sistema de pedidos Super Mass</h1>
         <div class="mini" id="miniStat">Productos: 0 · Ofertas: 0</div>
-      </div>
-
-      <div class="row" style="margin-top:8px">
-        <span class="pill">Pieza <strong>11%</strong></span>
-        <span class="pill">Media <strong>6.5%</strong></span>
-        <span class="pill">Caja <strong>4%</strong></span>
       </div>
 
       <!-- Cliente SIEMPRE visible -->
@@ -1151,9 +1145,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return rows;
   }
 
-  // 🔥 Reporte artículos mejorado (utilidad $ + % + participación + cantidades)
   function buildArticulosRows(){
-    const map=new Map(); // key = id||desc
+    const map=new Map();
     for(const ped of pedidosConfirmados){
       for(const it of (ped.items||[])){
         const key = String(it.id)+"||"+String(it.descripcion);
@@ -1177,7 +1170,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const out=temp.map(r=>{
       const util=r.ventas-r.costo;
-      const margen = r.ventas>0 ? (util/r.ventas) : 0; // % utilidad del artículo
+      const margen = r.ventas>0 ? (util/r.ventas) : 0;
       const precioProm = r.unidades>0 ? (r.ventas/r.unidades) : 0;
       const partVentas = totalVentas>0 ? (r.ventas/totalVentas) : 0;
       const partUtil   = totalUtilidad!==0 ? (util/totalUtilidad) : 0;
@@ -1265,7 +1258,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ].join(","));
     }
 
-    // Línea final con totales (opcional, útil en Excel)
     lines.push([
       "", "TOTALES", "",
       "",
@@ -1303,4 +1295,3 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
-
