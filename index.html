@@ -97,7 +97,6 @@
       background:var(--chip);color:#3730a3;font-weight:950;white-space:nowrap;
     }
     .tag.offer{border-color:#fecdd3;background:#fff1f2;color:#9f1239}
-    .tag.cat{border-color:#e2e8f0;background:#f8fafc;color:#334155}
     .empty{padding:12px;border:1px dashed var(--line);border-radius:14px;background:#fff;color:var(--muted);text-align:center}
 
     /* Bottom action bar */
@@ -134,11 +133,31 @@
     .choice{
       border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;
       display:flex;align-items:flex-start;justify-content:space-between;gap:10px;cursor:pointer;
+      position:relative;
     }
     .choice.active{border-color:#bfdbfe; box-shadow:0 0 0 3px rgba(59,130,246,.12)}
     .choice .l strong{display:block;font-size:13px}
     .choice .l span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
     .choice .p{font-weight:950}
+
+    .manualPanel{
+      display:none;
+      margin-top:8px;
+      width:100%;
+    }
+    .choice.active .manualPanel{display:block}
+    .manualRow{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      margin-top:8px;
+    }
+    .manualRow input{
+      flex:1;
+      padding:10px 10px;
+      font-size:15px;
+    }
+
     .subbox{
       border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;margin-top:10px
     }
@@ -171,7 +190,6 @@
       </div>
 
       <div class="row" style="margin-top:8px">
-        <button class="btn ghost small" id="btnCat" type="button">Categorías</button>
         <button class="btn ghost small" id="btnArchivos" type="button">Archivos</button>
         <button class="btn ghost small" id="btnReportes" type="button">Reportes</button>
       </div>
@@ -191,29 +209,11 @@
         <div class="sheetBody">
           <div class="card">
             <label>Nombre *</label>
-            <input id="clienteNombre" type="text" placeholder="Ej. Juan Pérez" autocomplete="name" />
+            <input id id="clienteNombre" type="text" placeholder="Ej. Juan Pérez" autocomplete="name" />
             <label>Dirección *</label>
             <input id="clienteDir" type="text" placeholder="Ej. Calle 5 de mayo #852" autocomplete="street-address" />
             <div class="hint">Se usa para el pedido y reportes. (No se guarda a la nube.)</div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Drawer: Categorías -->
-    <div class="overlay" id="ovCat" aria-hidden="true">
-      <div class="sheet">
-        <div class="sheetHead">
-          <strong>Categorías</strong>
-          <button class="btn ghost small" id="closeCat" type="button">Cerrar</button>
-        </div>
-        <div class="sheetBody">
-          <label>Selecciona</label>
-          <select id="selCat">
-            <option value="">(Selecciona)</option>
-          </select>
-          <div class="list" id="catList"></div>
-          <div class="empty" id="noCat" style="display:none">No hay productos en esta categoría.</div>
         </div>
       </div>
     </div>
@@ -230,12 +230,11 @@
             <div class="row" style="justify-content:space-between">
               <div class="pill">Productos: <strong id="statProd">0</strong></div>
               <div class="pill">Ofertas: <strong id="statOfer">0</strong></div>
-              <div class="pill">Categorías: <strong id="statCat">0</strong></div>
             </div>
 
             <label>Productos (.csv)</label>
             <input id="fileProductos" type="file" accept=".csv,text/csv" />
-            <div class="hint">Headers flexibles. Recomendado: <b>ID</b>, <b>Categoria</b>, <b>Descripcion</b>, <b>Costo</b></div>
+            <div class="hint">Headers flexibles. Recomendado: <b>ID</b>, <b>Descripcion</b>, <b>Costo</b></div>
 
             <label style="margin-top:10px">Ofertas (.csv)</label>
             <input id="fileOfertas" type="file" accept=".csv,text/csv" />
@@ -278,7 +277,7 @@
     <div class="overlay" id="ovPick" aria-hidden="true">
       <div class="sheet">
         <div class="sheetHead">
-          <strong id="pickTitle">Seleccionar</strong>
+          <strong id="pickTitle">Cotizar</strong>
           <button class="btn ghost small" id="closePick" type="button">Cerrar</button>
         </div>
         <div class="sheetBody" id="pickBody"></div>
@@ -337,8 +336,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const MARGEN_MEDIA = 0.065;
   const MARGEN_CAJA  = 0.04;
 
-  const LS_PEDIDOS = "periodo_pedidos_v6";
-  const LS_INICIO  = "periodo_inicio_v6";
+  const LS_PEDIDOS = "periodo_pedidos_v7";
+  const LS_INICIO  = "periodo_inicio_v7";
 
   // ===== Helpers =====
   const $ = id => document.getElementById(id);
@@ -448,22 +447,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return -1;
   }
 
+  // Productos: SOLO ID / Descripcion / Costo (ignora Categoría si existe)
   function loadProductos(parsed){
     const h=parsed.headers||[];
     const idxId    = findColIndex(h, ["id","sku","codigo","código","clave","key"]);
     const idxDesc  = findColIndex(h, ["descripcion","descripción","producto","articulo","artículo","nombre","desc"]);
     const idxCosto = findColIndex(h, ["costo","cost","precio costo","precio_costo","costounitario","costo unitario"]);
-    const idxCat   = findColIndex(h, ["categoria","categoría","cat","departamento","grupo","familia"]);
 
     const out=[];
     for(const row of parsed.rows){
       const id   = (idxId>=0? row[idxId]: row[0])?.trim() || "";
       const desc = (idxDesc>=0? row[idxDesc]: row[1])?.trim() || "";
       const cRaw = (idxCosto>=0? row[idxCosto]: row[2])?.trim() || "";
-      const cat  = (idxCat>=0? row[idxCat]: row[3])?.trim() || "Sin categoría";
       const costo= toNumber(cRaw);
       if(!id || !desc) continue;
-      out.push({id:String(id), descripcion:desc, costo:Number.isFinite(costo)?costo:0, categoria:cat||"Sin categoría"});
+      out.push({id:String(id), descripcion:desc, costo:Number.isFinite(costo)?costo:0});
     }
     return out;
   }
@@ -495,7 +493,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== App state =====
   let productos=[];
   let prodById=new Map();
-  let categorias=[];
   let ofertasById=new Map(); // id -> [ {precioOferta, volumen, articulo} ]
   let pedido=[];
   let pedidosConfirmados = loadLS(LS_PEDIDOS, []);
@@ -528,13 +525,13 @@ document.addEventListener("DOMContentLoaded", () => {
     unlockBody();
   }
 
-  ["ovCli","ovCat","ovArch","ovRep","ovPick","ovPedido"].forEach(oid=>{
+  ["ovCli","ovArch","ovRep","ovPick","ovPedido"].forEach(oid=>{
     $(oid).addEventListener("click",(e)=>{
       if(e.target===$(oid)) closeOverlay(oid);
     }, {passive:true});
   });
 
-  // ===== Cliente (visible arriba) =====
+  // ===== Cliente =====
   function clienteOk(){
     return $("clienteNombre").value.trim() && $("clienteDir").value.trim();
   }
@@ -558,26 +555,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateStats(){
     $("statProd").textContent = productos.length;
     $("statOfer").textContent = Array.from(ofertasById.values()).reduce((a,b)=>a+b.length,0);
-    $("statCat").textContent  = categorias.length;
     $("miniStat").textContent = `Productos: ${productos.length} · Ofertas: ${$("statOfer").textContent}`;
   }
 
   function rebuildIndexes(){
     prodById = new Map(productos.map(p=>[String(p.id),p]));
-    const set=new Set();
-    for(const p of productos){
-      const c=(p.categoria||"Sin categoría").trim()||"Sin categoría";
-      p.categoria=c;
-      set.add(c);
-    }
-    categorias=Array.from(set).sort((a,b)=>a.localeCompare(b,"es"));
-    const sel=$("selCat");
-    sel.innerHTML = `<option value="">(Selecciona)</option>`;
-    for(const c of categorias){
-      const o=document.createElement("option");
-      o.value=c; o.textContent=c;
-      sel.appendChild(o);
-    }
   }
 
   // ===== File inputs =====
@@ -658,7 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const matches=[];
     for(const p of productos){
       if(filtroSoloOfertas && !productHasOffers(p.id)) continue;
-      const hit = norm(p.descripcion).includes(qn) || norm(p.id).includes(qn) || norm(p.categoria).includes(qn);
+      const hit = norm(p.descripcion).includes(qn) || norm(p.id).includes(qn);
       if(hit) matches.push({tipo:"prod", id:p.id});
     }
 
@@ -704,49 +686,13 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="right">
           ${badge ? `<span class="tag offer">OFERTAS (${badge.count})</span>` : `<span class="tag">Ver precios</span>`}
-          ${badge ? `<div class="meta" style="text-align:right">desde <b>${money(badge.precio)}</b><br>min <b>${badge.vol}</b></div>` : `<span class="tag cat">${esc(p.categoria||"")}</span>`}
+          ${badge ? `<div class="meta" style="text-align:right">desde <b>${money(badge.precio)}</b><br>min <b>${badge.vol}</b></div>` : ``}
         </div>
       `;
       el.addEventListener("click", ()=>openPicker(p));
       cont.appendChild(el);
     }
   }
-
-  // ===== Categorías =====
-  $("btnCat").addEventListener("click", ()=>openOverlay("ovCat"));
-  $("closeCat").addEventListener("click", ()=>closeOverlay("ovCat"));
-
-  $("selCat").addEventListener("change", ()=>{
-    const cat=$("selCat").value;
-    const list=$("catList");
-    list.innerHTML="";
-    if(!cat){ $("noCat").style.display="none"; return; }
-
-    const items=productos.filter(p=>(p.categoria||"Sin categoría")===cat)
-      .sort((a,b)=>a.descripcion.localeCompare(b.descripcion,"es"));
-
-    $("noCat").style.display = items.length ? "none" : "block";
-
-    for(const p of items.slice(0, 200)){
-      const badge=bestOfferBadge(p.id);
-      const el=document.createElement("div");
-      el.className="item";
-      el.innerHTML=`
-        <div style="min-width:0">
-          <div class="title">${esc(p.descripcion)}</div>
-          <div class="meta">ID: ${esc(p.id)}</div>
-        </div>
-        <div class="right">
-          ${badge ? `<span class="tag offer">OFERTAS (${badge.count})</span>` : `<span class="tag">Ver</span>`}
-        </div>
-      `;
-      el.addEventListener("click", ()=>{
-        closeOverlay("ovCat");
-        openPicker(p);
-      });
-      list.appendChild(el);
-    }
-  });
 
   // ===== Archivos =====
   $("btnArchivos").addEventListener("click", ()=>openOverlay("ovArch"));
@@ -782,45 +728,54 @@ document.addEventListener("DOMContentLoaded", () => {
     const ofertas = ofertasById.get(String(p.id)) || [];
 
     let selected = {tipo:"pieza", precio:precio1, volMin:1, etiqueta:"Pieza"};
+
     $("pickTitle").textContent = "Cotizar";
     const body=$("pickBody");
 
     body.innerHTML = `
       <div class="card">
         <div class="title" style="font-size:14px">${esc(p.descripcion)}</div>
-        <div class="meta">ID: ${esc(p.id)} · ${esc(p.categoria||"")}</div>
+        <div class="meta">ID: ${esc(p.id)}</div>
       </div>
 
       <div class="subbox">
         <div class="meta" style="margin-bottom:6px"><b>Selecciona precio</b> (pieza / media / caja)</div>
 
-        <div class="grid2">
+        <div class="grid2" id="choiceGrid">
           <div class="choice active" data-kind="pieza">
             <div class="l"><strong>Pieza</strong><span>Precio por pieza</span></div>
             <div class="p">${money(precio1)}</div>
           </div>
+
           <div class="choice" data-kind="media">
             <div class="l"><strong>Media</strong><span>Precio por media caja</span></div>
             <div class="p">${money(precio2)}</div>
           </div>
+
           <div class="choice" data-kind="caja">
             <div class="l"><strong>Caja</strong><span>Precio por caja</span></div>
             <div class="p">${money(precio3)}</div>
           </div>
-          <div class="choice" data-kind="manual">
-            <div class="l"><strong>Manual</strong><span>(opcional)</span></div>
-            <div class="p">—</div>
-          </div>
-        </div>
 
-        <div id="manualBox" style="display:none;margin-top:10px">
-          <label style="margin:0 0 6px">Precio manual</label>
-          <div class="row">
-            <input id="manualPrecio" type="number" inputmode="decimal" step="0.01" placeholder="Ej. 45.00" />
-            <button class="btn soft small" id="useManual" type="button">Usar</button>
+          <div class="choice" data-kind="manual" id="manualChoice">
+            <div style="width:100%">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+                <div class="l"><strong>Manual</strong><span>(opcional)</span></div>
+                <div class="p">—</div>
+              </div>
+
+              <!-- Panel manual DENTRO del mismo recuadro -->
+              <div class="manualPanel" id="manualPanel">
+                <div class="meta" style="margin-top:6px">No permite vender abajo del costo.</div>
+                <div class="manualRow">
+                  <input id="manualPrecio" type="number" inputmode="decimal" step="0.01" placeholder="Ej. 45.00" />
+                  <button class="btn soft small" id="useManual" type="button">Usar</button>
+                </div>
+                <div class="hint" id="manualHint"></div>
+                <div class="hint" id="manualCalc"></div>
+              </div>
+            </div>
           </div>
-          <div class="hint" id="manualHint"></div>
-          <div class="hint" id="manualCalc"></div>
         </div>
       </div>
 
@@ -860,11 +815,13 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     const choices = Array.from(body.querySelectorAll(".choice"));
-    const manualBox = $("manualBox");
+    const manualChoice = $("manualChoice");
+    const manualPrecio = $("manualPrecio");
+    const manualHint = $("manualHint");
+    const manualCalc = $("manualCalc");
 
     function setActive(kind){
       choices.forEach(c=>c.classList.toggle("active", c.dataset.kind===kind));
-      manualBox.style.display = (kind==="manual") ? "block" : "none";
     }
     function refreshPriceLabel(){
       $("precioShow").textContent = money(selected.precio);
@@ -872,37 +829,44 @@ document.addEventListener("DOMContentLoaded", () => {
       $("offerRule").textContent = rule;
     }
 
+    // Normal choices
     choices.forEach(c=>{
-      c.addEventListener("click", ()=>{
+      c.addEventListener("click", (ev)=>{
         const kind=c.dataset.kind;
+        // Si tocó el input o botón manual, no cambiar aquí (lo maneja el botón)
+        if(kind==="manual"){
+          setActive("manual");
+          // foco al input para rapidez
+          setTimeout(()=>manualPrecio?.focus(), 0);
+          return;
+        }
         if(kind==="pieza"){ selected={tipo:"pieza",precio:precio1,volMin:1, etiqueta:"Pieza"}; setActive("pieza"); refreshPriceLabel(); }
         if(kind==="media"){ selected={tipo:"media",precio:precio2,volMin:1, etiqueta:"Media"}; setActive("media"); refreshPriceLabel(); }
         if(kind==="caja") { selected={tipo:"caja", precio:precio3,volMin:1, etiqueta:"Caja"}; setActive("caja"); refreshPriceLabel(); }
-        if(kind==="manual"){ setActive("manual"); }
       });
     });
 
-    if($("manualPrecio")){
-      const input=$("manualPrecio");
-      const hint=$("manualHint");
-      const calc=$("manualCalc");
-      input.addEventListener("input", ()=>{
-        const v=toNumber(input.value);
-        if(!v){ hint.textContent=""; calc.textContent=""; return; }
+    // Manual behavior (same box)
+    if(manualPrecio){
+      manualPrecio.addEventListener("focus", ()=>setActive("manual"));
+      manualPrecio.addEventListener("input", ()=>{
+        const v=toNumber(manualPrecio.value);
+        if(!v){ manualHint.textContent=""; manualCalc.textContent=""; return; }
         if(costo>0 && v<costo){
-          hint.innerHTML=`<span class="warn">No se puede vender abajo del costo.</span>`;
+          manualHint.innerHTML=`<span class="warn">No se puede vender abajo del costo.</span>`;
         } else {
-          hint.innerHTML=`<span class="oktxt">Precio manual válido.</span>`;
+          manualHint.innerHTML=`<span class="oktxt">Precio manual válido.</span>`;
         }
         const util=v-costo;
         const m=calcMargen(costo,v);
-        calc.innerHTML=`Interno: utilidad/unidad <b>${money(util)}</b> · margen <b>${(m*100).toFixed(1)}%</b>`;
+        manualCalc.innerHTML=`Interno: utilidad/unidad <b>${money(util)}</b> · margen <b>${(m*100).toFixed(1)}%</b>`;
       });
 
-      $("useManual").addEventListener("click", ()=>{
-        const v=toNumber(input.value);
-        if(!v){ hint.innerHTML=`<span class="warn">Ingresa un precio.</span>`; return; }
-        if(costo>0 && v<costo){ hint.innerHTML=`<span class="warn">No se puede vender abajo del costo.</span>`; return; }
+      $("useManual").addEventListener("click", (e)=>{
+        e.stopPropagation();
+        const v=toNumber(manualPrecio.value);
+        if(!v){ manualHint.innerHTML=`<span class="warn">Ingresa un precio.</span>`; setActive("manual"); return; }
+        if(costo>0 && v<costo){ manualHint.innerHTML=`<span class="warn">No se puede vender abajo del costo.</span>`; setActive("manual"); return; }
         selected={tipo:"manual",precio:v,volMin:1, etiqueta:"Manual"};
         setActive("manual");
         refreshPriceLabel();
@@ -910,6 +874,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    // Offers list
     if(ofertas.length){
       const ofList = $("ofList");
       const qtyEl = $("qty");
@@ -934,7 +899,6 @@ document.addEventListener("DOMContentLoaded", () => {
           el.addEventListener("click", ()=>{
             selected={tipo:"oferta",precio:of.precioOferta,volMin:of.volumen, etiqueta:"Oferta"};
             choices.forEach(c=>c.classList.remove("active"));
-            manualBox.style.display="none";
             renderOffers();
             refreshPriceLabel();
           });
@@ -1288,9 +1252,10 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPedidoMini();
   refreshRepMini();
 
-  // Botones overlays
-  $("btnArchivos").addEventListener("click", ()=>openOverlay("ovArch"));
-  $("btnReportes").addEventListener("click", ()=>{ refreshRepMini(); openOverlay("ovRep"); });
+  // Cierres overlays
+  $("closeRep").addEventListener("click", ()=>closeOverlay("ovRep"));
+  $("closeArch").addEventListener("click", ()=>closeOverlay("ovArch"));
+  $("closePedido").addEventListener("click", ()=>closeOverlay("ovPedido"));
 });
 </script>
 </body>
