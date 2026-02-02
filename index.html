@@ -57,18 +57,24 @@
     .hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.25}
     .divider{height:1px;background:var(--line);margin:10px 0}
 
-    /* Cliente visible SIEMPRE */
-    .clientBar{
+    /* Cliente (barra clickeable completa) */
+    .clientBarBtn{
       margin-top:8px;
+      width:100%;
       background:#fff;
       border:1px solid var(--line);
       border-radius:14px;
       padding:8px 10px;
       display:flex;
       gap:10px;
-      align-items:flex-start;
+      align-items:center;
       justify-content:space-between;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+      text-align:left;
     }
+    .clientBarBtn:active{transform:translateY(1px)}
+    .clientBarBtn:focus{outline:none; box-shadow:0 0 0 3px rgba(59,130,246,.15); border-color:#bfdbfe}
     .clientText{
       min-width:0;
       display:flex;
@@ -77,6 +83,15 @@
     }
     .clientText .t1{font-weight:950;font-size:13px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .clientText .t2{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chev{
+      width:34px;height:34px;border-radius:12px;
+      border:1px solid var(--line);
+      display:grid;place-items:center;
+      background:linear-gradient(#fff,#f8fafc);
+      color:#334155;
+      font-weight:950;
+      flex:0 0 auto;
+    }
 
     /* Search UI */
     .searchWrap{display:flex;gap:8px;align-items:center;margin-top:8px}
@@ -98,6 +113,29 @@
     }
     .tag.offer{border-color:#fecdd3;background:#fff1f2;color:#9f1239}
     .empty{padding:12px;border:1px dashed var(--line);border-radius:14px;background:#fff;color:var(--muted);text-align:center}
+
+    /* Botones Archivos / Reportes (estéticos) */
+    .actionRow{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:8px;
+    }
+    .actionBtn{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-weight:950;
+      font-size:13px;
+      color:#0f172a;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+      box-shadow:0 1px 2px rgba(15,23,42,.04);
+    }
+    .actionBtn:active{transform:translateY(1px)}
+    .actionBtn svg{width:16px;height:16px;color:#334155}
 
     /* Bottom action bar */
     .footer{
@@ -140,27 +178,12 @@
     .choice .l span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
     .choice .p{font-weight:950}
 
-    .manualPanel{
-      display:none;
-      margin-top:8px;
-      width:100%;
-    }
+    .manualPanel{display:none;margin-top:8px;width:100%}
     .choice.active .manualPanel{display:block}
-    .manualRow{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      margin-top:8px;
-    }
-    .manualRow input{
-      flex:1;
-      padding:10px 10px;
-      font-size:15px;
-    }
+    .manualRow{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .manualRow input{flex:1;padding:10px 10px;font-size:15px}
 
-    .subbox{
-      border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;margin-top:10px
-    }
+    .subbox{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;margin-top:10px}
     .warn{color:#b91c1c;font-weight:900}
     .oktxt{color:#166534;font-weight:900}
   </style>
@@ -174,14 +197,14 @@
         <div class="mini" id="miniStat">Productos: 0 · Ofertas: 0</div>
       </div>
 
-      <!-- Cliente SIEMPRE visible -->
-      <div class="clientBar">
+      <!-- Cliente: TODO CLICKEABLE -->
+      <button class="clientBarBtn" id="btnClienteBar" type="button" aria-label="Cambiar cliente">
         <div class="clientText">
           <div class="t1" id="cliTopName">Cliente: —</div>
           <div class="t2" id="cliTopDir">Dirección: —</div>
         </div>
-        <button class="btn ghost small" id="btnCliente" type="button">Editar</button>
-      </div>
+        <div class="chev">›</div>
+      </button>
 
       <div class="searchWrap">
         <input id="q" type="text" inputmode="search" autocomplete="off"
@@ -189,9 +212,25 @@
         <button class="btn soft small" id="btnSoloOfertas" type="button">Ofertas</button>
       </div>
 
-      <div class="row" style="margin-top:8px">
-        <button class="btn ghost small" id="btnArchivos" type="button">Archivos</button>
-        <button class="btn ghost small" id="btnReportes" type="button">Reportes</button>
+      <!-- Archivos / Reportes estéticos -->
+      <div class="actionRow">
+        <button class="actionBtn" id="btnArchivos" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <path d="M14 2v6h6"></path>
+          </svg>
+          Archivos
+        </button>
+
+        <button class="actionBtn" id="btnReportes" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"></path>
+            <path d="M7 14l4-4 3 3 6-6"></path>
+          </svg>
+          Reportes
+        </button>
       </div>
     </div>
 
@@ -209,7 +248,7 @@
         <div class="sheetBody">
           <div class="card">
             <label>Nombre *</label>
-            <input id id="clienteNombre" type="text" placeholder="Ej. Juan Pérez" autocomplete="name" />
+            <input id="clienteNombre" type="text" placeholder="Ej. Juan Pérez" autocomplete="name" />
             <label>Dirección *</label>
             <input id="clienteDir" type="text" placeholder="Ej. Calle 5 de mayo #852" autocomplete="street-address" />
             <div class="hint">Se usa para el pedido y reportes. (No se guarda a la nube.)</div>
@@ -545,7 +584,8 @@ document.addEventListener("DOMContentLoaded", () => {
     $("pedidoCliente").innerHTML = `Cliente: <strong>${esc(show)}</strong>`;
   }
 
-  $("btnCliente").addEventListener("click", ()=>openOverlay("ovCli"));
+  // Cliente: abrir con toda la barra
+  $("btnClienteBar").addEventListener("click", ()=>openOverlay("ovCli"));
   $("closeCli").addEventListener("click", ()=>closeOverlay("ovCli"));
   $("clienteNombre").addEventListener("input", renderCliente);
   $("clienteDir").addEventListener("input", renderCliente);
@@ -815,7 +855,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     const choices = Array.from(body.querySelectorAll(".choice"));
-    const manualChoice = $("manualChoice");
     const manualPrecio = $("manualPrecio");
     const manualHint = $("manualHint");
     const manualCalc = $("manualCalc");
@@ -829,14 +868,11 @@ document.addEventListener("DOMContentLoaded", () => {
       $("offerRule").textContent = rule;
     }
 
-    // Normal choices
     choices.forEach(c=>{
-      c.addEventListener("click", (ev)=>{
+      c.addEventListener("click", ()=>{
         const kind=c.dataset.kind;
-        // Si tocó el input o botón manual, no cambiar aquí (lo maneja el botón)
         if(kind==="manual"){
           setActive("manual");
-          // foco al input para rapidez
           setTimeout(()=>manualPrecio?.focus(), 0);
           return;
         }
@@ -846,7 +882,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // Manual behavior (same box)
     if(manualPrecio){
       manualPrecio.addEventListener("focus", ()=>setActive("manual"));
       manualPrecio.addEventListener("input", ()=>{
@@ -874,7 +909,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Offers list
     if(ofertas.length){
       const ofList = $("ofList");
       const qtyEl = $("qty");
