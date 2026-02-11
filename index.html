@@ -325,7 +325,7 @@
       border:1px solid var(--line);
       border-radius: 14px;
       padding: 12px;
-      font-size: 16px;
+      font-size: 16px; /* iOS zoom fix */
       outline:none;
       background:#fff;
     }
@@ -383,7 +383,7 @@
     .pSub{font-size:12px;color:var(--muted);margin-top:2px;}
     .pVal{font-weight:1000;font-size:16px;white-space:nowrap;}
 
-    /* Manual bar (SIN BOTÓN) */
+    /* Manual bar (SIN botón) */
     .manualBar{
       display:none;
       margin-top:10px;
@@ -946,10 +946,10 @@ function pickColIndex(headerRow, variants){
 /* ===========================
    Carga + persistencia local
 =========================== */
-const LS_PRODUCTS = "SM_PRODUCTS_V4";
-const LS_OFFERS   = "SM_OFFERS_V4";
-const LS_CLIENT   = "SM_CLIENT_V4";
-const LS_ORDERS   = "SM_ORDERS_V4";
+const LS_PRODUCTS = "SM_PRODUCTS_V5";
+const LS_OFFERS   = "SM_OFFERS_V5";
+const LS_CLIENT   = "SM_CLIENT_V5";
+const LS_ORDERS   = "SM_ORDERS_V5";
 
 function saveLocal(){
   try{
@@ -1173,7 +1173,7 @@ function updateBottom(){
 function escapeHtml(s){
   return String(s||"")
     .replaceAll("&","&amp;").replaceAll("<","&lt;")
-    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll(">","&gt;").replaceAll('"',"quot;")
     .replaceAll("'","&#039;");
 }
 
@@ -1202,7 +1202,6 @@ function setPriceHint(text, kind){ // kind: "bad"|"ok"
 
 function updateMarginHint(){
   if(!currentProduct) return;
-
   const cost = currentProduct.cost;
   const price = selection.price;
 
@@ -1286,7 +1285,6 @@ function renderPriceGrid(){
         selection.price = c.val;
         $("inManualPrice").value = "";
       }else{
-        // manual: se queda seleccionado y se usa lo que el usuario escriba (sin botón)
         selection.price = (isFinite(selection.manualPrice) ? selection.manualPrice : 0);
       }
 
@@ -1353,7 +1351,7 @@ function renderOfferList(){
 /* Manual price input (SIN botón) */
 $("inManualPrice").addEventListener("input", ()=>{
   const v = num($("inManualPrice").value);
-  selection.mode = "manual"; // si está escribiendo, manual queda seleccionado
+  selection.mode = "manual";
   selection.offerIndex = -1;
 
   if(!isFinite(v)){
@@ -1392,7 +1390,6 @@ $("btnAddItem").addEventListener("click", ()=>{
     return;
   }
 
-  // oferta meta
   let offerVol = "";
   let isOffer = false;
   if(selection.mode==="offer"){
@@ -1435,7 +1432,7 @@ $("btnAddItem").addEventListener("click", ()=>{
 });
 
 /* ===========================
-   Pedido actual
+   Pedido actual (MEJORADO)
 =========================== */
 $("btnViewOrder").addEventListener("click", ()=> openOrder());
 
@@ -1462,15 +1459,22 @@ function renderOrderItems(){
       const volTag = it.isOffer && it.offerVol ? `<span class="tag offer">${escapeHtml(it.offerVol)}</span>` : ``;
       const noteTag = it.note ? `<span class="tag">${escapeHtml(it.note)}</span>` : ``;
 
+      /* Bloque mejorado: producto + precio + cantidad + total (muy claro) */
       el.innerHTML = `
-        <div style="min-width:0">
+        <div style="min-width:0;flex:1">
           <div class="oiName">${escapeHtml(it.name)}</div>
           <div class="oiMeta">
             <span class="tag">ID: ${escapeHtml(it.id)}</span>
-            <span class="tag">x${it.qty}</span>
+            <span class="tag">Cant: ${it.qty}</span>
             ${volTag}
             ${noteTag}
           </div>
+
+          <div style="margin-top:8px;font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;">
+            <span><b style="color:var(--text)">Precio:</b> ${money(it.unitPrice)}</span>
+            <span><b style="color:var(--text)">Total:</b> ${money(it.lineTotal)}</span>
+          </div>
+
           <button class="rmBtn">Quitar</button>
         </div>
         <div class="oiRight">
@@ -1478,6 +1482,7 @@ function renderOrderItems(){
           <div class="oiUnit">${money(it.unitPrice)} c/u</div>
         </div>
       `;
+
       el.querySelector(".rmBtn").addEventListener("click", ()=>{
         order.splice(idx,1);
         saveLocal();
@@ -1496,6 +1501,63 @@ function renderOrderItems(){
 
 $("inOrderNote").addEventListener("input", ()=>{
   window.__orderNote = $("inOrderNote").value;
+});
+
+/* WhatsApp text (MEJORADO, ultra claro) */
+function buildWhatsAppText(){
+  const lines = [];
+  const now = new Date();
+  const fecha = now.toLocaleString("es-MX");
+
+  lines.push(`PEDIDO — ${fecha}`);
+  lines.push(`${client.name} — ${client.addr}`);
+
+  const notaPedido = String(window.__orderNote || "").trim();
+  if(notaPedido){
+    lines.push(`Notas del pedido: ${notaPedido}`);
+  }
+
+  lines.push("");
+  lines.push("ARTÍCULOS:");
+  lines.push("--------------------------------------------------");
+
+  order.forEach((it, i)=>{
+    const vol = (it.isOffer && it.offerVol) ? ` • OFERTA (${it.offerVol})` : "";
+    lines.push(`${i+1}) ${it.name}${vol}`);
+    lines.push(`   Precio: ${money(it.unitPrice)}  |  Cant: ${it.qty}  |  Total: ${money(it.lineTotal)}`);
+
+    const nota = String(it.note || "").trim();
+    if(nota){
+      lines.push(`   Nota: ${nota}`);
+    }
+    lines.push("");
+  });
+
+  const total = order.reduce((a,x)=>a+x.lineTotal,0);
+  lines.push("--------------------------------------------------");
+  lines.push(`TOTAL DEL PEDIDO: ${money(total)}`);
+
+  return lines.join("\n");
+}
+
+$("btnShareWA").addEventListener("click", async ()=>{
+  if(order.length===0){ toast("Pedido vacío."); return; }
+  if(!client.name || !client.addr){
+    toast("Define cliente y dirección.");
+    openModal("ovClient");
+    return;
+  }
+  const txt = buildWhatsAppText();
+
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast("Copiado. Abriendo WhatsApp…");
+  }catch(e){
+    toast("No se pudo copiar automático. Se abrirá WhatsApp.");
+  }
+
+  const url = "https://wa.me/?text=" + encodeURIComponent(txt);
+  window.open(url, "_blank");
 });
 
 $("btnConfirmOrder").addEventListener("click", ()=>{
@@ -1531,44 +1593,6 @@ $("btnConfirmOrder").addEventListener("click", ()=>{
   renderOrderItems();
   toast("Pedido guardado.");
   closeModal("ovOrder");
-});
-
-function buildWhatsAppText(){
-  const lines = [];
-  lines.push(`Pedido para: ${client.name} — ${client.addr}`);
-  if(window.__orderNote && String(window.__orderNote).trim()){
-    lines.push(`Notas: ${String(window.__orderNote).trim()}`);
-  }
-  lines.push("");
-  order.forEach(it=>{
-    const note = it.note ? ` (${it.note})` : "";
-    const vol = (it.isOffer && it.offerVol) ? ` [${it.offerVol}]` : "";
-    lines.push(`- ${it.name}${note}${vol}  x${it.qty}  = ${money(it.lineTotal)}`);
-  });
-  const total = order.reduce((a,x)=>a+x.lineTotal,0);
-  lines.push("");
-  lines.push(`Total: ${money(total)}`);
-  return lines.join("\n");
-}
-
-$("btnShareWA").addEventListener("click", async ()=>{
-  if(order.length===0){ toast("Pedido vacío."); return; }
-  if(!client.name || !client.addr){
-    toast("Define cliente y dirección.");
-    openModal("ovClient");
-    return;
-  }
-  const txt = buildWhatsAppText();
-
-  try{
-    await navigator.clipboard.writeText(txt);
-    toast("Copiado. Abriendo WhatsApp…");
-  }catch(e){
-    toast("No se pudo copiar automático. Se abrirá WhatsApp.");
-  }
-
-  const url = "https://wa.me/?text=" + encodeURIComponent(txt);
-  window.open(url, "_blank");
 });
 
 /* ===========================
@@ -1648,22 +1672,31 @@ function csvEscape(val){
   return s;
 }
 
+/* Export Orders (MEJORADO: detalle por artículo con precio/cant/total) */
 $("btnExportOrders").addEventListener("click", ()=>{
   if(orders.length===0){ toast("No hay pedidos."); return; }
-  const header = ["FechaHora","Cliente","Direccion","Items","TotalVenta","TotalCosto","Utilidad","NotasPedido"];
+
+  const header = ["FechaHora","Cliente","Direccion","TotalVenta","Utilidad","NotasPedido","DetalleItems"];
   const rows = [header.join(",")];
+
   for(const o of orders){
+    const detalle = o.items.map(it=>{
+      const nota = (it.note && String(it.note).trim()) ? ` | Nota: ${String(it.note).trim()}` : "";
+      const vol  = (it.isOffer && it.offerVol) ? ` | OFERTA: ${it.offerVol}` : "";
+      return `${it.name} | Precio: ${it.unitPrice.toFixed(2)} | Cant: ${it.qty} | Total: ${it.lineTotal.toFixed(2)}${vol}${nota}`;
+    }).join(" || ");
+
     rows.push([
       csvEscape(o.ts),
       csvEscape(o.clientName),
       csvEscape(o.clientAddr),
-      o.items.length,
       o.total.toFixed(2),
-      o.totalCost.toFixed(2),
       o.profit.toFixed(2),
-      csvEscape(o.note||"")
+      csvEscape(o.note||""),
+      csvEscape(detalle)
     ].join(","));
   }
+
   downloadCSV("Reporte_Pedidos_SuperMass.csv", rows.join("\n"));
   toast("CSV de pedidos generado.");
 });
@@ -1845,20 +1878,11 @@ $("btnSaveClient").addEventListener("click", ()=>{
 });
 
 /* ===========================
-   Search listeners
+   Search listeners + init
 =========================== */
 $("q").addEventListener("input", renderResults);
-$("btnViewOrder").addEventListener("click", ()=> openOrder());
 
-/* ===========================
-   Init
-=========================== */
 loadLocal();
-
-/* helpers used earlier */
-function productHasOffers(id){
-  return offersById.has(String(id)) && offersById.get(String(id)).length>0;
-}
 </script>
 </body>
 </html>
