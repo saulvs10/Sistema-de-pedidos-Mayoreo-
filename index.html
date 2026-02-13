@@ -589,7 +589,7 @@
       <div class="clientLeft">
         <div class="clientLabel">Cliente</div>
         <div class="clientName" id="clientName">—</div>
-        <div class="clientAddr" id="clientAddr">Dirección: —</div>
+        <div class="clientAddr" id="clientAddr">📍 Dirección: —</div>
       </div>
       <div class="chip">Cambiar</div>
     </div>
@@ -641,6 +641,15 @@
           <div class="label">Dirección (obligatorio)</div>
           <input class="input" id="inClientAddr" placeholder="Ej. Calle 5 de mayo #852" />
         </div>
+
+        <div class="field">
+          <div class="label">Crédito (obligatorio)</div>
+          <select class="input" id="inClientCredit">
+            <option value="no">No</option>
+            <option value="si">Sí</option>
+          </select>
+        </div>
+
         <button class="btnPrimary" id="btnSaveClient" style="width:100%;margin-top:6px;">Guardar cliente</button>
         <div class="hint">Tip: esta info se guarda en el teléfono automáticamente.</div>
       </div>
@@ -714,15 +723,12 @@
         <div class="label">Selecciona precio <span class="muted">(pieza / media / caja)</span></div>
         <div class="priceGrid" id="priceGrid"></div>
 
-        <!-- Manual SIN botón -->
         <div class="manualBar" id="manualBar">
           <input id="inManualPrice" type="text" inputmode="decimal" placeholder="Precio manual..." />
         </div>
 
-        <!-- Mensaje guía utilidad / alerta -->
         <div class="hint" id="priceHint" style="display:none;"></div>
 
-        <!-- Ofertas del producto -->
         <div class="offerBlock" id="offerBlock" style="display:none;">
           <div class="offerTitle">Oferta(s) disponibles</div>
           <div class="offerList" id="offerList"></div>
@@ -847,7 +853,7 @@ let offers = [];            // {id, name, price, volume}
 let offersById = new Map();
 let order = [];
 let orders = [];
-let client = { name:"", addr:"" };
+let client = { name:"", addr:"", credit:"no" };
 
 let currentProduct = null;
 let selection = {
@@ -929,7 +935,7 @@ function parseCSV(text){
 
 function looksLikeHeaderRow(row){
   const joined = row.map(normKey).join(" ");
-  const keys = ["id","sku","descripcion","descripción","desc","articulo","costo","existencia","stock","preciooferta","oferta","volumen"];
+  const keys = ["id","sku","descripcion","descripción","desc","articulo","costo","existencia","stock","preciooferta","oferta","volumen","credito","crédito"];
   return keys.some(k => joined.includes(normKey(k)));
 }
 
@@ -946,10 +952,10 @@ function pickColIndex(headerRow, variants){
 /* ===========================
    Carga + persistencia local
 =========================== */
-const LS_PRODUCTS = "SM_PRODUCTS_V5";
-const LS_OFFERS   = "SM_OFFERS_V5";
-const LS_CLIENT   = "SM_CLIENT_V5";
-const LS_ORDERS   = "SM_ORDERS_V5";
+const LS_PRODUCTS = "SM_PRODUCTS_V6";
+const LS_OFFERS   = "SM_OFFERS_V6";
+const LS_CLIENT   = "SM_CLIENT_V6";
+const LS_ORDERS   = "SM_ORDERS_V6";
 
 function saveLocal(){
   try{
@@ -967,7 +973,13 @@ function loadLocal(){
     const r = JSON.parse(localStorage.getItem(LS_ORDERS)||"null");
     if(Array.isArray(p)) products = p;
     if(Array.isArray(o)) offers = o;
-    if(c && typeof c==="object") client = {name:c.name||"", addr:c.addr||""};
+    if(c && typeof c==="object"){
+      client = {
+        name: c.name||"",
+        addr: c.addr||"",
+        credit: (c.credit||"no")
+      };
+    }
     if(Array.isArray(r)) orders = r;
   }catch(e){}
   rebuildOffersIndex();
@@ -1096,7 +1108,7 @@ function refreshCounts(){
 }
 function renderClientBar(){
   $("clientName").textContent = client.name ? client.name : "—";
-  $("clientAddr").textContent = client.addr ? ("Dirección: " + client.addr) : "Dirección: —";
+  $("clientAddr").textContent = client.addr ? ("📍 " + client.addr) : "📍 Dirección: —";
 }
 function productHasOffers(id){
   return offersById.has(String(id)) && offersById.get(String(id)).length>0;
@@ -1432,13 +1444,14 @@ $("btnAddItem").addEventListener("click", ()=>{
 });
 
 /* ===========================
-   Pedido actual (MEJORADO)
+   Pedido actual
 =========================== */
 $("btnViewOrder").addEventListener("click", ()=> openOrder());
 
 function openOrder(){
+  const hasCredit = String(client.credit||"no").toLowerCase() === "si";
   $("orderClientLine").textContent = client.name
-    ? `Pedido para: ${client.name} — ${client.addr || "Sin dirección"}`
+    ? `Pedido para: ${client.name} — 📍 ${client.addr || "Sin dirección"}${hasCredit ? " · Crédito: SÍ" : ""}`
     : `Pedido para: (sin cliente)`;
 
   $("inOrderNote").value = String(window.__orderNote || "");
@@ -1459,7 +1472,6 @@ function renderOrderItems(){
       const volTag = it.isOffer && it.offerVol ? `<span class="tag offer">${escapeHtml(it.offerVol)}</span>` : ``;
       const noteTag = it.note ? `<span class="tag">${escapeHtml(it.note)}</span>` : ``;
 
-      /* Bloque mejorado: producto + precio + cantidad + total (muy claro) */
       el.innerHTML = `
         <div style="min-width:0;flex:1">
           <div class="oiName">${escapeHtml(it.name)}</div>
@@ -1503,39 +1515,63 @@ $("inOrderNote").addEventListener("input", ()=>{
   window.__orderNote = $("inOrderNote").value;
 });
 
-/* WhatsApp text (MEJORADO, ultra claro) */
+/* ===========================
+   WhatsApp (MEJORADO)
+=========================== */
 function buildWhatsAppText(){
-  const lines = [];
   const now = new Date();
-  const fecha = now.toLocaleString("es-MX");
 
-  lines.push(`PEDIDO — ${fecha}`);
-  lines.push(`${client.name} — ${client.addr}`);
+  const fecha = now.toLocaleDateString("es-MX", {
+    day:"2-digit", month:"short", year:"numeric"
+  }).replace(".", "");
+
+  const hora = now.toLocaleTimeString("es-MX", {
+    hour:"numeric", minute:"2-digit"
+  });
+
+  const lines = [];
+  lines.push(`PEDIDO — ${fecha} · ${hora}`);
+  lines.push(`Cliente: ${client.name}`);
+  lines.push(`📍 ${client.addr}`);
+
+  // Solo mostrar crédito si el cliente SÍ tiene
+  if(String(client.credit||"no").toLowerCase() === "si"){
+    lines.push(`Crédito a 7 días`);
+  }
 
   const notaPedido = String(window.__orderNote || "").trim();
   if(notaPedido){
-    lines.push(`Notas del pedido: ${notaPedido}`);
+    lines.push(`Notas: ${notaPedido}`);
   }
 
   lines.push("");
-  lines.push("ARTÍCULOS:");
+  lines.push("ARTÍCULOS");
   lines.push("--------------------------------------------------");
 
-  order.forEach((it, i)=>{
-    const vol = (it.isOffer && it.offerVol) ? ` • OFERTA (${it.offerVol})` : "";
-    lines.push(`${i+1}) ${it.name}${vol}`);
-    lines.push(`   Precio: ${money(it.unitPrice)}  |  Cant: ${it.qty}  |  Total: ${money(it.lineTotal)}`);
+  // Recalcular totales por seguridad
+  let totalPedido = 0;
 
-    const nota = String(it.note || "").trim();
+  for(const it of order){
+    const qty = Number(it.qty) || 0;
+    const unit = Number(it.unitPrice) || 0;
+    const line = Math.round((qty * unit) * 100) / 100;
+
+    totalPedido += line;
+
+    lines.push(`${it.name}`);
+    lines.push(`Cant: ${qty} · Precio: ${money(unit)} · Total: ${money(line)}`);
+
+    const nota = String(it.note||"").trim();
     if(nota){
-      lines.push(`   Nota: ${nota}`);
+      lines.push(`Nota: ${nota}`);
     }
     lines.push("");
-  });
+  }
 
-  const total = order.reduce((a,x)=>a+x.lineTotal,0);
+  totalPedido = Math.round(totalPedido * 100) / 100;
+
   lines.push("--------------------------------------------------");
-  lines.push(`TOTAL DEL PEDIDO: ${money(total)}`);
+  lines.push(`TOTAL DEL PEDIDO: ${money(totalPedido)}`);
 
   return lines.join("\n");
 }
@@ -1560,6 +1596,10 @@ $("btnShareWA").addEventListener("click", async ()=>{
   window.open(url, "_blank");
 });
 
+/* ===========================
+   Confirmar pedido / reportes / ofertas / archivos / cliente / init
+   (SIN CAMBIOS funcionales relevantes aquí)
+=========================== */
 $("btnConfirmOrder").addEventListener("click", ()=>{
   if(order.length===0){ toast("Pedido vacío."); return; }
   if(!client.name || !client.addr){
@@ -1595,9 +1635,6 @@ $("btnConfirmOrder").addEventListener("click", ()=>{
   closeModal("ovOrder");
 });
 
-/* ===========================
-   Reportes
-=========================== */
 $("btnReports").addEventListener("click", ()=>{
   renderReports();
   openModal("ovReports");
@@ -1663,7 +1700,6 @@ function downloadCSV(filename, csvText){
   a.remove();
   setTimeout(()=>URL.revokeObjectURL(url), 1200);
 }
-
 function csvEscape(val){
   const s = String(val ?? "");
   if(/[",\n;]/.test(s)){
@@ -1672,7 +1708,6 @@ function csvEscape(val){
   return s;
 }
 
-/* Export Orders (MEJORADO: detalle por artículo con precio/cant/total) */
 $("btnExportOrders").addEventListener("click", ()=>{
   if(orders.length===0){ toast("No hay pedidos."); return; }
 
@@ -1682,8 +1717,7 @@ $("btnExportOrders").addEventListener("click", ()=>{
   for(const o of orders){
     const detalle = o.items.map(it=>{
       const nota = (it.note && String(it.note).trim()) ? ` | Nota: ${String(it.note).trim()}` : "";
-      const vol  = (it.isOffer && it.offerVol) ? ` | OFERTA: ${it.offerVol}` : "";
-      return `${it.name} | Precio: ${it.unitPrice.toFixed(2)} | Cant: ${it.qty} | Total: ${it.lineTotal.toFixed(2)}${vol}${nota}`;
+      return `${it.name} | Precio: ${it.unitPrice.toFixed(2)} | Cant: ${it.qty} | Total: ${it.lineTotal.toFixed(2)}${nota}`;
     }).join(" || ");
 
     rows.push([
@@ -1747,9 +1781,6 @@ $("btnClearPeriod").addEventListener("click", ()=>{
   toast("Período reiniciado.");
 });
 
-/* ===========================
-   Ofertas modal
-=========================== */
 $("btnOffers").addEventListener("click", ()=>{
   renderOffersModal();
   openModal("ovOffers");
@@ -1795,9 +1826,6 @@ function renderOffersModal(){
   });
 }
 
-/* ===========================
-   Archivos modal
-=========================== */
 $("btnFiles").addEventListener("click", ()=> openModal("ovFiles"));
 
 $("fileProducts").addEventListener("change", async (e)=>{
@@ -1841,7 +1869,7 @@ $("btnClearData").addEventListener("click", ()=>{
   offersById = new Map();
   order = [];
   orders = [];
-  client = {name:"", addr:""};
+  client = {name:"", addr:"", credit:"no"};
   window.__orderNote = "";
   try{
     localStorage.removeItem(LS_PRODUCTS);
@@ -1856,32 +1884,32 @@ $("btnClearData").addEventListener("click", ()=>{
   toast("Datos borrados.");
 });
 
-/* ===========================
-   Cliente modal
-=========================== */
 $("clientCard").addEventListener("click", ()=>{
   $("inClientName").value = client.name || "";
   $("inClientAddr").value = client.addr || "";
+  $("inClientCredit").value = client.credit || "no";
   openModal("ovClient");
   setTimeout(()=> $("inClientName").focus(), 80);
 });
+
 $("btnSaveClient").addEventListener("click", ()=>{
   const name = String($("inClientName").value||"").trim();
   const addr = String($("inClientAddr").value||"").trim();
+  const credit = String($("inClientCredit").value||"no").trim(); // si/no
+
   if(!name){ toast("Falta nombre."); return; }
   if(!addr){ toast("Falta dirección."); return; }
-  client = {name, addr};
+
+  client = {name, addr, credit};
   renderClientBar();
   saveLocal();
   toast("Cliente guardado.");
   closeModal("ovClient");
 });
 
-/* ===========================
-   Search listeners + init
-=========================== */
 $("q").addEventListener("input", renderResults);
 
+/* init */
 loadLocal();
 </script>
 </body>
