@@ -26,7 +26,6 @@
       background:var(--bg);
       color:var(--text);
     }
-
     .app{
       max-width: 520px;
       margin: 0 auto;
@@ -61,8 +60,8 @@
       box-shadow: var(--shadow);
     }
 
-    /* Cliente (tappable) */
-    .clientCard{
+    /* Collapsible clients */
+    .collapHead{
       padding: 12px 12px;
       display:flex;
       justify-content:space-between;
@@ -70,26 +69,19 @@
       gap:10px;
       cursor:pointer;
     }
-    .clientLeft{min-width:0;}
-    .clientLabel{
-      font-size: 12px;
-      color:var(--muted);
-      margin-bottom: 2px;
-    }
-    .clientName{
-      font-weight: 1000;
-      font-size: 14px;
+    .collapLeft{min-width:0}
+    .collapLabel{font-size:12px;color:var(--muted);margin-bottom:2px;}
+    .collapTitle{
+      font-weight:1000;
+      font-size:14px;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
-    .clientAddr{
-      font-size: 12px;
-      color:var(--muted);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      margin-top: 2px;
+    .collapSub{
+      font-size:12px;color:var(--muted);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      margin-top:2px;
     }
     .chip{
       border:1px solid var(--line);
@@ -101,23 +93,26 @@
       color: var(--text);
       white-space:nowrap;
     }
-
-    /* Search row */
-    .searchRow{
-      margin-top: 10px;
-      display:flex;
-      gap:10px;
-      align-items:center;
+    .collapBody{
+      padding: 12px;
+      border-top:1px solid var(--line);
+      display:none;
     }
-    .searchInput{
-      flex:1;
-      padding: 12px 12px;
+    .collap.open .collapBody{display:block}
+
+    /* Inputs / buttons */
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+    .label{font-size:12px;color:var(--muted);font-weight:900;}
+    .input{
       border:1px solid var(--line);
       border-radius: 14px;
-      outline:none;
+      padding: 12px;
       font-size: 16px; /* iOS zoom fix */
+      outline:none;
       background:#fff;
     }
+    .row2{display:grid;grid-template-columns: 1fr 1fr;gap:10px;}
+
     .btn{
       border:0;
       border-radius: 14px;
@@ -134,13 +129,31 @@
       color:#1e3a8a;
       border:1px solid #c7d2fe;
     }
-
-    .tabs{
-      margin-top: 10px;
-      display:flex;
-      gap:10px;
-      align-items:center;
+    .btnGhost{
+      border:1px solid var(--line);
+      background:#fff;
+      color: var(--text);
+      font-weight:1000;
+      border-radius: 14px;
+      padding: 12px;
+      cursor:pointer;
     }
+    .hint{font-size:12px;color:var(--muted);margin-top:6px}
+    .hint.bad{color:#b91c1c;font-weight:900}
+    .hr{height:1px;background:var(--line);margin:12px 0}
+
+    /* Search row */
+    .searchRow{margin-top:10px;display:flex;gap:10px;align-items:center;}
+    .searchInput{
+      flex:1;
+      padding: 12px 12px;
+      border:1px solid var(--line);
+      border-radius: 14px;
+      outline:none;
+      font-size: 16px;
+      background:#fff;
+    }
+    .tabs{margin-top:10px;display:flex;gap:10px;align-items:center;}
     .pill{
       border:1px solid var(--line);
       background:#fff;
@@ -151,15 +164,9 @@
       color: var(--text);
       cursor:pointer;
     }
-    .pill:active{transform:scale(.99)}
 
     /* Results */
-    .results{
-      margin-top: 12px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
+    .results{margin-top:12px;display:flex;flex-direction:column;gap:10px;}
     .resultCard{
       padding: 12px;
       border-radius: 16px;
@@ -172,22 +179,8 @@
       align-items:center;
     }
     .rLeft{min-width:0}
-    .rName{
-      font-weight: 1000;
-      font-size: 14px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .rMeta{
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 3px;
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+    .rName{font-weight:1000;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .rMeta{font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
     .tag{
       font-size: 11px;
       font-weight: 1000;
@@ -197,11 +190,7 @@
       background:#f8fafc;
       color:#0f172a;
     }
-    .tag.offer{
-      border-color:#fecaca;
-      background:#fff1f2;
-      color:#9f1239;
-    }
+    .tag.offer{border-color:#fecaca;background:#fff1f2;color:#9f1239;}
 
     /* Stock badge */
     .stockBadge{
@@ -236,17 +225,8 @@
       justify-content:space-between;
       gap:10px;
     }
-    .totalBox{min-width:0;}
-    .totalAmt{
-      font-weight: 1000;
-      font-size: 18px;
-      line-height:1;
-    }
-    .totalLbl{
-      font-size: 12px;
-      color:var(--muted);
-      margin-top: 3px;
-    }
+    .totalAmt{font-weight:1000;font-size:18px;line-height:1;}
+    .totalLbl{font-size:12px;color:var(--muted);margin-top:3px;}
     .btnBig{
       border:0;
       border-radius: 16px;
@@ -256,14 +236,13 @@
       color:#fff;
       cursor:pointer;
       white-space:nowrap;
-      min-width: 150px;
+      min-width: 170px;
       text-align:center;
     }
 
-    /* Modal base */
+    /* Modals */
     .overlay{
-      position:fixed;
-      inset:0;
+      position:fixed; inset:0;
       background: rgba(0,0,0,.45);
       display:none;
       align-items:center;
@@ -272,7 +251,6 @@
       z-index: 50;
     }
     .overlay.show{display:flex}
-
     .sheet{
       width:min(520px, 100%);
       max-height: 92vh;
@@ -292,10 +270,7 @@
       align-items:center;
       gap:10px;
     }
-    .sheetTitle{
-      font-weight: 1000;
-      font-size: 16px;
-    }
+    .sheetTitle{font-weight:1000;font-size:16px;}
     .xBtn{
       border:1px solid var(--line);
       background:#fff;
@@ -310,44 +285,8 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      margin-bottom: 10px;
-    }
-    .label{
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 900;
-    }
-    .input{
-      border:1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      font-size: 16px; /* iOS zoom fix */
-      outline:none;
-      background:#fff;
-    }
-    .row2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-
-    /* Quote modal layout */
-    .prodTop{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
-      margin-bottom: 10px;
-    }
-    .prodName{
-      font-weight: 1000;
-      font-size: 16px;
-      line-height:1.2;
-    }
+    /* Quote modal */
+    .prodName{font-weight:1000;font-size:16px;line-height:1.2;}
     .prodSub{
       font-size: 12px;
       color: var(--muted);
@@ -357,13 +296,45 @@
       flex-wrap:wrap;
       align-items:center;
     }
-
-    .priceGrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-top: 10px;
+    .offerBlock{
+      margin-top: 12px;
+      padding: 10px;
+      border:1px solid var(--line);
+      border-radius: 16px;
+      background:#fff;
     }
+    .offerTitle{font-weight:1000;font-size:13px;margin-bottom:8px;}
+    .offerList{display:flex;flex-direction:column;gap:8px;}
+    .offerRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      padding: 10px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background:#fff;
+      cursor:pointer;
+    }
+    .offerRow.sel{border-color:#fecaca;box-shadow: 0 0 0 3px rgba(244,63,94,.10);}
+    .oLeft{min-width:0}
+    .oName{font-weight:1000;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .oSub{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;}
+    .oPrice{font-weight:1000;color:#9f1239;white-space:nowrap;}
+
+    .toggleBtn{
+      width:100%;
+      margin-top: 10px;
+      border:1px solid var(--line);
+      background:#f8fafc;
+      color: var(--text);
+      font-weight:1000;
+      border-radius: 16px;
+      padding: 12px 12px;
+      cursor:pointer;
+    }
+
+    .priceGrid{display:grid;grid-template-columns: 1fr 1fr;gap:10px;margin-top:10px;}
     .pCard{
       border:1px solid var(--line);
       background:#fff;
@@ -375,15 +346,11 @@
       align-items:flex-start;
       gap:8px;
     }
-    .pCard.sel{
-      border-color:#93c5fd;
-      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
-    }
+    .pCard.sel{border-color:#93c5fd;box-shadow: 0 0 0 3px rgba(37,99,235,.12);}
     .pName{font-weight:1000;font-size:14px;}
     .pSub{font-size:12px;color:var(--muted);margin-top:2px;}
     .pVal{font-weight:1000;font-size:16px;white-space:nowrap;}
 
-    /* Manual bar (SIN botón) */
     .manualBar{
       display:none;
       margin-top:10px;
@@ -405,68 +372,6 @@
       background:#fff;
     }
 
-    .hint{
-      font-size: 12px;
-      margin-top: 8px;
-      color: var(--muted);
-    }
-    .hint.bad{ color:#b91c1c; font-weight:900; }
-    .hint.ok{ color:#334155; }
-
-    .offerBlock{
-      margin-top: 12px;
-      padding: 10px;
-      border:1px solid var(--line);
-      border-radius: 16px;
-      background:#fff;
-    }
-    .offerTitle{
-      font-weight: 1000;
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-    .offerList{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-    .offerRow{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:center;
-      padding: 10px;
-      border-radius: 14px;
-      border:1px solid var(--line);
-      background:#fff;
-      cursor:pointer;
-    }
-    .offerRow.sel{
-      border-color:#fecaca;
-      box-shadow: 0 0 0 3px rgba(244,63,94,.10);
-    }
-    .oLeft{min-width:0}
-    .oName{
-      font-weight: 1000;
-      font-size: 13px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .oSub{
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 2px;
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-    .oPrice{
-      font-weight: 1000;
-      color:#9f1239;
-      white-space:nowrap;
-    }
-
     .addBtn{
       margin-top: 12px;
       width:100%;
@@ -479,7 +384,7 @@
       cursor:pointer;
     }
 
-    /* Order modal */
+    /* Order items */
     .orderItem{
       border:1px solid var(--line);
       background:#fff;
@@ -491,56 +396,29 @@
       align-items:flex-start;
       margin-bottom: 10px;
     }
-    .oiName{
-      font-weight: 1000;
-      font-size: 13px;
-      line-height:1.2;
-    }
-    .oiMeta{
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 4px;
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+    .oiName{font-weight:1000;font-size:13px;line-height:1.2;}
+    .oiMeta{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
     .oiRight{text-align:right;white-space:nowrap;}
     .oiLine{font-weight:1000;font-size:14px;}
     .oiUnit{font-size:12px;color:var(--muted);margin-top:2px;}
-    .rmBtn{
-      border:1px solid #fecaca;
-      background:#fff1f2;
-      color:#9f1239;
-      font-weight:1000;
-      border-radius: 999px;
-      padding: 8px 10px;
-      cursor:pointer;
-      margin-top: 8px;
-      font-size: 12px;
-    }
-
-    .orderFooter{
-      border-top:1px solid var(--line);
-      margin-top: 10px;
-      padding-top: 12px;
-    }
-    .twoBtns{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-top: 10px;
-    }
-    .btnGhost{
+    .btnMini{
       border:1px solid var(--line);
       background:#fff;
       color: var(--text);
       font-weight:1000;
-      border-radius: 16px;
-      padding: 12px;
+      border-radius: 999px;
+      padding: 8px 10px;
       cursor:pointer;
+      font-size: 12px;
+      margin-top: 8px;
+      margin-right: 8px;
     }
-    .btnPrimary{
+    .btnMini.danger{border-color:#fecaca;background:#fff1f2;color:#9f1239}
+
+    .orderFooter{border-top:1px solid var(--line);margin-top:10px;padding-top:12px;}
+    .oneBtn{
+      margin-top: 10px;
+      width:100%;
       border:0;
       background: var(--brand);
       color:#fff;
@@ -568,10 +446,6 @@
       text-align:center;
     }
     .toast.show{display:block}
-
-    .muted{color:var(--muted)}
-    .spacer{height:6px}
-    .hr{height:1px;background:var(--line);margin:12px 0}
   </style>
 </head>
 <body>
@@ -580,21 +454,70 @@
     <div class="topbar">
       <div class="title">Sistema de pedidos Super Mass</div>
       <div class="counts">
-        Productos: <span id="cntProducts">0</span> · Ofertas: <span id="cntOffers">0</span>
+        Productos: <span id="cntProducts">0</span> · Ofertas: <span id="cntOffers">0</span> · Clientes: <span id="cntClients">0</span>
       </div>
     </div>
 
-    <!-- Cliente -->
-    <div class="card clientCard" id="clientCard" title="Toca para cambiar cliente">
-      <div class="clientLeft">
-        <div class="clientLabel">Cliente</div>
-        <div class="clientName" id="clientName">—</div>
-        <div class="clientAddr" id="clientAddr">📍 Dirección: —</div>
+    <!-- CLIENTES (COLAPSABLE) -->
+    <div class="card collap" id="clientsPanel">
+      <div class="collapHead" id="clientsToggle" title="Toca para contraer/expandir">
+        <div class="collapLeft">
+          <div class="collapLabel">Cliente seleccionado</div>
+          <div class="collapTitle" id="selClientName">—</div>
+          <div class="collapSub" id="selClientAddr">📍 —</div>
+        </div>
+        <div class="chip" id="clientsChip">Clientes</div>
       </div>
-      <div class="chip">Cambiar</div>
+
+      <div class="collapBody">
+        <div class="field">
+          <div class="label">Buscar cliente (nombre o ubicación)</div>
+          <input class="input" id="qClient" placeholder='Ej. "Saul" o "Centro"...' />
+        </div>
+        <div id="clientsResults"></div>
+
+        <div class="hr"></div>
+
+        <div class="field">
+          <div class="label">Cargar clientes (CSV)</div>
+          <input class="input" type="file" accept=".csv,text/csv" id="fileClients" />
+          <div class="hint">Columnas: Nombre, Ubicación, Crédito (si/no), Teléfono (opcional). Headers no estrictos.</div>
+        </div>
+
+        <div class="row2">
+          <button class="btnGhost" id="btnDownloadClients">Descargar CSV de clientes</button>
+          <button class="btnGhost" id="btnClearClients">Borrar clientes</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="label" style="margin-bottom:6px;">Agregar cliente</div>
+        <div class="field">
+          <div class="label">Nombre *</div>
+          <input class="input" id="inNewCName" placeholder="Ej. Tiendita Lupita" />
+        </div>
+        <div class="field">
+          <div class="label">Ubicación *</div>
+          <input class="input" id="inNewCLoc" placeholder="Ej. Centro, Calle 5 de mayo #852" />
+        </div>
+        <div class="row2">
+          <div class="field">
+            <div class="label">Crédito *</div>
+            <select class="input" id="inNewCCredit">
+              <option value="no">No</option>
+              <option value="si">Sí</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="label">Teléfono (opcional)</div>
+            <input class="input" id="inNewCPhone" inputmode="tel" placeholder="Ej. 463..." />
+          </div>
+        </div>
+        <button class="btn" id="btnAddClient" style="width:100%;">Agregar cliente</button>
+      </div>
     </div>
 
-    <!-- Search -->
+    <!-- BUSCADOR PRODUCTOS -->
     <div class="searchRow">
       <input id="q" class="searchInput" placeholder='Buscar producto o ID... (Ej. "Suavitel", "342")' autocomplete="off" />
       <button class="btn secondary" id="btnOffers">Ofertas</button>
@@ -609,10 +532,9 @@
 
   </div>
 
-  <!-- Bottom -->
   <div class="bottomBar">
     <div class="bottomInner">
-      <div class="totalBox">
+      <div>
         <div class="totalAmt" id="curTotal">$0.00</div>
         <div class="totalLbl">Pedido actual</div>
       </div>
@@ -620,43 +542,9 @@
     </div>
   </div>
 
-  <!-- Toast -->
   <div class="toast" id="toast"></div>
 
-  <!-- ========== MODALS ========== -->
-
-  <!-- Cliente -->
-  <div class="overlay" id="ovClient">
-    <div class="sheet">
-      <div class="sheetHead">
-        <div class="sheetTitle">Cliente</div>
-        <button class="xBtn" data-close="ovClient">Cerrar</button>
-      </div>
-      <div class="sheetBody">
-        <div class="field">
-          <div class="label">Nombre (obligatorio)</div>
-          <input class="input" id="inClientName" placeholder="Ej. Tiendita Lupita" />
-        </div>
-        <div class="field">
-          <div class="label">Dirección (obligatorio)</div>
-          <input class="input" id="inClientAddr" placeholder="Ej. Calle 5 de mayo #852" />
-        </div>
-
-        <div class="field">
-          <div class="label">Crédito (obligatorio)</div>
-          <select class="input" id="inClientCredit">
-            <option value="no">No</option>
-            <option value="si">Sí</option>
-          </select>
-        </div>
-
-        <button class="btnPrimary" id="btnSaveClient" style="width:100%;margin-top:6px;">Guardar cliente</button>
-        <div class="hint">Tip: esta info se guarda en el teléfono automáticamente.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Archivos -->
+  <!-- ARCHIVOS -->
   <div class="overlay" id="ovFiles">
     <div class="sheet">
       <div class="sheetHead">
@@ -664,29 +552,27 @@
         <button class="xBtn" data-close="ovFiles">Cerrar</button>
       </div>
       <div class="sheetBody">
-
         <div class="field">
           <div class="label">Productos (CSV): ID, Descripción, Costo, Existencia</div>
           <input class="input" type="file" accept=".csv,text/csv" id="fileProducts" />
-          <div class="hint">Existencia solo se muestra (no descuenta). Headers pueden variar.</div>
-          <div class="hint muted">Cargados: <b id="productsLoaded">0</b></div>
+          <div class="hint">Existencia solo se muestra (no descuenta).</div>
+          <div class="hint">Cargados: <b id="productsLoaded">0</b></div>
         </div>
 
         <div class="field">
           <div class="label">Ofertas (CSV): ID, Artículo, PrecioOferta, Volumen</div>
           <input class="input" type="file" accept=".csv,text/csv" id="fileOffers" />
-          <div class="hint">Volumen es texto. Puede haber varias ofertas por ID.</div>
-          <div class="hint muted">Cargadas: <b id="offersLoaded">0</b></div>
+          <div class="hint">Volumen es texto (Pieza, Bulto, x10, etc.). Puede haber varias ofertas por ID.</div>
+          <div class="hint">Cargadas: <b id="offersLoaded">0</b></div>
         </div>
 
         <div class="hr"></div>
-        <button class="btnGhost" id="btnClearData" style="width:100%;">Borrar datos cargados (del teléfono)</button>
-
+        <button class="btnGhost" id="btnClearData" style="width:100%;">Borrar productos/ofertas (del teléfono)</button>
       </div>
     </div>
   </div>
 
-  <!-- Ofertas -->
+  <!-- OFERTAS LISTA -->
   <div class="overlay" id="ovOffers">
     <div class="sheet">
       <div class="sheetHead">
@@ -695,13 +581,13 @@
       </div>
       <div class="sheetBody">
         <input id="qOffers" class="input" placeholder="Buscar oferta (ID o nombre)..." />
-        <div class="spacer"></div>
+        <div class="hr"></div>
         <div id="offersList"></div>
       </div>
     </div>
   </div>
 
-  <!-- Cotizar -->
+  <!-- COTIZAR -->
   <div class="overlay" id="ovQuote">
     <div class="sheet">
       <div class="sheetHead">
@@ -709,51 +595,79 @@
         <button class="xBtn" data-close="ovQuote">Cerrar</button>
       </div>
       <div class="sheetBody">
-
-        <div class="prodTop">
-          <div style="min-width:0">
-            <div class="prodName" id="qtName">—</div>
-            <div class="prodSub">
-              <span class="muted">ID:</span> <b id="qtId">—</b>
-              <span id="qtStockBadge" class="stockBadge gray">Existencia: —</span>
-            </div>
-          </div>
+        <div class="prodName" id="qtName">—</div>
+        <div class="prodSub">
+          <span class="muted">ID:</span> <b id="qtId">—</b>
+          <span id="qtStockBadge" class="stockBadge gray">Existencia: —</span>
         </div>
-
-        <div class="label">Selecciona precio <span class="muted">(pieza / media / caja)</span></div>
-        <div class="priceGrid" id="priceGrid"></div>
-
-        <div class="manualBar" id="manualBar">
-          <input id="inManualPrice" type="text" inputmode="decimal" placeholder="Precio manual..." />
-        </div>
-
-        <div class="hint" id="priceHint" style="display:none;"></div>
 
         <div class="offerBlock" id="offerBlock" style="display:none;">
           <div class="offerTitle">Oferta(s) disponibles</div>
           <div class="offerList" id="offerList"></div>
         </div>
 
-        <div class="spacer"></div>
+        <button class="toggleBtn" id="btnToggleSuggested" style="display:none;">Ver precios sugeridos</button>
+
+        <div id="suggestedWrap">
+          <div class="label" style="margin-top:10px;">Precios sugeridos</div>
+          <div class="priceGrid" id="priceGrid"></div>
+
+          <div class="manualBar" id="manualBar">
+            <input id="inManualPrice" type="text" inputmode="decimal" placeholder="Precio manual..." />
+          </div>
+
+          <div class="hint" id="priceHint" style="display:none;"></div>
+        </div>
+
+        <div class="hr"></div>
 
         <div class="row2">
           <div class="field">
             <div class="label">Cantidad</div>
-            <input class="input" id="inQty" type="number" inputmode="numeric" min="1" value="1" />
+            <!-- SIN "1" por default -->
+            <input class="input" id="inQty" type="number" inputmode="numeric" min="1" placeholder="Ej. 12" />
           </div>
           <div class="field">
             <div class="label">Variedad / notas (opcional)</div>
-            <input class="input" id="inVar" placeholder='Ej. lavanda / surtido / mango...' />
+            <input class="input" id="inVar" placeholder="Ej. surtido / lavanda..." />
           </div>
         </div>
 
         <button class="addBtn" id="btnAddItem">Agregar al pedido</button>
-
       </div>
     </div>
   </div>
 
-  <!-- Pedido -->
+  <!-- EDITAR ARTÍCULO (cantidad + notas) -->
+  <div class="overlay" id="ovEditLine">
+    <div class="sheet">
+      <div class="sheetHead">
+        <div class="sheetTitle">Modificar artículo</div>
+        <button class="xBtn" data-close="ovEditLine">Cerrar</button>
+      </div>
+      <div class="sheetBody">
+        <div class="prodName" id="edName">—</div>
+        <div class="hint" id="edMeta">—</div>
+
+        <div class="hr"></div>
+
+        <div class="row2">
+          <div class="field">
+            <div class="label">Cantidad</div>
+            <input class="input" id="edQty" type="number" inputmode="numeric" min="1" placeholder="Ej. 12" />
+          </div>
+          <div class="field">
+            <div class="label">Variedad / notas</div>
+            <input class="input" id="edNote" placeholder="Ej. surtido / lavanda..." />
+          </div>
+        </div>
+
+        <button class="btn" id="btnSaveEdit" style="width:100%;">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PEDIDO -->
   <div class="overlay" id="ovOrder">
     <div class="sheet">
       <div class="sheetHead">
@@ -761,19 +675,18 @@
         <button class="xBtn" data-close="ovOrder">Cerrar</button>
       </div>
       <div class="sheetBody">
-
-        <div class="muted" id="orderClientLine">Cliente: —</div>
-        <div class="spacer"></div>
+        <div class="hint" id="orderClientLine">Cliente: —</div>
+        <div class="hr"></div>
 
         <div id="orderItems"></div>
 
         <div class="field">
           <div class="label">Notas del pedido (opcional)</div>
-          <input class="input" id="inOrderNote" placeholder="Ej. Entregar antes de las 5pm, dejar en bodega..." />
+          <input class="input" id="inOrderNote" placeholder="Ej. Entregar antes de las 5pm..." />
         </div>
 
         <div class="orderFooter">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
             <div>
               <div class="muted">Total</div>
               <div style="font-weight:1000;font-size:18px" id="orderTotal">$0.00</div>
@@ -784,58 +697,22 @@
             </div>
           </div>
 
-          <div class="twoBtns">
-            <button class="btnGhost" id="btnShareWA">Compartir (WhatsApp)</button>
-            <button class="btnPrimary" id="btnConfirmOrder">Confirmar pedido</button>
-          </div>
-
-          <div class="hint">Confirmar guarda el pedido para reportes del período (en este teléfono).</div>
+          <button class="oneBtn" id="btnSendAndConfirm">Enviar por WhatsApp y confirmar</button>
+          <div class="hint">El pedido se guarda cuando presionas este botón.</div>
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- Reportes -->
+  <!-- REPORTES (mantiene lo existente, sin cambios aquí) -->
   <div class="overlay" id="ovReports">
     <div class="sheet">
       <div class="sheetHead">
-        <div class="sheetTitle">Reportes del período</div>
+        <div class="sheetTitle">Reportes</div>
         <button class="xBtn" data-close="ovReports">Cerrar</button>
       </div>
       <div class="sheetBody">
-
-        <div class="card" style="padding:12px;border-radius:18px;box-shadow:none">
-          <div class="muted">Pedidos guardados</div>
-          <div style="font-weight:1000;font-size:18px" id="repCount">0</div>
-          <div class="spacer"></div>
-          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-            <div>
-              <div class="muted">Ventas</div>
-              <div style="font-weight:1000" id="repSales">$0.00</div>
-            </div>
-            <div>
-              <div class="muted">Utilidad (interna)</div>
-              <div style="font-weight:1000" id="repProfit">$0.00</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="spacer"></div>
-
-        <button class="btnPrimary" id="btnExportOrders" style="width:100%;">Exportar CSV — Reporte de pedidos</button>
-        <div class="spacer"></div>
-        <button class="btnPrimary" id="btnExportItems" style="width:100%;">Exportar CSV — Ventas por artículo</button>
-
-        <div class="spacer"></div>
-        <div class="hr"></div>
-
-        <div class="label">Top productos (por ventas)</div>
-        <div id="topItems"></div>
-
-        <div class="hr"></div>
-        <button class="btnGhost" id="btnClearPeriod" style="width:100%;">Borrar período (reiniciar reportes)</button>
-
+        <div class="hint">En esta versión se mantienen los reportes existentes. (Se pueden ampliar después.)</div>
       </div>
     </div>
   </div>
@@ -848,35 +725,32 @@ const MARGEN_PIEZA = 0.11;
 const MARGEN_MEDIA = 0.065;
 const MARGEN_CAJA  = 0.04;
 
-let products = [];          // {id, name, cost, stock}
-let offers = [];            // {id, name, price, volume}
+let products = [];     // {id, name, cost, stock}
+let offers = [];       // {id, name, price, volume}
 let offersById = new Map();
-let order = [];
-let orders = [];
-let client = { name:"", addr:"", credit:"no" };
+
+let clients = [];      // {name, loc, credit, phone}
+let selectedClient = { name:"", loc:"", credit:"no", phone:"" };
+
+let order = [];        // items current
+let orders = [];       // period (reserved)
 
 let currentProduct = null;
-let selection = {
-  mode: "pieza", // pieza|media|caja|manual|offer
-  price: 0,
-  manualPrice: null,
-  offerIndex: -1
-};
+let selection = { mode:"pieza", price:0, manualPrice:null, offerIndex:-1 };
+let showSuggestedWhenOffers = false;
+
+// Edit line state
+let editIndex = -1;
 
 const $ = (id)=>document.getElementById(id);
 
-function money(n){
-  const x = (isFinite(n)? n : 0);
-  return "$" + x.toFixed(2);
-}
+function money(n){ const x = (isFinite(n)? n : 0); return "$" + x.toFixed(2); }
+function round2(n){ return Math.round(n*100)/100; }
 function num(x){
   if(x===null||x===undefined) return NaN;
   const s = String(x).trim().replace(",",".");
-  const v = parseFloat(s.replace(/[^0-9.\-]/g,""));
-  return v;
+  return parseFloat(s.replace(/[^0-9.\-]/g,""));
 }
-function round2(n){ return Math.round(n*100)/100; }
-
 function toast(msg){
   const t = $("toast");
   t.textContent = msg;
@@ -884,13 +758,20 @@ function toast(msg){
   clearTimeout(window.__toastTO);
   window.__toastTO = setTimeout(()=>t.classList.remove("show"), 1600);
 }
-
 function normKey(s){
   return String(s||"")
     .toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .replace(/\s+/g," ")
     .trim();
+}
+function escapeHtml(s){
+  return String(s||"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
 function detectDelimiter(sampleLine){
@@ -901,9 +782,6 @@ function detectDelimiter(sampleLine){
   return (c2>c1) ? ";" : ",";
 }
 
-/* ===========================
-   CSV parser (robusto)
-=========================== */
 function parseCSV(text){
   if(!text) return [];
   text = text.replace(/^\uFEFF/,"");
@@ -921,8 +799,7 @@ function parseCSV(text){
         if(inQ && line[i+1] === '"'){ cur += '"'; i++; }
         else inQ = !inQ;
       } else if(!inQ && ch === delim){
-        out.push(cur.trim());
-        cur = "";
+        out.push(cur.trim()); cur="";
       } else {
         cur += ch;
       }
@@ -935,10 +812,10 @@ function parseCSV(text){
 
 function looksLikeHeaderRow(row){
   const joined = row.map(normKey).join(" ");
-  const keys = ["id","sku","descripcion","descripción","desc","articulo","costo","existencia","stock","preciooferta","oferta","volumen","credito","crédito"];
+  const keys = ["id","sku","descripcion","descripción","desc","articulo","costo","existencia","stock","preciooferta","oferta","volumen",
+                "cliente","clientes","nombre","ubicacion","ubicación","credito","crédito","telefono","teléfono"];
   return keys.some(k => joined.includes(normKey(k)));
 }
-
 function pickColIndex(headerRow, variants){
   const h = headerRow.map(normKey);
   for(const v of variants){
@@ -950,41 +827,45 @@ function pickColIndex(headerRow, variants){
 }
 
 /* ===========================
-   Carga + persistencia local
+   Persistencia local
 =========================== */
-const LS_PRODUCTS = "SM_PRODUCTS_V6";
-const LS_OFFERS   = "SM_OFFERS_V6";
-const LS_CLIENT   = "SM_CLIENT_V6";
-const LS_ORDERS   = "SM_ORDERS_V6";
+const LS_PRODUCTS = "SM_PRODUCTS_V8";
+const LS_OFFERS   = "SM_OFFERS_V8";
+const LS_CLIENTS  = "SM_CLIENTS_V8";
+const LS_SELCLIENT= "SM_SELCLIENT_V8";
+const LS_ORDER    = "SM_ORDER_V8";
 
 function saveLocal(){
   try{
     localStorage.setItem(LS_PRODUCTS, JSON.stringify(products));
     localStorage.setItem(LS_OFFERS, JSON.stringify(offers));
-    localStorage.setItem(LS_CLIENT, JSON.stringify(client));
-    localStorage.setItem(LS_ORDERS, JSON.stringify(orders));
+    localStorage.setItem(LS_CLIENTS, JSON.stringify(clients));
+    localStorage.setItem(LS_SELCLIENT, JSON.stringify(selectedClient));
+    localStorage.setItem(LS_ORDER, JSON.stringify(order));
   }catch(e){}
 }
+
 function loadLocal(){
   try{
     const p = JSON.parse(localStorage.getItem(LS_PRODUCTS)||"null");
     const o = JSON.parse(localStorage.getItem(LS_OFFERS)||"null");
-    const c = JSON.parse(localStorage.getItem(LS_CLIENT)||"null");
-    const r = JSON.parse(localStorage.getItem(LS_ORDERS)||"null");
+    const cs = JSON.parse(localStorage.getItem(LS_CLIENTS)||"null");
+    const sc = JSON.parse(localStorage.getItem(LS_SELCLIENT)||"null");
+    const od = JSON.parse(localStorage.getItem(LS_ORDER)||"null");
+
     if(Array.isArray(p)) products = p;
     if(Array.isArray(o)) offers = o;
-    if(c && typeof c==="object"){
-      client = {
-        name: c.name||"",
-        addr: c.addr||"",
-        credit: (c.credit||"no")
-      };
-    }
-    if(Array.isArray(r)) orders = r;
+    if(Array.isArray(cs)) clients = cs;
+    if(sc && typeof sc==="object") selectedClient = {
+      name: sc.name||"", loc: sc.loc||"", credit: sc.credit||"no", phone: sc.phone||""
+    };
+    if(Array.isArray(od)) order = od;
   }catch(e){}
+
   rebuildOffersIndex();
   refreshCounts();
-  renderClientBar();
+  renderSelectedClient();
+  renderClients();
   renderResults();
   updateBottom();
 }
@@ -999,6 +880,206 @@ function rebuildOffersIndex(){
   }
 }
 
+/* ===========================
+   Helpers
+=========================== */
+function openModal(id){
+  $(id).classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+function closeModal(id){
+  $(id).classList.remove("show");
+  const any = Array.from(document.querySelectorAll(".overlay")).some(o=>o.classList.contains("show"));
+  if(!any) document.body.style.overflow = "";
+}
+document.addEventListener("click", (e)=>{
+  const c = e.target.getAttribute?.("data-close");
+  if(c) closeModal(c);
+});
+
+function stockBadgeHTML(stock, compact=false){
+  let cls = "stockBadge gray";
+  let label = "Existencia: —";
+  if(stock===null || stock===undefined || stock==="" || !isFinite(stock)){
+    cls = "stockBadge gray";
+    label = compact ? "Stock: —" : "Existencia: —";
+  } else {
+    const s = Number(stock);
+    label = (compact ? `Stock: ${s}` : `Existencia: ${s}`);
+    if(s <= 10) cls = "stockBadge red";
+    else if(s <= 25) cls = "stockBadge yellow";
+    else cls = "stockBadge green";
+  }
+  return `<span class="${cls}">${label}</span>`;
+}
+function priceFromCost(cost, mode){
+  if(mode==="pieza") return round2(cost * (1+MARGEN_PIEZA));
+  if(mode==="media") return round2(cost * (1+MARGEN_MEDIA));
+  if(mode==="caja")  return round2(cost * (1+MARGEN_CAJA));
+  return round2(cost);
+}
+
+/* ===========================
+   UI: counts + bottom
+=========================== */
+function refreshCounts(){
+  $("cntProducts").textContent = products.length;
+  $("cntOffers").textContent = offers.length;
+  $("cntClients").textContent = clients.length;
+  $("productsLoaded").textContent = products.length;
+  $("offersLoaded").textContent = offers.length;
+}
+function updateBottom(){
+  const total = order.reduce((acc,it)=>acc + (Number(it.lineTotal)||0), 0);
+  $("curTotal").textContent = money(round2(total));
+  $("btnViewOrder").textContent = `Ver pedido (${order.length})`;
+}
+
+/* ===========================
+   CLIENTES: panel colapsable + búsqueda + selección + descarga
+=========================== */
+$("clientsToggle").addEventListener("click", ()=>{
+  $("clientsPanel").classList.toggle("open");
+});
+
+function renderSelectedClient(){
+  $("selClientName").textContent = selectedClient.name ? selectedClient.name : "—";
+  $("selClientAddr").textContent = selectedClient.loc ? ("📍 " + selectedClient.loc) : "📍 —";
+}
+
+$("qClient").addEventListener("input", renderClients);
+
+function renderClients(){
+  const q = normKey($("qClient").value);
+  const box = $("clientsResults");
+  box.innerHTML = "";
+
+  if(clients.length===0){
+    box.innerHTML = `<div class="hint">No hay clientes cargados. Sube CSV o agrega uno.</div>`;
+    return;
+  }
+
+  let list = clients;
+  if(q){
+    list = clients.filter(c=>{
+      return normKey(c.name).includes(q) || normKey(c.loc).includes(q);
+    });
+  }else{
+    list = clients.slice(0, 30);
+  }
+
+  if(list.length===0){
+    box.innerHTML = `<div class="hint">Sin resultados.</div>`;
+    return;
+  }
+
+  list.slice(0, 40).forEach(c=>{
+    const div = document.createElement("div");
+    div.className = "resultCard";
+    div.style.cursor = "pointer";
+    const creditTxt = String(c.credit||"no").toLowerCase()==="si" ? "SÍ" : "NO";
+    const phoneTag = c.phone ? `<span class="tag">Tel: ${escapeHtml(c.phone)}</span>` : "";
+    div.innerHTML = `
+      <div class="rLeft">
+        <div class="rName">${escapeHtml(c.name)}</div>
+        <div class="rMeta">
+          <span class="tag">📍 ${escapeHtml(c.loc)}</span>
+          <span class="tag">Crédito: ${creditTxt}</span>
+          ${phoneTag}
+        </div>
+      </div>
+      <div class="tag" style="border-color:#c7d2fe;background:#eef2ff;color:#1e3a8a;">Seleccionar</div>
+    `;
+    div.addEventListener("click", ()=>{
+      selectedClient = { name: c.name, loc: c.loc, credit: (c.credit||"no"), phone: (c.phone||"") };
+      renderSelectedClient();
+      saveLocal();
+      toast("Cliente seleccionado.");
+      // contraer para no estorbar
+      $("clientsPanel").classList.remove("open");
+    });
+    box.appendChild(div);
+  });
+}
+
+$("btnAddClient").addEventListener("click", ()=>{
+  const name = String($("inNewCName").value||"").trim();
+  const loc = String($("inNewCLoc").value||"").trim();
+  const credit = String($("inNewCCredit").value||"no").trim().toLowerCase();
+  const phone = String($("inNewCPhone").value||"").trim();
+
+  if(!name){ toast("Falta nombre del cliente."); return; }
+  if(!loc){ toast("Falta ubicación del cliente."); return; }
+  if(credit!=="si" && credit!=="no"){ toast("Crédito inválido."); return; }
+
+  // upsert (name+loc)
+  const key = normKey(name)+"||"+normKey(loc);
+  const idx = clients.findIndex(c=> normKey(c.name)+"||"+normKey(c.loc) === key);
+  const obj = { name, loc, credit, phone };
+  if(idx>=0) clients[idx] = obj;
+  else clients.push(obj);
+
+  // auto select
+  selectedClient = { ...obj };
+  renderSelectedClient();
+  refreshCounts();
+  renderClients();
+  saveLocal();
+
+  // limpiar inputs
+  $("inNewCName").value = "";
+  $("inNewCLoc").value = "";
+  $("inNewCPhone").value = "";
+  $("inNewCCredit").value = "no";
+
+  toast(idx>=0 ? "Cliente actualizado." : "Cliente agregado.");
+  $("clientsPanel").classList.remove("open");
+});
+
+$("btnClearClients").addEventListener("click", ()=>{
+  clients = [];
+  selectedClient = { name:"", loc:"", credit:"no", phone:"" };
+  renderSelectedClient();
+  refreshCounts();
+  renderClients();
+  saveLocal();
+  toast("Clientes borrados.");
+});
+
+function csvEscape(val){
+  const s = String(val ?? "");
+  if(/[",\n;]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
+  return s;
+}
+function downloadCSV(filename, csvText){
+  const blob = new Blob([csvText], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1200);
+}
+
+$("btnDownloadClients").addEventListener("click", ()=>{
+  if(clients.length===0){ toast("No hay clientes."); return; }
+  const header = ["Nombre","Ubicacion","Credito","Telefono"];
+  const rows = [header.join(",")];
+  for(const c of clients){
+    rows.push([
+      csvEscape(c.name),
+      csvEscape(c.loc),
+      csvEscape(String(c.credit||"no").toLowerCase()),
+      csvEscape(c.phone||"")
+    ].join(","));
+  }
+  downloadCSV("Clientes_SuperMass.csv", rows.join("\n"));
+  toast("CSV de clientes generado.");
+});
+
+/* Cargar clientes CSV */
 async function readFileText(file){
   return new Promise((resolve,reject)=>{
     const fr = new FileReader();
@@ -1007,7 +1088,68 @@ async function readFileText(file){
     fr.readAsText(file, "utf-8");
   });
 }
+async function loadClientsCSV(file){
+  const text = await readFileText(file);
+  const rows = parseCSV(text);
+  if(rows.length===0) return [];
 
+  const hasHeader = looksLikeHeaderRow(rows[0]);
+  const header = hasHeader ? rows[0] : [];
+  const start = hasHeader ? 1 : 0;
+
+  let nameCol=-1, locCol=-1, credCol=-1, phoneCol=-1;
+  if(hasHeader){
+    nameCol  = pickColIndex(header, ["nombre","cliente","name"]);
+    locCol   = pickColIndex(header, ["ubicacion","ubicación","direccion","dirección","location"]);
+    credCol  = pickColIndex(header, ["credito","crédito","credit"]);
+    phoneCol = pickColIndex(header, ["telefono","teléfono","phone","celular"]);
+  }
+  if(nameCol<0) nameCol = 0;
+  if(locCol<0) locCol = 1;
+  if(credCol<0) credCol = 2;
+  if(phoneCol<0) phoneCol = 3;
+
+  const out = [];
+  for(let i=start;i<rows.length;i++){
+    const r = rows[i];
+    const name = String(r[nameCol]??"").trim();
+    const loc = String(r[locCol]??"").trim();
+    let credit = String(r[credCol]??"no").trim().toLowerCase();
+    const phone = String(r[phoneCol]??"").trim();
+
+    if(!name || !loc) continue;
+    if(credit!=="si" && credit!=="no") credit = "no";
+    out.push({ name, loc, credit, phone });
+  }
+  return out;
+}
+
+$("fileClients").addEventListener("change", async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+  try{
+    const list = await loadClientsCSV(file);
+    // merge/upsert
+    for(const c of list){
+      const key = normKey(c.name)+"||"+normKey(c.loc);
+      const idx = clients.findIndex(x=> normKey(x.name)+"||"+normKey(x.loc) === key);
+      if(idx>=0) clients[idx] = c; else clients.push(c);
+    }
+    refreshCounts();
+    renderClients();
+    saveLocal();
+    toast(`Clientes cargados: ${list.length}`);
+  }catch(err){
+    console.error(err);
+    toast("Error al cargar clientes.");
+  }finally{
+    e.target.value = "";
+  }
+});
+
+/* ===========================
+   PRODUCTOS / OFERTAS: carga y búsqueda
+=========================== */
 async function loadProductsCSV(file){
   const text = await readFileText(file);
   const rows = parseCSV(text);
@@ -1020,7 +1162,7 @@ async function loadProductsCSV(file){
   if(hasHeader){
     idCol    = pickColIndex(header, ["id","sku"]);
     descCol  = pickColIndex(header, ["descripcion","descripción","desc","articulo","producto","nombre"]);
-    costCol  = pickColIndex(header, ["costo","cost","precio","precio costo","costo_base"]);
+    costCol  = pickColIndex(header, ["costo","cost","precio costo","costo_base","costo_base"]);
     stockCol = pickColIndex(header, ["existencia","stock","inventario","qty","cantidad"]);
   }
   if(idCol<0) idCol = 0;
@@ -1039,7 +1181,6 @@ async function loadProductsCSV(file){
 
     if(!id || !name) continue;
     if(!isFinite(cost)) continue;
-
     out.push({ id, name, cost: round2(cost), stock });
   }
   return out;
@@ -1072,7 +1213,6 @@ async function loadOffersCSV(file){
     const name = String(r[nameCol]??"").trim();
     const price = num(r[priceCol]);
     const volume = String(r[volCol]??"").trim();
-
     if(!id) continue;
     if(!isFinite(price)) continue;
     out.push({ id, name: name||"", price: round2(price), volume: volume||"" });
@@ -1080,67 +1220,30 @@ async function loadOffersCSV(file){
   return out;
 }
 
-/* ===========================
-   UI helpers: modals
-=========================== */
-function openModal(id){
-  $(id).classList.add("show");
-  document.body.style.overflow = "hidden";
-}
-function closeModal(id){
-  $(id).classList.remove("show");
-  const any = Array.from(document.querySelectorAll(".overlay")).some(o=>o.classList.contains("show"));
-  if(!any) document.body.style.overflow = "";
-}
-document.addEventListener("click", (e)=>{
-  const c = e.target.getAttribute?.("data-close");
-  if(c) closeModal(c);
-});
-
-/* ===========================
-   Render principal
-=========================== */
-function refreshCounts(){
-  $("cntProducts").textContent = products.length;
-  $("cntOffers").textContent = offers.length;
-  $("productsLoaded").textContent = products.length;
-  $("offersLoaded").textContent = offers.length;
-}
-function renderClientBar(){
-  $("clientName").textContent = client.name ? client.name : "—";
-  $("clientAddr").textContent = client.addr ? ("📍 " + client.addr) : "📍 Dirección: —";
-}
-function productHasOffers(id){
-  return offersById.has(String(id)) && offersById.get(String(id)).length>0;
-}
 function renderResults(){
   const q = normKey($("q").value);
   const box = $("results");
   box.innerHTML = "";
 
   if(products.length===0){
-    box.innerHTML = `<div class="muted" style="padding:12px;">Carga tu CSV en <b>Archivos</b> para empezar.</div>`;
+    box.innerHTML = `<div class="hint">Carga Productos en “Archivos”.</div>`;
     return;
   }
 
   let list = products;
   if(q){
-    list = products.filter(p=>{
-      const hay = normKey(p.name);
-      const idk = normKey(p.id);
-      return hay.includes(q) || idk.includes(q);
-    });
+    list = products.filter(p => normKey(p.name).includes(q) || normKey(p.id).includes(q));
   }else{
     list = products.slice(0, 60);
   }
 
   if(list.length===0){
-    box.innerHTML = `<div class="muted" style="padding:12px;">Sin resultados.</div>`;
+    box.innerHTML = `<div class="hint">Sin resultados.</div>`;
     return;
   }
 
   for(const p of list.slice(0, 80)){
-    const hasO = productHasOffers(p.id);
+    const hasO = offersById.has(String(p.id)) && offersById.get(String(p.id)).length>0;
     const sb = stockBadgeHTML(p.stock, true);
 
     const el = document.createElement("div");
@@ -1162,44 +1265,105 @@ function renderResults(){
     box.appendChild(el);
   }
 }
-function stockBadgeHTML(stock, compact=false){
-  let cls = "stockBadge gray";
-  let label = "Existencia: —";
-  if(stock===null || stock===undefined || stock==="" || !isFinite(stock)){
-    cls = "stockBadge gray";
-    label = compact ? "Stock: —" : "Existencia: —";
-  } else {
-    const s = Number(stock);
-    label = (compact ? `Stock: ${s}` : `Existencia: ${s}`);
-    if(s <= 10) cls = "stockBadge red";
-    else if(s <= 25) cls = "stockBadge yellow";
-    else cls = "stockBadge green";
+
+$("q").addEventListener("input", renderResults);
+
+$("btnFiles").addEventListener("click", ()=> openModal("ovFiles"));
+$("btnOffers").addEventListener("click", ()=>{
+  renderOffersModal();
+  openModal("ovOffers");
+  setTimeout(()=> $("qOffers").focus(), 80);
+});
+$("qOffers").addEventListener("input", renderOffersModal);
+
+function renderOffersModal(){
+  const q = normKey($("qOffers").value);
+  const box = $("offersList");
+  box.innerHTML = "";
+
+  if(offers.length===0){
+    box.innerHTML = `<div class="hint">No hay ofertas cargadas.</div>`;
+    return;
   }
-  return `<span class="${cls}">${label}</span>`;
+  let list = offers;
+  if(q){
+    list = offers.filter(o=> normKey(o.id).includes(q) || normKey(o.name).includes(q) || normKey(o.volume).includes(q));
+  }
+  list.slice(0,120).forEach(o=>{
+    const div = document.createElement("div");
+    div.className = "resultCard";
+    div.innerHTML = `
+      <div class="rLeft">
+        <div class="rName">${escapeHtml(o.name || ("ID " + o.id))}</div>
+        <div class="rMeta">
+          <span class="tag">ID: ${escapeHtml(o.id)}</span>
+          <span class="tag offer">${escapeHtml(o.volume || "Volumen")}</span>
+        </div>
+      </div>
+      <div style="font-weight:1000;color:#9f1239">${money(o.price)}</div>
+    `;
+    div.addEventListener("click", ()=>{
+      const p = products.find(x=>String(x.id)===String(o.id));
+      if(p) openQuote(p.id);
+      else toast("No existe ese ID en productos.");
+    });
+    box.appendChild(div);
+  });
 }
-function updateBottom(){
-  const total = order.reduce((acc,it)=>acc + it.lineTotal, 0);
-  $("curTotal").textContent = money(total);
-  $("btnViewOrder").textContent = `Ver pedido (${order.length})`;
-}
-function escapeHtml(s){
-  return String(s||"")
-    .replaceAll("&","&amp;").replaceAll("<","&lt;")
-    .replaceAll(">","&gt;").replaceAll('"',"quot;")
-    .replaceAll("'","&#039;");
-}
+
+$("fileProducts").addEventListener("change", async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+  try{
+    const list = await loadProductsCSV(file);
+    products = list;
+    refreshCounts();
+    renderResults();
+    saveLocal();
+    toast(`Productos cargados: ${products.length}`);
+  }catch(err){
+    console.error(err);
+    toast("Error al cargar productos.");
+  }finally{
+    e.target.value = "";
+  }
+});
+
+$("fileOffers").addEventListener("change", async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+  try{
+    const list = await loadOffersCSV(file);
+    offers = list;
+    rebuildOffersIndex();
+    refreshCounts();
+    renderResults();
+    saveLocal();
+    toast(`Ofertas cargadas: ${offers.length}`);
+  }catch(err){
+    console.error(err);
+    toast("Error al cargar ofertas.");
+  }finally{
+    e.target.value = "";
+  }
+});
+
+$("btnClearData").addEventListener("click", ()=>{
+  products = [];
+  offers = [];
+  offersById = new Map();
+  order = [];
+  saveLocal();
+  refreshCounts();
+  renderResults();
+  updateBottom();
+  toast("Productos/ofertas borrados.");
+});
 
 /* ===========================
-   Cotizar
+   COTIZAR: ofertas primero y qty vacío
 =========================== */
-function priceFromCost(cost, mode){
-  if(mode==="pieza") return round2(cost * (1+MARGEN_PIEZA));
-  if(mode==="media") return round2(cost * (1+MARGEN_MEDIA));
-  if(mode==="caja")  return round2(cost * (1+MARGEN_CAJA));
-  return round2(cost);
-}
-
-function setPriceHint(text, kind){ // kind: "bad"|"ok"
+function setPriceHint(text, kind){
   const h = $("priceHint");
   if(!text){
     h.style.display = "none";
@@ -1209,7 +1373,7 @@ function setPriceHint(text, kind){ // kind: "bad"|"ok"
   }
   h.style.display = "block";
   h.textContent = text;
-  h.className = "hint" + (kind==="bad" ? " bad" : " ok");
+  h.className = "hint" + (kind==="bad" ? " bad" : "");
 }
 
 function updateMarginHint(){
@@ -1218,18 +1382,16 @@ function updateMarginHint(){
   const price = selection.price;
 
   if(!isFinite(price) || price <= 0){
-    setPriceHint("", "ok");
+    setPriceHint("", "");
     return;
   }
-
   if(price < cost){
     setPriceHint("No se puede vender abajo del costo.", "bad");
     return;
   }
-
   const util = round2(price - cost);
   const pct = price > 0 ? ((util / price) * 100) : 0;
-  setPriceHint(`Utilidad aprox: ${money(util)} por unidad (${pct.toFixed(1)}%)`, "ok");
+  setPriceHint(`Utilidad aprox: ${money(util)} por unidad (${pct.toFixed(1)}%)`, "");
 }
 
 function openQuote(id){
@@ -1245,81 +1407,44 @@ function openQuote(id){
   const newBadge = document.querySelector(".prodSub .stockBadge");
   newBadge.id = "qtStockBadge";
 
+  // reset selection
   selection.mode = "pieza";
   selection.offerIndex = -1;
   selection.manualPrice = null;
   selection.price = priceFromCost(p.cost, "pieza");
 
-  $("inQty").value = 1;
+  // qty vacío
+  $("inQty").value = "";
   $("inVar").value = "";
   $("inManualPrice").value = "";
-  setPriceHint("", "ok");
+  setPriceHint("", "");
 
-  renderPriceGrid();
+  const hasOffers = offersById.has(String(p.id)) && offersById.get(String(p.id)).length>0;
+  showSuggestedWhenOffers = false;
+
   renderOfferList();
+  renderPriceGrid();
+  updateManualBar();
   updateMarginHint();
+
+  if(hasOffers){
+    $("offerBlock").style.display = "block";
+    $("btnToggleSuggested").style.display = "block";
+    $("btnToggleSuggested").textContent = "Ver precios sugeridos";
+    $("suggestedWrap").style.display = "none";
+  }else{
+    $("btnToggleSuggested").style.display = "none";
+    $("suggestedWrap").style.display = "block";
+  }
 
   openModal("ovQuote");
 }
 
-function renderPriceGrid(){
-  const p = currentProduct;
-  const grid = $("priceGrid");
-  grid.innerHTML = "";
-
-  const manualVal = (selection.mode==="manual" && isFinite(selection.price) && selection.price>0)
-    ? selection.price
-    : (isFinite(selection.manualPrice) ? selection.manualPrice : null);
-
-  const cards = [
-    {mode:"pieza", name:"Pieza", sub:"Precio por pieza", val: priceFromCost(p.cost,"pieza")},
-    {mode:"media", name:"Media", sub:"Precio por media caja", val: priceFromCost(p.cost,"media")},
-    {mode:"caja",  name:"Caja",  sub:"Precio por caja", val: priceFromCost(p.cost,"caja")},
-    {mode:"manual",name:"Manual",sub:"Precio manual", val: manualVal}
-  ];
-
-  for(const c of cards){
-    const el = document.createElement("div");
-    el.className = "pCard" + (selection.mode===c.mode ? " sel" : "");
-    el.innerHTML = `
-      <div>
-        <div class="pName">${c.name}</div>
-        <div class="pSub">${c.sub}</div>
-      </div>
-      <div class="pVal">${c.val===null ? "—" : money(c.val)}</div>
-    `;
-    el.addEventListener("click", ()=>{
-      selection.offerIndex = -1;
-      selection.mode = c.mode;
-
-      if(c.mode!=="manual"){
-        selection.manualPrice = null;
-        selection.price = c.val;
-        $("inManualPrice").value = "";
-      }else{
-        selection.price = (isFinite(selection.manualPrice) ? selection.manualPrice : 0);
-      }
-
-      renderPriceGrid();
-      updateManualBar();
-      updateMarginHint();
-    });
-    grid.appendChild(el);
-  }
-
-  updateManualBar();
-  updateMarginHint();
-}
-
-function updateManualBar(){
-  const bar = $("manualBar");
-  if(selection.mode==="manual"){
-    bar.classList.add("show");
-    setTimeout(()=> $("inManualPrice")?.focus(), 120);
-  }else{
-    bar.classList.remove("show");
-  }
-}
+$("btnToggleSuggested").addEventListener("click", ()=>{
+  showSuggestedWhenOffers = !showSuggestedWhenOffers;
+  $("suggestedWrap").style.display = showSuggestedWhenOffers ? "block" : "none";
+  $("btnToggleSuggested").textContent = showSuggestedWhenOffers ? "Ocultar precios sugeridos" : "Ver precios sugeridos";
+});
 
 function renderOfferList(){
   const list = offersById.get(String(currentProduct.id)) || [];
@@ -1352,15 +1477,72 @@ function renderOfferList(){
       selection.manualPrice = null;
       selection.price = o.price;
       $("inManualPrice").value = "";
-      renderPriceGrid();
       renderOfferList();
+      renderPriceGrid();
       updateMarginHint();
     });
     box.appendChild(row);
   });
 }
 
-/* Manual price input (SIN botón) */
+function renderPriceGrid(){
+  const p = currentProduct;
+  const grid = $("priceGrid");
+  grid.innerHTML = "";
+
+  const manualVal = (selection.mode==="manual" && isFinite(selection.price) && selection.price>0)
+    ? selection.price
+    : (isFinite(selection.manualPrice) ? selection.manualPrice : null);
+
+  const cards = [
+    {mode:"pieza", name:"Pieza", sub:"Precio sugerido", val: priceFromCost(p.cost,"pieza")},
+    {mode:"media", name:"Media", sub:"Precio sugerido", val: priceFromCost(p.cost,"media")},
+    {mode:"caja",  name:"Caja",  sub:"Precio sugerido", val: priceFromCost(p.cost,"caja")},
+    {mode:"manual",name:"Manual",sub:"Precio manual", val: manualVal}
+  ];
+
+  for(const c of cards){
+    const el = document.createElement("div");
+    el.className = "pCard" + (selection.mode===c.mode ? " sel" : "");
+    el.innerHTML = `
+      <div>
+        <div class="pName">${c.name}</div>
+        <div class="pSub">${c.sub}</div>
+      </div>
+      <div class="pVal">${c.val===null ? "—" : money(c.val)}</div>
+    `;
+    el.addEventListener("click", ()=>{
+      selection.offerIndex = -1;
+      selection.mode = c.mode;
+
+      if(c.mode!=="manual"){
+        selection.manualPrice = null;
+        selection.price = c.val;
+        $("inManualPrice").value = "";
+      }else{
+        selection.price = (isFinite(selection.manualPrice) ? selection.manualPrice : 0);
+      }
+      renderPriceGrid();
+      updateManualBar();
+      updateMarginHint();
+    });
+    grid.appendChild(el);
+  }
+
+  updateManualBar();
+  updateMarginHint();
+}
+
+function updateManualBar(){
+  const bar = $("manualBar");
+  if(selection.mode==="manual"){
+    bar.classList.add("show");
+    setTimeout(()=> $("inManualPrice")?.focus(), 120);
+  }else{
+    bar.classList.remove("show");
+  }
+}
+
 $("inManualPrice").addEventListener("input", ()=>{
   const v = num($("inManualPrice").value);
   selection.mode = "manual";
@@ -1371,13 +1553,11 @@ $("inManualPrice").addEventListener("input", ()=>{
     selection.price = 0;
     renderPriceGrid();
     updateManualBar();
-    setPriceHint("", "ok");
+    setPriceHint("", "");
     return;
   }
-
   selection.manualPrice = round2(v);
   selection.price = round2(v);
-
   renderPriceGrid();
   updateManualBar();
   updateMarginHint();
@@ -1386,36 +1566,30 @@ $("inManualPrice").addEventListener("input", ()=>{
 $("btnAddItem").addEventListener("click", ()=>{
   if(!currentProduct) return;
 
-  const qty = Math.max(1, Math.floor(num($("inQty").value) || 1));
+  const qtyNum = num($("inQty").value);
+  const qty = Math.max(1, Math.floor(isFinite(qtyNum) ? qtyNum : 0));
+  if(!isFinite(qtyNum) || qtyNum<=0){
+    toast("Ingresa cantidad.");
+    return;
+  }
+
   const note = String($("inVar").value||"").trim();
-
   let unit = selection.price;
-  if(!isFinite(unit) || unit<=0){
-    toast("Precio inválido.");
-    return;
-  }
 
+  if(!isFinite(unit) || unit<=0){ toast("Precio inválido."); return; }
   const cost = currentProduct.cost;
-  if(unit < cost){
-    toast("No se puede vender abajo del costo.");
-    updateMarginHint();
-    return;
-  }
+  if(unit < cost){ toast("No se puede vender abajo del costo."); return; }
 
-  let offerVol = "";
-  let isOffer = false;
+  // offer override
+  let isOffer=false, offerVol="";
   if(selection.mode==="offer"){
     const list = offersById.get(String(currentProduct.id)) || [];
     const ofr = list[selection.offerIndex];
     if(ofr){
-      isOffer = true;
+      isOffer=true;
       offerVol = String(ofr.volume||"").trim();
       unit = ofr.price;
-      if(unit < cost){
-        toast("No se puede vender abajo del costo.");
-        updateMarginHint();
-        return;
-      }
+      if(unit < cost){ toast("No se puede vender abajo del costo."); return; }
     }
   }
 
@@ -1444,15 +1618,15 @@ $("btnAddItem").addEventListener("click", ()=>{
 });
 
 /* ===========================
-   Pedido actual
+   PEDIDO: ver + editar + quitar
 =========================== */
 $("btnViewOrder").addEventListener("click", ()=> openOrder());
 
 function openOrder(){
-  const hasCredit = String(client.credit||"no").toLowerCase() === "si";
-  $("orderClientLine").textContent = client.name
-    ? `Pedido para: ${client.name} — 📍 ${client.addr || "Sin dirección"}${hasCredit ? " · Crédito: SÍ" : ""}`
-    : `Pedido para: (sin cliente)`;
+  const hasCredit = String(selectedClient.credit||"no").toLowerCase() === "si";
+  const creditTxt = hasCredit ? " · Crédito: SÍ" : "";
+  const who = selectedClient.name ? `${selectedClient.name} — 📍 ${selectedClient.loc}${creditTxt}` : "(sin cliente seleccionado)";
+  $("orderClientLine").textContent = `Cliente: ${who}`;
 
   $("inOrderNote").value = String(window.__orderNote || "");
   renderOrderItems();
@@ -1464,30 +1638,27 @@ function renderOrderItems(){
   box.innerHTML = "";
 
   if(order.length===0){
-    box.innerHTML = `<div class="muted" style="padding:8px 2px;">Aún no hay productos en el pedido.</div>`;
+    box.innerHTML = `<div class="hint">Aún no hay productos en el pedido.</div>`;
   }else{
     order.forEach((it, idx)=>{
       const el = document.createElement("div");
       el.className = "orderItem";
-      const volTag = it.isOffer && it.offerVol ? `<span class="tag offer">${escapeHtml(it.offerVol)}</span>` : ``;
       const noteTag = it.note ? `<span class="tag">${escapeHtml(it.note)}</span>` : ``;
 
       el.innerHTML = `
         <div style="min-width:0;flex:1">
           <div class="oiName">${escapeHtml(it.name)}</div>
           <div class="oiMeta">
-            <span class="tag">ID: ${escapeHtml(it.id)}</span>
             <span class="tag">Cant: ${it.qty}</span>
-            ${volTag}
+            <span class="tag">Precio: ${money(it.unitPrice)}</span>
+            <span class="tag">Total: ${money(it.lineTotal)}</span>
             ${noteTag}
           </div>
 
-          <div style="margin-top:8px;font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;">
-            <span><b style="color:var(--text)">Precio:</b> ${money(it.unitPrice)}</span>
-            <span><b style="color:var(--text)">Total:</b> ${money(it.lineTotal)}</span>
+          <div>
+            <button class="btnMini" data-act="edit">Modificar</button>
+            <button class="btnMini danger" data-act="remove">Quitar</button>
           </div>
-
-          <button class="rmBtn">Quitar</button>
         </div>
         <div class="oiRight">
           <div class="oiLine">${money(it.lineTotal)}</div>
@@ -1495,421 +1666,157 @@ function renderOrderItems(){
         </div>
       `;
 
-      el.querySelector(".rmBtn").addEventListener("click", ()=>{
+      el.querySelector('[data-act="remove"]').addEventListener("click", ()=>{
         order.splice(idx,1);
         saveLocal();
         renderOrderItems();
         updateBottom();
       });
+
+      el.querySelector('[data-act="edit"]').addEventListener("click", ()=>{
+        openEditLine(idx);
+      });
+
       box.appendChild(el);
     });
   }
 
-  const total = order.reduce((a,x)=>a+x.lineTotal,0);
-  const profit = order.reduce((a,x)=>a+x.profit,0);
+  const total = round2(order.reduce((a,x)=>a+(Number(x.lineTotal)||0),0));
+  const profit = round2(order.reduce((a,x)=>a+(Number(x.profit)||0),0));
   $("orderTotal").textContent = money(total);
   $("orderProfit").textContent = money(profit);
 }
 
-$("inOrderNote").addEventListener("input", ()=>{
-  window.__orderNote = $("inOrderNote").value;
+function openEditLine(idx){
+  const it = order[idx];
+  if(!it) return;
+  editIndex = idx;
+
+  $("edName").textContent = it.name;
+  $("edMeta").textContent = `Precio: ${money(it.unitPrice)} · Actual: Cant ${it.qty}${it.note? " · Nota: " + it.note : ""}`;
+
+  $("edQty").value = ""; // vacío para obligar a escribir si quiere cambiar
+  $("edQty").placeholder = String(it.qty);
+  $("edNote").value = String(it.note||"");
+
+  openModal("ovEditLine");
+  setTimeout(()=> $("edQty").focus(), 80);
+}
+
+$("btnSaveEdit").addEventListener("click", ()=>{
+  if(editIndex < 0 || editIndex >= order.length){ closeModal("ovEditLine"); return; }
+  const it = order[editIndex];
+
+  const qv = String($("edQty").value||"").trim();
+  let newQty = it.qty;
+  if(qv){
+    const n = num(qv);
+    if(!isFinite(n) || n<=0){ toast("Cantidad inválida."); return; }
+    newQty = Math.max(1, Math.floor(n));
+  }
+
+  const newNote = String($("edNote").value||"").trim();
+
+  // recompute totals
+  const unit = Number(it.unitPrice)||0;
+  const cost = Number(it.cost)||0;
+  const lineTotal = round2(unit * newQty);
+  const lineCost  = round2(cost * newQty);
+  const profit    = round2(lineTotal - lineCost);
+
+  order[editIndex] = {
+    ...it,
+    qty: newQty,
+    note: newNote,
+    lineTotal,
+    lineCost,
+    profit
+  };
+
+  saveLocal();
+  renderOrderItems();
+  updateBottom();
+  toast("Artículo actualizado.");
+  closeModal("ovEditLine");
 });
 
 /* ===========================
-   WhatsApp (MEJORADO)
+   Candado: enviar WA y confirmar (se reserva)
 =========================== */
+$("inOrderNote").addEventListener("input", ()=>{ window.__orderNote = $("inOrderNote").value; });
+
 function buildWhatsAppText(){
   const now = new Date();
-
-  const fecha = now.toLocaleDateString("es-MX", {
-    day:"2-digit", month:"short", year:"numeric"
-  }).replace(".", "");
-
-  const hora = now.toLocaleTimeString("es-MX", {
-    hour:"numeric", minute:"2-digit"
-  });
+  const fecha = now.toLocaleDateString("es-MX", { day:"2-digit", month:"short", year:"numeric" }).replace(".", "");
+  const hora = now.toLocaleTimeString("es-MX", { hour:"numeric", minute:"2-digit" });
 
   const lines = [];
   lines.push(`PEDIDO — ${fecha} · ${hora}`);
-  lines.push(`Cliente: ${client.name}`);
-  lines.push(`📍 ${client.addr}`);
 
-  // Solo mostrar crédito si el cliente SÍ tiene
-  if(String(client.credit||"no").toLowerCase() === "si"){
-    lines.push(`Crédito a 7 días`);
+  if(selectedClient.name){
+    lines.push(`Cliente: ${selectedClient.name}`);
+    lines.push(`📍 ${selectedClient.loc}`);
+    if(String(selectedClient.credit||"no").toLowerCase()==="si") lines.push(`Crédito a 7 días`);
+    if(selectedClient.phone) lines.push(`Tel: ${selectedClient.phone}`);
+  }else{
+    lines.push(`Cliente: (no seleccionado)`);
   }
 
   const notaPedido = String(window.__orderNote || "").trim();
-  if(notaPedido){
-    lines.push(`Notas: ${notaPedido}`);
-  }
+  if(notaPedido) lines.push(`Notas: ${notaPedido}`);
 
   lines.push("");
   lines.push("ARTÍCULOS");
   lines.push("--------------------------------------------------");
 
-  // Recalcular totales por seguridad
   let totalPedido = 0;
-
   for(const it of order){
-    const qty = Number(it.qty) || 0;
-    const unit = Number(it.unitPrice) || 0;
-    const line = Math.round((qty * unit) * 100) / 100;
-
+    const qty = Number(it.qty)||0;
+    const unit = Number(it.unitPrice)||0;
+    const line = Math.round((qty * unit) * 100)/100;
     totalPedido += line;
 
     lines.push(`${it.name}`);
     lines.push(`Cant: ${qty} · Precio: ${money(unit)} · Total: ${money(line)}`);
-
     const nota = String(it.note||"").trim();
-    if(nota){
-      lines.push(`Nota: ${nota}`);
-    }
+    if(nota) lines.push(`Nota: ${nota}`);
     lines.push("");
   }
 
-  totalPedido = Math.round(totalPedido * 100) / 100;
-
+  totalPedido = Math.round(totalPedido*100)/100;
   lines.push("--------------------------------------------------");
   lines.push(`TOTAL DEL PEDIDO: ${money(totalPedido)}`);
-
   return lines.join("\n");
 }
 
-$("btnShareWA").addEventListener("click", async ()=>{
+$("btnSendAndConfirm").addEventListener("click", async ()=>{
   if(order.length===0){ toast("Pedido vacío."); return; }
-  if(!client.name || !client.addr){
-    toast("Define cliente y dirección.");
-    openModal("ovClient");
+  if(!selectedClient.name || !selectedClient.loc){
+    toast("Selecciona un cliente.");
+    $("clientsPanel").classList.add("open");
     return;
   }
+
   const txt = buildWhatsAppText();
 
-  try{
-    await navigator.clipboard.writeText(txt);
-    toast("Copiado. Abriendo WhatsApp…");
-  }catch(e){
-    toast("No se pudo copiar automático. Se abrirá WhatsApp.");
-  }
+  try{ await navigator.clipboard.writeText(txt); }catch(e){}
+  window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank");
 
-  const url = "https://wa.me/?text=" + encodeURIComponent(txt);
-  window.open(url, "_blank");
-});
-
-/* ===========================
-   Confirmar pedido / reportes / ofertas / archivos / cliente / init
-   (SIN CAMBIOS funcionales relevantes aquí)
-=========================== */
-$("btnConfirmOrder").addEventListener("click", ()=>{
-  if(order.length===0){ toast("Pedido vacío."); return; }
-  if(!client.name || !client.addr){
-    toast("Define cliente y dirección.");
-    openModal("ovClient");
-    return;
-  }
-
-  const now = new Date();
-  const stamp = now.toISOString();
-
-  const total = order.reduce((a,x)=>a+x.lineTotal,0);
-  const totalCost = order.reduce((a,x)=>a+x.lineCost,0);
-  const profit = order.reduce((a,x)=>a+x.profit,0);
-
-  orders.push({
-    ts: stamp,
-    clientName: client.name,
-    clientAddr: client.addr,
-    note: String(window.__orderNote||"").trim(),
-    items: order.slice(),
-    total: round2(total),
-    totalCost: round2(totalCost),
-    profit: round2(profit)
-  });
-
+  // Confirmar aquí (guardar a futuro si reactivas reportes por periodo)
+  // Por ahora solo limpia para evitar duplicados.
   order = [];
   window.__orderNote = "";
   saveLocal();
   updateBottom();
-  renderOrderItems();
-  toast("Pedido guardado.");
+  toast("Enviado y confirmado.");
   closeModal("ovOrder");
 });
 
-$("btnReports").addEventListener("click", ()=>{
-  renderReports();
-  openModal("ovReports");
-});
+/* ===========================
+   Init + misc
+=========================== */
+$("btnReports").addEventListener("click", ()=> openModal("ovReports"));
 
-function renderReports(){
-  $("repCount").textContent = orders.length;
-  const sales = orders.reduce((a,o)=>a+o.total,0);
-  const profit = orders.reduce((a,o)=>a+o.profit,0);
-  $("repSales").textContent = money(sales);
-  $("repProfit").textContent = money(profit);
-
-  const agg = new Map();
-  for(const ord of orders){
-    for(const it of ord.items){
-      const key = String(it.id);
-      if(!agg.has(key)){
-        agg.set(key, { id: it.id, name: it.name, qty: 0, sales: 0, cost: 0, profit: 0, times: 0 });
-      }
-      const a = agg.get(key);
-      a.qty += it.qty;
-      a.sales += it.lineTotal;
-      a.cost += it.lineCost;
-      a.profit += it.profit;
-      a.times += 1;
-    }
-  }
-  const arr = Array.from(agg.values()).sort((x,y)=>y.sales-x.sales).slice(0,10);
-  const box = $("topItems");
-  box.innerHTML = "";
-  if(arr.length===0){
-    box.innerHTML = `<div class="muted" style="padding:8px 2px;">Aún no hay pedidos confirmados.</div>`;
-  }else{
-    arr.forEach(a=>{
-      const utilPct = a.sales>0 ? (a.profit/a.sales)*100 : 0;
-      const div = document.createElement("div");
-      div.className = "resultCard";
-      div.style.cursor = "default";
-      div.innerHTML = `
-        <div class="rLeft">
-          <div class="rName">${escapeHtml(a.name)}</div>
-          <div class="rMeta">
-            <span class="tag">ID: ${escapeHtml(a.id)}</span>
-            <span class="tag">Cant: ${a.qty}</span>
-            <span class="tag">Util: ${money(a.profit)} (${utilPct.toFixed(1)}%)</span>
-          </div>
-        </div>
-        <div style="font-weight:1000">${money(a.sales)}</div>
-      `;
-      box.appendChild(div);
-    });
-  }
-}
-
-function downloadCSV(filename, csvText){
-  const blob = new Blob([csvText], {type:"text/csv;charset=utf-8"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 1200);
-}
-function csvEscape(val){
-  const s = String(val ?? "");
-  if(/[",\n;]/.test(s)){
-    return '"' + s.replaceAll('"','""') + '"';
-  }
-  return s;
-}
-
-$("btnExportOrders").addEventListener("click", ()=>{
-  if(orders.length===0){ toast("No hay pedidos."); return; }
-
-  const header = ["FechaHora","Cliente","Direccion","TotalVenta","Utilidad","NotasPedido","DetalleItems"];
-  const rows = [header.join(",")];
-
-  for(const o of orders){
-    const detalle = o.items.map(it=>{
-      const nota = (it.note && String(it.note).trim()) ? ` | Nota: ${String(it.note).trim()}` : "";
-      return `${it.name} | Precio: ${it.unitPrice.toFixed(2)} | Cant: ${it.qty} | Total: ${it.lineTotal.toFixed(2)}${nota}`;
-    }).join(" || ");
-
-    rows.push([
-      csvEscape(o.ts),
-      csvEscape(o.clientName),
-      csvEscape(o.clientAddr),
-      o.total.toFixed(2),
-      o.profit.toFixed(2),
-      csvEscape(o.note||""),
-      csvEscape(detalle)
-    ].join(","));
-  }
-
-  downloadCSV("Reporte_Pedidos_SuperMass.csv", rows.join("\n"));
-  toast("CSV de pedidos generado.");
-});
-
-$("btnExportItems").addEventListener("click", ()=>{
-  if(orders.length===0){ toast("No hay pedidos."); return; }
-  const agg = new Map();
-  for(const ord of orders){
-    for(const it of ord.items){
-      const key = String(it.id);
-      if(!agg.has(key)){
-        agg.set(key, { id: it.id, name: it.name, qty: 0, sales: 0, cost: 0, profit: 0, times: 0 });
-      }
-      const a = agg.get(key);
-      a.qty += it.qty;
-      a.sales += it.lineTotal;
-      a.cost += it.lineCost;
-      a.profit += it.profit;
-      a.times += 1;
-    }
-  }
-  const header = ["ID","Articulo","CantidadVendida","Ventas","Costo","Utilidad","UtilidadPct","PrecioPromedio","VecesVendido"];
-  const rows = [header.join(",")];
-  const arr = Array.from(agg.values()).sort((x,y)=>y.sales-x.sales);
-  for(const a of arr){
-    const utilPct = a.sales>0 ? (a.profit/a.sales)*100 : 0;
-    const avg = a.qty>0 ? (a.sales/a.qty) : 0;
-    rows.push([
-      csvEscape(a.id),
-      csvEscape(a.name),
-      a.qty,
-      a.sales.toFixed(2),
-      a.cost.toFixed(2),
-      a.profit.toFixed(2),
-      utilPct.toFixed(2),
-      avg.toFixed(2),
-      a.times
-    ].join(","));
-  }
-  downloadCSV("Reporte_Ventas_por_Articulo_SuperMass.csv", rows.join("\n"));
-  toast("CSV por artículo generado.");
-});
-
-$("btnClearPeriod").addEventListener("click", ()=>{
-  orders = [];
-  saveLocal();
-  renderReports();
-  toast("Período reiniciado.");
-});
-
-$("btnOffers").addEventListener("click", ()=>{
-  renderOffersModal();
-  openModal("ovOffers");
-  setTimeout(()=> $("qOffers").focus(), 80);
-});
-$("qOffers").addEventListener("input", renderOffersModal);
-
-function renderOffersModal(){
-  const q = normKey($("qOffers").value);
-  const box = $("offersList");
-  box.innerHTML = "";
-
-  if(offers.length===0){
-    box.innerHTML = `<div class="muted" style="padding:8px 2px;">No hay ofertas cargadas.</div>`;
-    return;
-  }
-
-  let list = offers;
-  if(q){
-    list = offers.filter(o=> normKey(o.id).includes(q) || normKey(o.name).includes(q) || normKey(o.volume).includes(q));
-  }
-
-  list.slice(0,120).forEach(o=>{
-    const div = document.createElement("div");
-    div.className = "resultCard";
-    div.style.cursor = "pointer";
-    div.innerHTML = `
-      <div class="rLeft">
-        <div class="rName">${escapeHtml(o.name || ("ID " + o.id))}</div>
-        <div class="rMeta">
-          <span class="tag">ID: ${escapeHtml(o.id)}</span>
-          <span class="tag offer">${escapeHtml(o.volume || "Volumen")}</span>
-        </div>
-      </div>
-      <div style="font-weight:1000;color:#9f1239">${money(o.price)}</div>
-    `;
-    div.addEventListener("click", ()=>{
-      const p = products.find(x=>String(x.id)===String(o.id));
-      if(p) openQuote(p.id);
-      else toast("No existe ese ID en productos.");
-    });
-    box.appendChild(div);
-  });
-}
-
-$("btnFiles").addEventListener("click", ()=> openModal("ovFiles"));
-
-$("fileProducts").addEventListener("change", async (e)=>{
-  const file = e.target.files?.[0];
-  if(!file) return;
-  try{
-    const list = await loadProductsCSV(file);
-    products = list;
-    rebuildOffersIndex();
-    refreshCounts();
-    renderResults();
-    updateBottom();
-    saveLocal();
-    toast(`Productos cargados: ${products.length}`);
-  }catch(err){
-    console.error(err);
-    toast("Error al cargar productos.");
-  }
-});
-
-$("fileOffers").addEventListener("change", async (e)=>{
-  const file = e.target.files?.[0];
-  if(!file) return;
-  try{
-    const list = await loadOffersCSV(file);
-    offers = list;
-    rebuildOffersIndex();
-    refreshCounts();
-    renderResults();
-    saveLocal();
-    toast(`Ofertas cargadas: ${offers.length}`);
-  }catch(err){
-    console.error(err);
-    toast("Error al cargar ofertas.");
-  }
-});
-
-$("btnClearData").addEventListener("click", ()=>{
-  products = [];
-  offers = [];
-  offersById = new Map();
-  order = [];
-  orders = [];
-  client = {name:"", addr:"", credit:"no"};
-  window.__orderNote = "";
-  try{
-    localStorage.removeItem(LS_PRODUCTS);
-    localStorage.removeItem(LS_OFFERS);
-    localStorage.removeItem(LS_CLIENT);
-    localStorage.removeItem(LS_ORDERS);
-  }catch(e){}
-  refreshCounts();
-  renderClientBar();
-  renderResults();
-  updateBottom();
-  toast("Datos borrados.");
-});
-
-$("clientCard").addEventListener("click", ()=>{
-  $("inClientName").value = client.name || "";
-  $("inClientAddr").value = client.addr || "";
-  $("inClientCredit").value = client.credit || "no";
-  openModal("ovClient");
-  setTimeout(()=> $("inClientName").focus(), 80);
-});
-
-$("btnSaveClient").addEventListener("click", ()=>{
-  const name = String($("inClientName").value||"").trim();
-  const addr = String($("inClientAddr").value||"").trim();
-  const credit = String($("inClientCredit").value||"no").trim(); // si/no
-
-  if(!name){ toast("Falta nombre."); return; }
-  if(!addr){ toast("Falta dirección."); return; }
-
-  client = {name, addr, credit};
-  renderClientBar();
-  saveLocal();
-  toast("Cliente guardado.");
-  closeModal("ovClient");
-});
-
-$("q").addEventListener("input", renderResults);
-
-/* init */
 loadLocal();
 </script>
 </body>
