@@ -7,7 +7,7 @@
   <style>
     :root{
       --bg:#f5f7fb; --card:#fff; --text:#0f172a; --muted:#64748b; --line:#e2e8f0;
-      --brand:#2563eb; --danger:#dc2626; --shadow:0 8px 24px rgba(15,23,42,.08);
+      --brand:#2563eb; --shadow:0 8px 24px rgba(15,23,42,.08);
       --radius:18px;
     }
     *{box-sizing:border-box}
@@ -41,7 +41,6 @@
     .btn.secondary{background:#eef2ff;color:#1e3a8a;border:1px solid #c7d2fe}
     .btnGhost{border:1px solid var(--line);background:#fff;color:var(--text);font-weight:1000;border-radius:14px;padding:12px;cursor:pointer}
     .hint{font-size:12px;color:var(--muted);margin-top:6px}
-    .hint.bad{color:#b91c1c;font-weight:900}
     .hr{height:1px;background:var(--line);margin:12px 0}
 
     /* Search row */
@@ -396,18 +395,12 @@
 /* ===========================
    Estado + utilidades
 =========================== */
-const MARGEN_PIEZA = 0.11;
-const MARGEN_MEDIA = 0.065;
-const MARGEN_CAJA  = 0.04;
+const MARGEN_PIEZA = 0.11, MARGEN_MEDIA = 0.065, MARGEN_CAJA = 0.04;
 
-let products = [];
-let offers = [];
-let offersById = new Map();
-
-let clients = [];
-let selectedClient = { name:"", loc:"", credit:"no", phone:"" };
-
+let products = [], offers = [], offersById = new Map();
+let clients = [], selectedClient = { name:"", loc:"", credit:"no", phone:"" };
 let order = [];
+
 let currentProduct = null;
 let selection = { mode:"pieza", price:0, manualPrice:null, offerIndex:-1 };
 let showSuggestedWhenOffers = false;
@@ -485,11 +478,7 @@ function pickColIndex(headerRow, variants){
 /* ===========================
    Persistencia local
 =========================== */
-const LS_PRODUCTS = "SM_PRODUCTS_V9";
-const LS_OFFERS   = "SM_OFFERS_V9";
-const LS_CLIENTS  = "SM_CLIENTS_V9";
-const LS_SELCLIENT= "SM_SELCLIENT_V9";
-const LS_ORDER    = "SM_ORDER_V9";
+const LS_PRODUCTS="SM_PRODUCTS_V10", LS_OFFERS="SM_OFFERS_V10", LS_CLIENTS="SM_CLIENTS_V10", LS_SELCLIENT="SM_SELCLIENT_V10", LS_ORDER="SM_ORDER_V10";
 
 function saveLocal(){
   try{
@@ -499,6 +488,15 @@ function saveLocal(){
     localStorage.setItem(LS_SELCLIENT, JSON.stringify(selectedClient));
     localStorage.setItem(LS_ORDER, JSON.stringify(order));
   }catch(e){}
+}
+function rebuildOffersIndex(){
+  offersById = new Map();
+  for(const ofr of offers){
+    const id = String(ofr.id||"").trim();
+    if(!id) continue;
+    if(!offersById.has(id)) offersById.set(id, []);
+    offersById.get(id).push(ofr);
+  }
 }
 function loadLocal(){
   try{
@@ -527,27 +525,27 @@ function loadLocal(){
 =========================== */
 function openModal(id){
   $(id).classList.add("show");
-  document.body.style.overflow = "hidden";
+  document.body.style.overflow="hidden";
 }
 function closeModal(id){
   $(id).classList.remove("show");
   const any = Array.from(document.querySelectorAll(".overlay")).some(o=>o.classList.contains("show"));
-  if(!any) document.body.style.overflow = "";
+  if(!any) document.body.style.overflow="";
 }
-document.addEventListener("click", (e)=>{
+document.addEventListener("click",(e)=>{
   const c = e.target.getAttribute?.("data-close");
   if(c) closeModal(c);
 });
 
 /* ===========================
-   Helpers
+   Helpers + UI
 =========================== */
 function stockBadgeHTML(stock, compact=false){
   let cls="stockBadge gray";
   let label= compact ? "Stock: —" : "Existencia: —";
   if(stock!==null && stock!==undefined && stock!=="" && isFinite(stock)){
-    const s = Number(stock);
-    label = compact ? `Stock: ${s}` : `Existencia: ${s}`;
+    const s=Number(stock);
+    label=compact?`Stock: ${s}`:`Existencia: ${s}`;
     if(s<=10) cls="stockBadge red";
     else if(s<=25) cls="stockBadge yellow";
     else cls="stockBadge green";
@@ -560,19 +558,7 @@ function priceFromCost(cost, mode){
   if(mode==="caja")  return round2(cost*(1+MARGEN_CAJA));
   return round2(cost);
 }
-function rebuildOffersIndex(){
-  offersById = new Map();
-  for(const ofr of offers){
-    const id = String(ofr.id||"").trim();
-    if(!id) continue;
-    if(!offersById.has(id)) offersById.set(id, []);
-    offersById.get(id).push(ofr);
-  }
-}
 
-/* ===========================
-   UI: counts + bottom
-=========================== */
 function refreshCounts(){
   $("cntProducts").textContent = products.length;
   $("cntOffers").textContent = offers.length;
@@ -587,7 +573,7 @@ function updateBottom(){
 }
 
 /* ===========================
-   CLIENTES: panel colapsable + búsqueda + selección + descarga
+   CLIENTES
 =========================== */
 $("clientsToggle").addEventListener("click", ()=> $("clientsPanel").classList.toggle("open"));
 
@@ -606,19 +592,17 @@ function renderClients(){
     return;
   }
   let list = clients;
-  if(q){
-    list = clients.filter(c => normKey(c.name).includes(q) || normKey(c.loc).includes(q));
-  }else{
-    list = clients.slice(0, 30);
-  }
+  if(q) list = clients.filter(c => normKey(c.name).includes(q) || normKey(c.loc).includes(q));
+  else list = clients.slice(0, 30);
+
   if(list.length===0){
     box.innerHTML = `<div class="hint">Sin resultados.</div>`;
     return;
   }
-  list.slice(0, 40).forEach(c=>{
+
+  list.slice(0,40).forEach(c=>{
     const div = document.createElement("div");
     div.className = "resultCard";
-    div.style.cursor = "pointer";
     const creditTxt = String(c.credit||"no").toLowerCase()==="si" ? "SÍ" : "NO";
     const phoneTag = c.phone ? `<span class="tag">Tel: ${escapeHtml(c.phone)}</span>` : "";
     div.innerHTML = `
@@ -642,6 +626,44 @@ function renderClients(){
     box.appendChild(div);
   });
 }
+
+function csvEscape(val){
+  const s = String(val ?? "");
+  if(/[",\n;]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
+  return s;
+}
+function downloadCSV(filename, csvText){
+  const blob = new Blob([csvText], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1200);
+}
+
+$("btnDownloadClients").addEventListener("click", ()=>{
+  if(clients.length===0){ toast("No hay clientes."); return; }
+  const header = ["Nombre","Ubicacion","Credito","Telefono"];
+  const rows = [header.join(",")];
+  for(const c of clients){
+    rows.push([csvEscape(c.name),csvEscape(c.loc),csvEscape(String(c.credit||"no").toLowerCase()),csvEscape(c.phone||"")].join(","));
+  }
+  downloadCSV("Clientes_SuperMass.csv", rows.join("\n"));
+  toast("CSV de clientes generado.");
+});
+
+$("btnClearClients").addEventListener("click", ()=>{
+  clients = [];
+  selectedClient = { name:"", loc:"", credit:"no", phone:"" };
+  renderSelectedClient();
+  refreshCounts();
+  renderClients();
+  saveLocal();
+  toast("Clientes borrados.");
+});
 
 $("btnAddClient").addEventListener("click", ()=>{
   const name = String($("inNewCName").value||"").trim();
@@ -667,43 +689,6 @@ $("btnAddClient").addEventListener("click", ()=>{
   $("inNewCName").value=""; $("inNewCLoc").value=""; $("inNewCPhone").value=""; $("inNewCCredit").value="no";
   toast(idx>=0 ? "Cliente actualizado." : "Cliente agregado.");
   $("clientsPanel").classList.remove("open");
-});
-
-$("btnClearClients").addEventListener("click", ()=>{
-  clients = [];
-  selectedClient = { name:"", loc:"", credit:"no", phone:"" };
-  renderSelectedClient();
-  refreshCounts();
-  renderClients();
-  saveLocal();
-  toast("Clientes borrados.");
-});
-
-function csvEscape(val){
-  const s = String(val ?? "");
-  if(/[",\n;]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
-  return s;
-}
-function downloadCSV(filename, csvText){
-  const blob = new Blob([csvText], {type:"text/csv;charset=utf-8"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 1200);
-}
-$("btnDownloadClients").addEventListener("click", ()=>{
-  if(clients.length===0){ toast("No hay clientes."); return; }
-  const header = ["Nombre","Ubicacion","Credito","Telefono"];
-  const rows = [header.join(",")];
-  for(const c of clients){
-    rows.push([csvEscape(c.name),csvEscape(c.loc),csvEscape(String(c.credit||"no").toLowerCase()),csvEscape(c.phone||"")].join(","));
-  }
-  downloadCSV("Clientes_SuperMass.csv", rows.join("\n"));
-  toast("CSV de clientes generado.");
 });
 
 async function readFileText(file){
@@ -747,9 +732,9 @@ async function loadClientsCSV(file){
   }
   return out;
 }
+
 $("fileClients").addEventListener("change", async (e)=>{
-  const file = e.target.files?.[0];
-  if(!file) return;
+  const file=e.target.files?.[0]; if(!file) return;
   try{
     const list = await loadClientsCSV(file);
     for(const c of list){
@@ -761,16 +746,12 @@ $("fileClients").addEventListener("change", async (e)=>{
     renderClients();
     saveLocal();
     toast(`Clientes cargados: ${list.length}`);
-  }catch(err){
-    console.error(err);
-    toast("Error al cargar clientes.");
-  }finally{
-    e.target.value="";
-  }
+  }catch(err){ console.error(err); toast("Error al cargar clientes."); }
+  finally{ e.target.value=""; }
 });
 
 /* ===========================
-   PRODUCTOS / OFERTAS: carga y búsqueda
+   PRODUCTOS / OFERTAS
 =========================== */
 async function loadProductsCSV(file){
   const text = await readFileText(file);
@@ -881,9 +862,9 @@ function renderResults(){
 }
 
 $("q").addEventListener("input", renderResults);
-
 $("btnFiles").addEventListener("click", ()=> openModal("ovFiles"));
 $("btnReports").addEventListener("click", ()=> openModal("ovReports"));
+
 $("btnOffers").addEventListener("click", ()=>{
   renderOffersModal();
   openModal("ovOffers");
@@ -931,7 +912,6 @@ $("fileProducts").addEventListener("change", async (e)=>{
   }catch(err){ console.error(err); toast("Error al cargar productos."); }
   finally{ e.target.value=""; }
 });
-
 $("fileOffers").addEventListener("change", async (e)=>{
   const file=e.target.files?.[0]; if(!file) return;
   try{
@@ -942,7 +922,6 @@ $("fileOffers").addEventListener("change", async (e)=>{
   }catch(err){ console.error(err); toast("Error al cargar ofertas."); }
   finally{ e.target.value=""; }
 });
-
 $("btnClearData").addEventListener("click", ()=>{
   products=[]; offers=[]; offersById=new Map(); order=[];
   saveLocal(); refreshCounts(); renderResults(); updateBottom();
@@ -950,7 +929,7 @@ $("btnClearData").addEventListener("click", ()=>{
 });
 
 /* ===========================
-   COTIZAR: ofertas primero y qty vacío
+   COTIZAR
 =========================== */
 function setPriceHint(text, kind){
   const h=$("priceHint");
@@ -1122,7 +1101,6 @@ $("btnAddItem").addEventListener("click", ()=>{
   const cost = Number(currentProduct.cost)||0;
   if(unit < cost){ toast("No se puede vender abajo del costo."); return; }
 
-  // Offer override
   let isOffer=false, offerVol="";
   if(selection.mode==="offer"){
     const list = offersById.get(String(currentProduct.id)) || [];
@@ -1140,19 +1118,7 @@ $("btnAddItem").addEventListener("click", ()=>{
   const lineCost = round2(cost*qty);
   const profit = round2(lineTotal-lineCost);
 
-  order.push({
-    id: currentProduct.id,
-    name: currentProduct.name,
-    qty,
-    note,
-    unitPrice: round2(unit),
-    cost,
-    lineTotal,
-    lineCost,
-    profit,
-    isOffer,
-    offerVol
-  });
+  order.push({ id:currentProduct.id, name:currentProduct.name, qty, note, unitPrice:round2(unit), cost, lineTotal, lineCost, profit, isOffer, offerVol });
 
   saveLocal();
   updateBottom();
@@ -1161,8 +1127,8 @@ $("btnAddItem").addEventListener("click", ()=>{
 });
 
 /* ===========================
-   PEDIDO: ver + editar + quitar (CORREGIDO)
-   - Usamos DELEGACIÓN de eventos para que SIEMPRE funcione.
+   PEDIDO: ver + editar + quitar
+   CAMBIO PEDIDO: al editar -> cerrar pedido y abrir editor directo
 =========================== */
 $("btnViewOrder").addEventListener("click", openOrder);
 
@@ -1187,9 +1153,7 @@ function renderOrderItems(){
     order.forEach((it, idx)=>{
       const el = document.createElement("div");
       el.className = "orderItem";
-
       const noteTag = it.note ? `<span class="tag">${escapeHtml(it.note)}</span>` : "";
-
       el.innerHTML = `
         <div style="min-width:0;flex:1">
           <div class="oiName">${escapeHtml(it.name)}</div>
@@ -1199,7 +1163,6 @@ function renderOrderItems(){
             <span class="tag">Total: ${money(it.lineTotal)}</span>
             ${noteTag}
           </div>
-
           <div>
             <button type="button" class="btnMini" data-action="edit" data-idx="${idx}">Modificar</button>
             <button type="button" class="btnMini danger" data-action="remove" data-idx="${idx}">Quitar</button>
@@ -1220,7 +1183,6 @@ function renderOrderItems(){
   $("orderProfit").textContent = money(profit);
 }
 
-/* Delegación: un solo listener para editar/quitar */
 $("orderItems").addEventListener("click", (e)=>{
   const btn = e.target.closest("button[data-action]");
   if(!btn) return;
@@ -1238,12 +1200,13 @@ $("orderItems").addEventListener("click", (e)=>{
   }
 
   if(action === "edit"){
-    openEditLine(idx);
-    return;
+    // CLAVE: cerrar primero el pedido y abrir editor directo
+    closeModal("ovOrder");
+    // esperar un frame para evitar que el overlay del pedido "tape" el editor
+    requestAnimationFrame(()=> openEditLine(idx));
   }
 });
 
-/* Edit modal */
 function openEditLine(idx){
   const it = order[idx];
   if(!it) return;
@@ -1252,7 +1215,7 @@ function openEditLine(idx){
   $("edName").textContent = it.name;
   $("edMeta").textContent = `Precio: ${money(it.unitPrice)} · Actual: Cant ${it.qty}${it.note ? " · Nota: " + it.note : ""}`;
 
-  $("edQty").value = String(it.qty);     // CORRECCIÓN: precargar cantidad actual
+  $("edQty").value = String(it.qty);
   $("edNote").value = String(it.note||"");
 
   openModal("ovEditLine");
@@ -1266,7 +1229,6 @@ $("btnSaveEdit").addEventListener("click", ()=>{
   const n = num($("edQty").value);
   if(!isFinite(n) || n<=0){ toast("Cantidad inválida."); return; }
   const newQty = Math.max(1, Math.floor(n));
-
   const newNote = String($("edNote").value||"").trim();
 
   const unit = Number(it.unitPrice)||0;
@@ -1279,14 +1241,13 @@ $("btnSaveEdit").addEventListener("click", ()=>{
   order[editIndex] = { ...it, qty:newQty, note:newNote, lineTotal, lineCost, profit };
 
   saveLocal();
-  renderOrderItems();
   updateBottom();
   toast("Artículo actualizado.");
   closeModal("ovEditLine");
 });
 
 /* ===========================
-   Candado: enviar WA y confirmar
+   Candado WA (sin cambios)
 =========================== */
 $("inOrderNote").addEventListener("input", ()=>{ window.__orderNote = $("inOrderNote").value; });
 
@@ -1298,14 +1259,10 @@ function buildWhatsAppText(){
   const lines = [];
   lines.push(`PEDIDO — ${fecha} · ${hora}`);
 
-  if(selectedClient.name){
-    lines.push(`Cliente: ${selectedClient.name}`);
-    lines.push(`📍 ${selectedClient.loc}`);
-    if(String(selectedClient.credit||"no").toLowerCase()==="si") lines.push(`Crédito a 7 días`);
-    if(selectedClient.phone) lines.push(`Tel: ${selectedClient.phone}`);
-  }else{
-    lines.push(`Cliente: (no seleccionado)`);
-  }
+  lines.push(`Cliente: ${selectedClient.name || "(no seleccionado)"}`);
+  if(selectedClient.loc) lines.push(`📍 ${selectedClient.loc}`);
+  if(String(selectedClient.credit||"no").toLowerCase()==="si") lines.push(`Crédito a 7 días`);
+  if(selectedClient.phone) lines.push(`Tel: ${selectedClient.phone}`);
 
   const notaPedido = String(window.__orderNote || "").trim();
   if(notaPedido) lines.push(`Notas: ${notaPedido}`);
@@ -1344,7 +1301,6 @@ $("btnSendAndConfirm").addEventListener("click", async ()=>{
 
   const txt = buildWhatsAppText();
   try{ await navigator.clipboard.writeText(txt); }catch(e){}
-
   window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank");
 
   order = [];
@@ -1356,80 +1312,8 @@ $("btnSendAndConfirm").addEventListener("click", async ()=>{
 });
 
 /* ===========================
-   Archivos: productos/ofertas + clientes
+   Archivos (productos/ofertas) - mínimo para no romper
 =========================== */
-$("btnClearClients").addEventListener("click", ()=>{
-  clients = [];
-  selectedClient = { name:"", loc:"", credit:"no", phone:"" };
-  renderSelectedClient();
-  refreshCounts();
-  renderClients();
-  saveLocal();
-  toast("Clientes borrados.");
-});
-
-$("btnDownloadClients").addEventListener("click", ()=>{
-  if(clients.length===0){ toast("No hay clientes."); return; }
-  const header = ["Nombre","Ubicacion","Credito","Telefono"];
-  const rows = [header.join(",")];
-  for(const c of clients){
-    rows.push([csvEscape(c.name),csvEscape(c.loc),csvEscape(String(c.credit||"no").toLowerCase()),csvEscape(c.phone||"")].join(","));
-  }
-  downloadCSV("Clientes_SuperMass.csv", rows.join("\n"));
-  toast("CSV de clientes generado.");
-});
-
-async function loadClientsCSV(file){
-  const text = await readFileText(file);
-  const rows = parseCSV(text);
-  if(rows.length===0) return [];
-  const hasHeader = looksLikeHeaderRow(rows[0]);
-  const header = hasHeader ? rows[0] : [];
-  const start = hasHeader ? 1 : 0;
-
-  let nameCol=-1, locCol=-1, credCol=-1, phoneCol=-1;
-  if(hasHeader){
-    nameCol  = pickColIndex(header, ["nombre","cliente","name"]);
-    locCol   = pickColIndex(header, ["ubicacion","ubicación","direccion","dirección","location"]);
-    credCol  = pickColIndex(header, ["credito","crédito","credit"]);
-    phoneCol = pickColIndex(header, ["telefono","teléfono","phone","celular"]);
-  }
-  if(nameCol<0) nameCol=0;
-  if(locCol<0) locCol=1;
-  if(credCol<0) credCol=2;
-  if(phoneCol<0) phoneCol=3;
-
-  const out=[];
-  for(let i=start;i<rows.length;i++){
-    const r=rows[i];
-    const name=String(r[nameCol]??"").trim();
-    const loc=String(r[locCol]??"").trim();
-    let credit=String(r[credCol]??"no").trim().toLowerCase();
-    const phone=String(r[phoneCol]??"").trim();
-    if(!name || !loc) continue;
-    if(credit!=="si" && credit!=="no") credit="no";
-    out.push({name, loc, credit, phone});
-  }
-  return out;
-}
-
-$("fileClients").addEventListener("change", async (e)=>{
-  const file=e.target.files?.[0]; if(!file) return;
-  try{
-    const list = await loadClientsCSV(file);
-    for(const c of list){
-      const key = normKey(c.name)+"||"+normKey(c.loc);
-      const idx = clients.findIndex(x=> normKey(x.name)+"||"+normKey(x.loc) === key);
-      if(idx>=0) clients[idx]=c; else clients.push(c);
-    }
-    refreshCounts();
-    renderClients();
-    saveLocal();
-    toast(`Clientes cargados: ${list.length}`);
-  }catch(err){ console.error(err); toast("Error al cargar clientes."); }
-  finally{ e.target.value=""; }
-});
-
 $("btnClearData").addEventListener("click", ()=>{
   products=[]; offers=[]; offersById=new Map(); order=[];
   saveLocal(); refreshCounts(); renderResults(); updateBottom();
@@ -1437,7 +1321,7 @@ $("btnClearData").addEventListener("click", ()=>{
 });
 
 /* ===========================
-   Init
+   INIT: carga local (clientes/productos/ofertas/pedido)
 =========================== */
 loadLocal();
 </script>
