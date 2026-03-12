@@ -14,7 +14,6 @@
     html,body{height:100%}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
     .app{max-width:520px;margin:0 auto;padding:12px 12px 84px}
-
     .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:6px 2px 10px}
     .title{font-weight:1000;font-size:22px;line-height:1.05;letter-spacing:-.2px}
     .counts{text-align:right;font-size:12px;color:var(--muted);margin-top:4px;white-space:nowrap}
@@ -31,7 +30,7 @@
     .collapBody{padding:12px;border-top:1px solid var(--line);display:none}
     .collap.open .collapBody{display:block}
 
-    /* Inputs / buttons */
+    /* Inputs / botones */
     .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
     .label{font-size:12px;color:var(--muted);font-weight:900}
     .input{border:1px solid var(--line);border-radius:14px;padding:12px;font-size:16px;outline:none;background:#fff}
@@ -94,21 +93,18 @@
     .oName{font-weight:1000;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .oSub{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
     .oPrice{font-weight:1000;color:#9f1239;white-space:nowrap}
-
     .toggleBtn{width:100%;margin-top:10px;border:1px solid var(--line);background:#f8fafc;color:var(--text);font-weight:1000;border-radius:16px;padding:12px;cursor:pointer}
-
     .priceGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
     .pCard{border:1px solid var(--line);background:#fff;border-radius:16px;padding:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
     .pCard.sel{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
     .pName{font-weight:1000;font-size:14px}
     .pSub{font-size:12px;color:var(--muted);margin-top:2px}
     .pVal{font-weight:1000;font-size:16px;white-space:nowrap}
-
     .manualBar{display:none;margin-top:10px;padding:10px;border:1px dashed var(--line);border-radius:16px;background:#f8fafc;gap:8px;align-items:center}
     .manualBar.show{display:flex}
     .manualBar input{flex:1;font-size:16px;padding:10px;border:1px solid var(--line);border-radius:14px;outline:none;background:#fff}
-
     .addBtn{margin-top:12px;width:100%;border:0;border-radius:16px;padding:13px 14px;font-weight:1000;background:#16a34a;color:#fff;cursor:pointer}
+    .addBtn.alt{background:#0ea5e9}
 
     /* Pedido */
     .orderItem{border:1px solid var(--line);background:#fff;border-radius:16px;padding:12px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
@@ -159,7 +155,7 @@
         <div class="field">
           <div class="label">Cargar clientes (CSV)</div>
           <input class="input" type="file" accept=".csv,text/csv" id="fileClients" />
-          <div class="hint">Columnas: Nombre, Ubicación, Crédito (si/no), Teléfono (opcional).</div>
+          <div class="hint">Columnas: Nombre, Ubicación, Crédito (si/no), Teléfono (opcional). Headers flexibles.</div>
         </div>
 
         <div class="row2">
@@ -197,7 +193,7 @@
 
     <!-- BUSCADOR PRODUCTOS -->
     <div class="searchRow">
-      <input id="q" class="searchInput" placeholder='Buscar producto o ID... (Ej. "Suavitel", "342")' autocomplete="off" />
+      <input id="q" class="searchInput" placeholder='Buscar producto o ID...' autocomplete="off" />
       <button class="btn secondary" id="btnOffers">Ofertas</button>
     </div>
 
@@ -262,11 +258,11 @@
     </div>
   </div>
 
-  <!-- COTIZAR -->
+  <!-- COTIZAR (también se usa para EDITAR una línea) -->
   <div class="overlay" id="ovQuote">
     <div class="sheet">
       <div class="sheetHead">
-        <div class="sheetTitle">Cotizar</div>
+        <div class="sheetTitle" id="qtHeaderTitle">Cotizar</div>
         <button class="xBtn" data-close="ovQuote">Cerrar</button>
       </div>
       <div class="sheetBody">
@@ -307,42 +303,7 @@
           </div>
         </div>
 
-        <button class="addBtn" id="btnAddItem">Agregar al pedido</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- EDITAR ARTÍCULO -->
-  <div class="overlay" id="ovEditLine">
-    <div class="sheet">
-      <div class="sheetHead">
-        <div class="sheetTitle">Modificar artículo</div>
-        <button class="xBtn" data-close="ovEditLine">Cerrar</button>
-      </div>
-      <div class="sheetBody">
-        <div class="prodName" id="edName">—</div>
-        <div class="hint" id="edMeta">—</div>
-
-        <div class="hr"></div>
-
-        <div class="row2">
-          <div class="field">
-            <div class="label">Cantidad</div>
-            <input class="input" id="edQty" type="number" inputmode="numeric" min="1" placeholder="Ej. 12" />
-          </div>
-          <div class="field">
-            <div class="label">Precio unitario</div>
-            <input class="input" id="edPrice" type="text" inputmode="decimal" placeholder="Ej. 40" />
-            <div class="hint bad" id="edPriceWarn" style="display:none;">No se puede vender abajo del costo.</div>
-          </div>
-        </div>
-
-        <div class="field">
-          <div class="label">Variedad / notas</div>
-          <input class="input" id="edNote" placeholder="Ej. surtido / lavanda..." />
-        </div>
-
-        <button class="btn" id="btnSaveEdit" style="width:100%;">Guardar cambios</button>
+        <button class="addBtn" id="btnAddOrSave">Agregar al pedido</button>
       </div>
     </div>
   </div>
@@ -384,7 +345,7 @@
     </div>
   </div>
 
-  <!-- REPORTES (stub) -->
+  <!-- REPORTES (placeholder para mantener botón vivo) -->
   <div class="overlay" id="ovReports">
     <div class="sheet">
       <div class="sheetHead">
@@ -392,7 +353,7 @@
         <button class="xBtn" data-close="ovReports">Cerrar</button>
       </div>
       <div class="sheetBody">
-        <div class="hint">Sin cambios en esta versión.</div>
+        <div class="hint">Reportes deshabilitados en esta compilación.</div>
       </div>
     </div>
   </div>
@@ -406,14 +367,19 @@ const MARGEN_PIEZA = 0.11, MARGEN_MEDIA = 0.065, MARGEN_CAJA = 0.04;
 let products = [], offers = [], offersById = new Map();
 let clients = [], selectedClient = { name:"", loc:"", credit:"no", phone:"" };
 let order = [];
+
 let currentProduct = null;
 let selection = { mode:"pieza", price:0, manualPrice:null, offerIndex:-1 };
 let showSuggestedWhenOffers = false;
 
-let editIndex = -1;
+// EDIT MODE: si != -1, estamos editando esa línea del pedido con el modal de cotización
+let editLineIndex = -1;
 
 const $ = (id)=>document.getElementById(id);
 
+/* ===========================
+   Utilidades
+=========================== */
 function money(n){ const x = (isFinite(n)? n : 0); return "$" + x.toFixed(2); }
 function round2(n){ return Math.round(n*100)/100; }
 function num(x){
@@ -421,27 +387,27 @@ function num(x){
   const s = String(x).trim().replace(",",".");
   return parseFloat(s.replace(/[^0-9.\-]/g,""));
 }
-function toast(msg){
-  const t = $("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(window.__toastTO);
-  window.__toastTO = setTimeout(()=>t.classList.remove("show"), 1600);
-}
 function normKey(s){
   return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
 }
 function escapeHtml(s){
   return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(window.__toastTO);
+  window.__toastTO = setTimeout(()=>t.classList.remove("show"), 1500);
+}
 
 /* ===========================
-   CSV helpers
+   CSV parser robusto
 =========================== */
 function detectDelimiter(sampleLine){
-  const c1 = (sampleLine.match(/,/g)||[]).length;
-  const c2 = (sampleLine.match(/;/g)||[]).length;
-  const c3 = (sampleLine.match(/\t/g)||[]).length;
+  const c1=(sampleLine.match(/,/g)||[]).length;
+  const c2=(sampleLine.match(/;/g)||[]).length;
+  const c3=(sampleLine.match(/\t/g)||[]).length;
   if(c3>c2 && c3>c1) return "\t";
   return (c2>c1) ? ";" : ",";
 }
@@ -451,7 +417,7 @@ function parseCSV(text){
   const lines = text.split(/\r?\n/).filter(l=>l.trim().length>0);
   if(lines.length===0) return [];
   const delim = detectDelimiter(lines[0]);
-  const rows = [];
+  const rows=[];
   for(const line of lines){
     const out=[]; let cur=""; let inQ=false;
     for(let i=0;i<line.length;i++){
@@ -492,13 +458,13 @@ async function readFileText(file){
 }
 
 /* ===========================
-   Persistencia
+   Persistencia (localStorage)
 =========================== */
-const LS_PRODUCTS="SM_PRODUCTS_V11";
-const LS_OFFERS="SM_OFFERS_V11";
-const LS_CLIENTS="SM_CLIENTS_V11";
-const LS_SELCLIENT="SM_SELCLIENT_V11";
-const LS_ORDER="SM_ORDER_V11";
+const LS_PRODUCTS="SM_PRODUCTS_FULL_V2";
+const LS_OFFERS="SM_OFFERS_FULL_V2";
+const LS_CLIENTS="SM_CLIENTS_FULL_V2";
+const LS_SELCLIENT="SM_SELCLIENT_FULL_V2";
+const LS_ORDER="SM_ORDER_FULL_V2";
 
 function saveLocal(){
   try{
@@ -540,7 +506,7 @@ function loadLocal(){
 }
 
 /* ===========================
-   Modals
+   Modales
 =========================== */
 function openModal(id){
   $(id).classList.add("show");
@@ -591,10 +557,23 @@ function updateBottom(){
 }
 
 /* ===========================
-   CLIENTES
+   Eventos top
 =========================== */
 $("clientsToggle").addEventListener("click", ()=> $("clientsPanel").classList.toggle("open"));
+$("btnFiles").addEventListener("click", ()=> openModal("ovFiles"));
+$("btnOffers").addEventListener("click", ()=>{
+  renderOffersModal();
+  openModal("ovOffers");
+  setTimeout(()=> $("qOffers").focus(), 60);
+});
+$("btnReports").addEventListener("click", ()=> openModal("ovReports"));
+$("btnViewOrder").addEventListener("click", openOrder);
+$("q").addEventListener("input", renderResults);
+$("qOffers").addEventListener("input", renderOffersModal);
 
+/* ===========================
+   CLIENTES
+=========================== */
 function renderSelectedClient(){
   $("selClientName").textContent = selectedClient.name ? selectedClient.name : "—";
   $("selClientAddr").textContent = selectedClient.loc ? ("📍 " + selectedClient.loc) : "📍 —";
@@ -610,8 +589,8 @@ function renderClients(){
     return;
   }
   let list = clients;
-  if(q) list = clients.filter(c => normKey(c.name).includes(q) || normKey(c.loc).includes(q));
-  else list = clients.slice(0, 30);
+  if(q) list = clients.filter(c=> normKey(c.name).includes(q) || normKey(c.loc).includes(q));
+  else list = clients.slice(0,30);
 
   if(list.length===0){
     box.innerHTML = `<div class="hint">Sin resultados.</div>`;
@@ -619,17 +598,16 @@ function renderClients(){
   }
 
   list.slice(0,40).forEach(c=>{
-    const div = document.createElement("div");
-    div.className = "resultCard";
+    const div=document.createElement("div");
+    div.className="resultCard";
     const creditTxt = String(c.credit||"no").toLowerCase()==="si" ? "SÍ" : "NO";
-    const phoneTag = c.phone ? `<span class="tag">Tel: ${escapeHtml(c.phone)}</span>` : "";
-    div.innerHTML = `
+    div.innerHTML=`
       <div class="rLeft">
         <div class="rName">${escapeHtml(c.name)}</div>
         <div class="rMeta">
           <span class="tag">📍 ${escapeHtml(c.loc)}</span>
           <span class="tag">Crédito: ${creditTxt}</span>
-          ${phoneTag}
+          ${c.phone?`<span class="tag">Tel: ${escapeHtml(c.phone)}</span>`:""}
         </div>
       </div>
       <div class="tag" style="border-color:#c7d2fe;background:#eef2ff;color:#1e3a8a;">Seleccionar</div>
@@ -645,37 +623,34 @@ function renderClients(){
   });
 }
 
-function csvEscape(val){
-  const s = String(val ?? "");
-  if(/[",\n;]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
-  return s;
-}
-function downloadCSV(filename, csvText){
-  const blob = new Blob([csvText], {type:"text/csv;charset=utf-8"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 1200);
-}
+$("btnAddClient").addEventListener("click", ()=>{
+  const name=String($("inNewCName").value||"").trim();
+  const loc=String($("inNewCLoc").value||"").trim();
+  const credit=String($("inNewCCredit").value||"no").trim().toLowerCase();
+  const phone=String($("inNewCPhone").value||"").trim();
+  if(!name){ toast("Falta nombre."); return; }
+  if(!loc){ toast("Falta ubicación."); return; }
+  if(credit!=="si" && credit!=="no"){ toast("Crédito inválido."); return; }
 
-$("btnDownloadClients").addEventListener("click", ()=>{
-  if(clients.length===0){ toast("No hay clientes."); return; }
-  const header = ["Nombre","Ubicacion","Credito","Telefono"];
-  const rows = [header.join(",")];
-  for(const c of clients){
-    rows.push([csvEscape(c.name),csvEscape(c.loc),csvEscape(String(c.credit||"no").toLowerCase()),csvEscape(c.phone||"")].join(","));
-  }
-  downloadCSV("Clientes_SuperMass.csv", rows.join("\n"));
-  toast("CSV de clientes generado.");
+  const key = normKey(name)+"||"+normKey(loc);
+  const idx = clients.findIndex(c=> normKey(c.name)+"||"+normKey(c.loc)===key);
+  const obj = {name,loc,credit,phone};
+  if(idx>=0) clients[idx]=obj; else clients.push(obj);
+
+  selectedClient={...obj};
+  renderSelectedClient();
+  refreshCounts();
+  renderClients();
+  saveLocal();
+
+  $("inNewCName").value=""; $("inNewCLoc").value=""; $("inNewCPhone").value=""; $("inNewCCredit").value="no";
+  toast(idx>=0?"Cliente actualizado.":"Cliente agregado.");
+  $("clientsPanel").classList.remove("open");
 });
 
 $("btnClearClients").addEventListener("click", ()=>{
-  clients = [];
-  selectedClient = { name:"", loc:"", credit:"no", phone:"" };
+  clients=[];
+  selectedClient={name:"",loc:"",credit:"no",phone:""};
   renderSelectedClient();
   refreshCounts();
   renderClients();
@@ -683,46 +658,44 @@ $("btnClearClients").addEventListener("click", ()=>{
   toast("Clientes borrados.");
 });
 
-$("btnAddClient").addEventListener("click", ()=>{
-  const name = String($("inNewCName").value||"").trim();
-  const loc = String($("inNewCLoc").value||"").trim();
-  const credit = String($("inNewCCredit").value||"no").trim().toLowerCase();
-  const phone = String($("inNewCPhone").value||"").trim();
-
-  if(!name){ toast("Falta nombre del cliente."); return; }
-  if(!loc){ toast("Falta ubicación del cliente."); return; }
-  if(credit!=="si" && credit!=="no"){ toast("Crédito inválido."); return; }
-
-  const key = normKey(name)+"||"+normKey(loc);
-  const idx = clients.findIndex(c=> normKey(c.name)+"||"+normKey(c.loc) === key);
-  const obj = { name, loc, credit, phone };
-  if(idx>=0) clients[idx]=obj; else clients.push(obj);
-
-  selectedClient = {...obj};
-  renderSelectedClient();
-  refreshCounts();
-  renderClients();
-  saveLocal();
-
-  $("inNewCName").value=""; $("inNewCLoc").value=""; $("inNewCPhone").value=""; $("inNewCCredit").value="no";
-  toast(idx>=0 ? "Cliente actualizado." : "Cliente agregado.");
-  $("clientsPanel").classList.remove("open");
+function csvEscape(val){
+  const s=String(val??"");
+  if(/[",\n;]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
+  return s;
+}
+function downloadCSV(filename, csvText){
+  const blob=new Blob([csvText],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1200);
+}
+$("btnDownloadClients").addEventListener("click", ()=>{
+  if(clients.length===0){ toast("No hay clientes."); return; }
+  const header=["Nombre","Ubicacion","Credito","Telefono"];
+  const rows=[header.join(",")];
+  for(const c of clients){
+    rows.push([csvEscape(c.name),csvEscape(c.loc),csvEscape(String(c.credit||"no").toLowerCase()),csvEscape(c.phone||"")].join(","));
+  }
+  downloadCSV("Clientes_SuperMass.csv", rows.join("\n"));
+  toast("CSV clientes generado.");
 });
 
 async function loadClientsCSV(file){
-  const text = await readFileText(file);
-  const rows = parseCSV(text);
+  const text=await readFileText(file);
+  const rows=parseCSV(text);
   if(rows.length===0) return [];
-  const hasHeader = looksLikeHeaderRow(rows[0]);
-  const header = hasHeader ? rows[0] : [];
-  const start = hasHeader ? 1 : 0;
+  const hasHeader=looksLikeHeaderRow(rows[0]);
+  const header=hasHeader?rows[0]:[];
+  const start=hasHeader?1:0;
 
   let nameCol=-1, locCol=-1, credCol=-1, phoneCol=-1;
   if(hasHeader){
-    nameCol  = pickColIndex(header, ["nombre","cliente","name"]);
-    locCol   = pickColIndex(header, ["ubicacion","ubicación","direccion","dirección","location"]);
-    credCol  = pickColIndex(header, ["credito","crédito","credit"]);
-    phoneCol = pickColIndex(header, ["telefono","teléfono","phone","celular"]);
+    nameCol=pickColIndex(header,["nombre","cliente","name"]);
+    locCol=pickColIndex(header,["ubicacion","ubicación","direccion","dirección","location"]);
+    credCol=pickColIndex(header,["credito","crédito","credit"]);
+    phoneCol=pickColIndex(header,["telefono","teléfono","phone","celular"]);
   }
   if(nameCol<0) nameCol=0;
   if(locCol<0) locCol=1;
@@ -736,25 +709,22 @@ async function loadClientsCSV(file){
     const loc=String(r[locCol]??"").trim();
     let credit=String(r[credCol]??"no").trim().toLowerCase();
     const phone=String(r[phoneCol]??"").trim();
-    if(!name || !loc) continue;
-    if(credit!=="si" && credit!=="no") credit="no";
-    out.push({name, loc, credit, phone});
+    if(!name||!loc) continue;
+    if(credit!=="si"&&credit!=="no") credit="no";
+    out.push({name,loc,credit,phone});
   }
   return out;
 }
-
 $("fileClients").addEventListener("change", async (e)=>{
   const file=e.target.files?.[0]; if(!file) return;
   try{
-    const list = await loadClientsCSV(file);
+    const list=await loadClientsCSV(file);
     for(const c of list){
-      const key = normKey(c.name)+"||"+normKey(c.loc);
-      const idx = clients.findIndex(x=> normKey(x.name)+"||"+normKey(x.loc) === key);
+      const key=normKey(c.name)+"||"+normKey(c.loc);
+      const idx=clients.findIndex(x=>normKey(x.name)+"||"+normKey(x.loc)===key);
       if(idx>=0) clients[idx]=c; else clients.push(c);
     }
-    refreshCounts();
-    renderClients();
-    saveLocal();
+    refreshCounts(); renderClients(); saveLocal();
     toast(`Clientes cargados: ${list.length}`);
   }catch(err){
     console.error(err);
@@ -765,22 +735,22 @@ $("fileClients").addEventListener("change", async (e)=>{
 });
 
 /* ===========================
-   PRODUCTOS / OFERTAS
+   PRODUCTOS / OFERTAS (carga)
 =========================== */
 async function loadProductsCSV(file){
-  const text = await readFileText(file);
-  const rows = parseCSV(text);
+  const text=await readFileText(file);
+  const rows=parseCSV(text);
   if(rows.length===0) return [];
-  const hasHeader = looksLikeHeaderRow(rows[0]);
-  const header = hasHeader ? rows[0] : [];
-  const start = hasHeader ? 1 : 0;
+  const hasHeader=looksLikeHeaderRow(rows[0]);
+  const header=hasHeader?rows[0]:[];
+  const start=hasHeader?1:0;
 
   let idCol=-1, descCol=-1, costCol=-1, stockCol=-1;
   if(hasHeader){
-    idCol    = pickColIndex(header, ["id","sku"]);
-    descCol  = pickColIndex(header, ["descripcion","descripción","desc","articulo","producto","nombre"]);
-    costCol  = pickColIndex(header, ["costo","cost","precio costo","costo_base"]);
-    stockCol = pickColIndex(header, ["existencia","stock","inventario","qty","cantidad"]);
+    idCol=pickColIndex(header,["id","sku"]);
+    descCol=pickColIndex(header,["descripcion","descripción","desc","articulo","producto","nombre"]);
+    costCol=pickColIndex(header,["costo","cost","precio costo","costo_base"]);
+    stockCol=pickColIndex(header,["existencia","stock","inventario","qty","cantidad"]);
   }
   if(idCol<0) idCol=0;
   if(descCol<0) descCol=1;
@@ -795,26 +765,26 @@ async function loadProductsCSV(file){
     const cost=num(r[costCol]);
     const stockRaw=r[stockCol];
     const stock=isFinite(num(stockRaw)) ? Math.max(0, Math.floor(num(stockRaw))) : null;
-    if(!id || !name) continue;
+    if(!id||!name) continue;
     if(!isFinite(cost)) continue;
-    out.push({id, name, cost:round2(cost), stock});
+    out.push({id,name,cost:round2(cost),stock});
   }
   return out;
 }
 async function loadOffersCSV(file){
-  const text = await readFileText(file);
-  const rows = parseCSV(text);
+  const text=await readFileText(file);
+  const rows=parseCSV(text);
   if(rows.length===0) return [];
-  const hasHeader = looksLikeHeaderRow(rows[0]);
-  const header = hasHeader ? rows[0] : [];
-  const start = hasHeader ? 1 : 0;
+  const hasHeader=looksLikeHeaderRow(rows[0]);
+  const header=hasHeader?rows[0]:[];
+  const start=hasHeader?1:0;
 
   let idCol=-1, nameCol=-1, priceCol=-1, volCol=-1;
   if(hasHeader){
-    idCol    = pickColIndex(header, ["id","sku"]);
-    nameCol  = pickColIndex(header, ["articulo","artículo","descripcion","descripción","producto","nombre"]);
-    priceCol = pickColIndex(header, ["preciooferta","precio oferta","oferta","precio"]);
-    volCol   = pickColIndex(header, ["volumen","presentacion","presentación","volume"]);
+    idCol=pickColIndex(header,["id","sku"]);
+    nameCol=pickColIndex(header,["articulo","artículo","descripcion","descripción","producto","nombre"]);
+    priceCol=pickColIndex(header,["preciooferta","precio oferta","oferta","precio"]);
+    volCol=pickColIndex(header,["volumen","presentacion","presentación","volume"]);
   }
   if(idCol<0) idCol=0;
   if(nameCol<0) nameCol=1;
@@ -830,22 +800,64 @@ async function loadOffersCSV(file){
     const volume=String(r[volCol]??"").trim();
     if(!id) continue;
     if(!isFinite(price)) continue;
-    out.push({id, name:name||"", price:round2(price), volume:volume||""});
+    out.push({id,name:name||"",price:round2(price),volume:volume||""});
   }
   return out;
 }
 
+$("fileProducts").addEventListener("change", async (e)=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  try{
+    products = await loadProductsCSV(file);
+    refreshCounts();
+    renderResults();
+    saveLocal();
+    toast(`Productos cargados: ${products.length}`);
+  }catch(err){
+    console.error(err);
+    toast("Error al cargar productos.");
+  }finally{
+    e.target.value="";
+  }
+});
+$("fileOffers").addEventListener("change", async (e)=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  try{
+    offers = await loadOffersCSV(file);
+    rebuildOffersIndex();
+    refreshCounts();
+    renderResults();
+    saveLocal();
+    toast(`Ofertas cargadas: ${offers.length}`);
+  }catch(err){
+    console.error(err);
+    toast("Error al cargar ofertas.");
+  }finally{
+    e.target.value="";
+  }
+});
+$("btnClearData").addEventListener("click", ()=>{
+  products=[]; offers=[]; offersById=new Map(); order=[];
+  saveLocal(); refreshCounts(); renderResults(); updateBottom();
+  toast("Datos borrados.");
+});
+
+/* ===========================
+   RESULTADOS productos
+=========================== */
 function renderResults(){
   const q = normKey($("q").value);
   const box = $("results");
   box.innerHTML = "";
+
   if(products.length===0){
     box.innerHTML = `<div class="hint">Carga Productos en “Archivos”.</div>`;
     return;
   }
+
   let list = products;
-  if(q) list = products.filter(p => normKey(p.name).includes(q) || normKey(p.id).includes(q));
-  else list = products.slice(0, 60);
+  if(q) list = products.filter(p=> normKey(p.name).includes(q) || normKey(p.id).includes(q));
+  else list = products.slice(0,60);
 
   if(list.length===0){
     box.innerHTML = `<div class="hint">Sin resultados.</div>`;
@@ -854,66 +866,29 @@ function renderResults(){
 
   for(const p of list.slice(0,80)){
     const hasO = offersById.has(String(p.id)) && offersById.get(String(p.id)).length>0;
-    const sb = stockBadgeHTML(p.stock, true);
-    const el = document.createElement("div");
+    const el=document.createElement("div");
     el.className="resultCard";
-    el.innerHTML = `
+    el.innerHTML=`
       <div class="rLeft">
         <div class="rName">${escapeHtml(p.name)}</div>
         <div class="rMeta">
           <span class="tag">ID: ${escapeHtml(p.id)}</span>
-          ${hasO ? `<span class="tag offer">OFERTA</span>` : ``}
+          ${hasO?`<span class="tag offer">OFERTA</span>`:""}
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-        ${sb}
+        ${stockBadgeHTML(p.stock,true)}
         <span class="tag" style="border-color:#c7d2fe;background:#eef2ff;color:#1e3a8a;">Cotizar</span>
       </div>
     `;
-    el.addEventListener("click", ()=> openQuote(p.id));
+    el.addEventListener("click", ()=> openQuoteForAdd(p.id));
     box.appendChild(el);
   }
 }
 
-$("q").addEventListener("input", renderResults);
-$("btnFiles").addEventListener("click", ()=> openModal("ovFiles"));
-$("btnReports").addEventListener("click", ()=> openModal("ovReports"));
-
-$("fileProducts").addEventListener("change", async (e)=>{
-  const file=e.target.files?.[0]; if(!file) return;
-  try{
-    products = await loadProductsCSV(file);
-    refreshCounts(); renderResults(); saveLocal();
-    toast(`Productos cargados: ${products.length}`);
-  }catch(err){ console.error(err); toast("Error al cargar productos."); }
-  finally{ e.target.value=""; }
-});
-$("fileOffers").addEventListener("change", async (e)=>{
-  const file=e.target.files?.[0]; if(!file) return;
-  try{
-    offers = await loadOffersCSV(file);
-    rebuildOffersIndex();
-    refreshCounts(); renderResults(); saveLocal();
-    toast(`Ofertas cargadas: ${offers.length}`);
-  }catch(err){ console.error(err); toast("Error al cargar ofertas."); }
-  finally{ e.target.value=""; }
-});
-$("btnClearData").addEventListener("click", ()=>{
-  products=[]; offers=[]; offersById=new Map(); order=[];
-  saveLocal(); refreshCounts(); renderResults(); updateBottom();
-  toast("Productos/ofertas borrados.");
-});
-
 /* ===========================
    OFERTAS modal lista
 =========================== */
-$("btnOffers").addEventListener("click", ()=>{
-  renderOffersModal();
-  openModal("ovOffers");
-  setTimeout(()=> $("qOffers").focus(), 60);
-});
-$("qOffers").addEventListener("input", renderOffersModal);
-
 function renderOffersModal(){
   const q = normKey($("qOffers").value);
   const box = $("offersList");
@@ -938,34 +913,52 @@ function renderOffersModal(){
       <div style="font-weight:1000;color:#9f1239">${money(o.price)}</div>
     `;
     div.addEventListener("click", ()=>{
-      const p = products.find(x=>String(x.id)===String(o.id));
-      if(p) openQuote(p.id); else toast("No existe ese ID en productos.");
+      const p=products.find(x=>String(x.id)===String(o.id));
+      if(p) openQuoteForAdd(p.id);
+      else toast("No existe ese ID en productos.");
     });
     box.appendChild(div);
   });
 }
 
 /* ===========================
-   COTIZAR
+   COTIZAR (Add / Edit)
 =========================== */
 function setPriceHint(text, bad){
   const h=$("priceHint");
-  if(!text){ h.style.display="none"; h.textContent=""; h.className="hint"; return; }
-  h.style.display="block"; h.textContent=text; h.className="hint" + (bad ? " bad" : "");
+  if(!text){
+    h.style.display="none";
+    h.textContent="";
+    h.className="hint";
+    return;
+  }
+  h.style.display="block";
+  h.textContent=text;
+  h.className="hint"+(bad?" bad":"");
 }
 function updateMarginHint(){
   if(!currentProduct) return;
-  const cost=currentProduct.cost, price=selection.price;
-  if(!isFinite(price) || price<=0){ setPriceHint("", false); return; }
-  if(price<cost){ setPriceHint("No se puede vender abajo del costo.", true); return; }
+  const cost=currentProduct.cost;
+  const price=selection.price;
+  if(!isFinite(price) || price<=0){ setPriceHint("",false); return; }
+  if(price<cost){ setPriceHint("No se puede vender abajo del costo.",true); return; }
   const util=round2(price-cost);
-  const pct=price>0 ? ((util/price)*100) : 0;
+  const pct=price>0 ? (util/price)*100 : 0;
   setPriceHint(`Utilidad aprox: ${money(util)} por unidad (${pct.toFixed(1)}%)`, false);
 }
+function rebuildOffersIndex(){
+  offersById = new Map();
+  for(const ofr of offers){
+    const id = String(ofr.id||"").trim();
+    if(!id) continue;
+    if(!offersById.has(id)) offersById.set(id, []);
+    offersById.get(id).push(ofr);
+  }
+}
 
-function openQuote(id){
-  const p=products.find(x=>String(x.id)===String(id));
-  if(!p){ toast("Producto no encontrado."); return; }
+function openQuoteCommon(productId){
+  const p=products.find(x=>String(x.id)===String(productId));
+  if(!p){ toast("Producto no encontrado."); return false; }
   currentProduct=p;
 
   $("qtName").textContent=p.name;
@@ -974,13 +967,6 @@ function openQuote(id){
   const badge=$("qtStockBadge");
   badge.outerHTML = stockBadgeHTML(p.stock,false);
   document.querySelector(".prodSub .stockBadge").id="qtStockBadge";
-
-  selection = { mode:"pieza", price:priceFromCost(p.cost,"pieza"), manualPrice:null, offerIndex:-1 };
-
-  $("inQty").value="";
-  $("inVar").value="";
-  $("inManualPrice").value="";
-  setPriceHint("", false);
 
   const hasOffers = offersById.has(String(p.id)) && offersById.get(String(p.id)).length>0;
   showSuggestedWhenOffers=false;
@@ -1001,16 +987,103 @@ function openQuote(id){
   }
 
   openModal("ovQuote");
+  return true;
+}
+
+function openQuoteForAdd(productId){
+  editLineIndex = -1;
+  $("qtHeaderTitle").textContent = "Cotizar";
+  $("btnAddOrSave").textContent = "Agregar al pedido";
+  $("btnAddOrSave").classList.remove("alt");
+
+  // Default: sugerido pieza
+  const p=products.find(x=>String(x.id)===String(productId));
+  if(!p){ toast("Producto no encontrado."); return; }
+  selection = { mode:"pieza", price:priceFromCost(p.cost,"pieza"), manualPrice:null, offerIndex:-1 };
+  $("inManualPrice").value="";
+  setPriceHint("",false);
+
+  // qty vacío por default
+  $("inQty").value="";
+  $("inVar").value="";
+
+  openQuoteCommon(productId);
+}
+
+function openQuoteForEdit(lineIdx){
+  const it = order[lineIdx];
+  if(!it){ toast("Línea no encontrada."); return; }
+
+  editLineIndex = lineIdx;
+  $("qtHeaderTitle").textContent = "Modificar artículo";
+  $("btnAddOrSave").textContent = "Guardar cambios";
+  $("btnAddOrSave").classList.add("alt");
+
+  // Cargar producto base (costo/stock/ofertas)
+  const ok = openQuoteCommon(it.id);
+  if(!ok) return;
+
+  // Prefill qty + nota
+  $("inQty").value = String(it.qty);
+  $("inVar").value = String(it.note||"");
+
+  // Seleccionar precio: si coincide con alguna oferta -> offer; si coincide con sugeridos -> pieza/media/caja; si no -> manual
+  const unit = Number(it.unitPrice)||0;
+  const cost = Number(currentProduct.cost)||0;
+
+  // Reset primero
+  selection.offerIndex = -1;
+  selection.manualPrice = null;
+  $("inManualPrice").value = "";
+
+  // 1) ofertas
+  const list = offersById.get(String(it.id)) || [];
+  let foundOffer = -1;
+  for(let i=0;i<list.length;i++){
+    if(Math.abs(Number(list[i].price) - unit) < 0.0001){ foundOffer=i; break; }
+  }
+  if(foundOffer>=0){
+    selection.mode="offer";
+    selection.offerIndex=foundOffer;
+    selection.price=unit;
+    $("suggestedWrap").style.display="none"; // ofertas primero
+    $("btnToggleSuggested").style.display = "block";
+    $("btnToggleSuggested").textContent = "Ver precios sugeridos";
+  } else {
+    // 2) sugeridos
+    const p1 = priceFromCost(cost,"pieza");
+    const p2 = priceFromCost(cost,"media");
+    const p3 = priceFromCost(cost,"caja");
+    if(Math.abs(p1-unit)<0.0001){ selection.mode="pieza"; selection.price=p1; }
+    else if(Math.abs(p2-unit)<0.0001){ selection.mode="media"; selection.price=p2; }
+    else if(Math.abs(p3-unit)<0.0001){ selection.mode="caja"; selection.price=p3; }
+    else {
+      // 3) manual
+      selection.mode="manual";
+      selection.manualPrice=round2(unit);
+      selection.price=round2(unit);
+      $("inManualPrice").value = String(round2(unit));
+      $("suggestedWrap").style.display="block";
+      $("btnToggleSuggested").style.display = (list.length>0) ? "block":"none";
+      $("btnToggleSuggested").textContent = "Ocultar precios sugeridos";
+      showSuggestedWhenOffers = true;
+    }
+  }
+
+  renderOfferList();
+  renderPriceGrid();
+  updateManualBar();
+  updateMarginHint();
 }
 
 $("btnToggleSuggested").addEventListener("click", ()=>{
   showSuggestedWhenOffers=!showSuggestedWhenOffers;
-  $("suggestedWrap").style.display = showSuggestedWhenOffers ? "block" : "none";
-  $("btnToggleSuggested").textContent = showSuggestedWhenOffers ? "Ocultar precios sugeridos" : "Ver precios sugeridos";
+  $("suggestedWrap").style.display = showSuggestedWhenOffers ? "block":"none";
+  $("btnToggleSuggested").textContent = showSuggestedWhenOffers ? "Ocultar precios sugeridos":"Ver precios sugeridos";
 });
 
 function renderOfferList(){
-  const list = offersById.get(String(currentProduct.id)) || [];
+  const list = offersById.get(String(currentProduct?.id||"")) || [];
   const block=$("offerBlock"), box=$("offerList");
   box.innerHTML="";
   if(list.length===0){ block.style.display="none"; return; }
@@ -1018,7 +1091,7 @@ function renderOfferList(){
 
   list.forEach((o,idx)=>{
     const row=document.createElement("div");
-    row.className="offerRow" + (selection.mode==="offer" && selection.offerIndex===idx ? " sel" : "");
+    row.className="offerRow"+(selection.mode==="offer" && selection.offerIndex===idx ? " sel":"");
     row.innerHTML=`
       <div class="oLeft">
         <div class="oName">${escapeHtml(o.name || currentProduct.name)}</div>
@@ -1033,7 +1106,7 @@ function renderOfferList(){
       selection.mode="offer";
       selection.offerIndex=idx;
       selection.manualPrice=null;
-      selection.price=o.price;
+      selection.price=Number(o.price)||0;
       $("inManualPrice").value="";
       renderOfferList(); renderPriceGrid(); updateMarginHint();
     });
@@ -1043,6 +1116,7 @@ function renderOfferList(){
 
 function renderPriceGrid(){
   const p=currentProduct, grid=$("priceGrid");
+  if(!p) return;
   grid.innerHTML="";
 
   const manualVal = (selection.mode==="manual" && isFinite(selection.price) && selection.price>0)
@@ -1058,13 +1132,13 @@ function renderPriceGrid(){
 
   for(const c of cards){
     const el=document.createElement("div");
-    el.className="pCard" + (selection.mode===c.mode ? " sel" : "");
+    el.className="pCard"+(selection.mode===c.mode?" sel":"");
     el.innerHTML=`
       <div>
         <div class="pName">${c.name}</div>
         <div class="pSub">${c.sub}</div>
       </div>
-      <div class="pVal">${c.val===null ? "—" : money(c.val)}</div>
+      <div class="pVal">${c.val===null?"—":money(c.val)}</div>
     `;
     el.addEventListener("click", ()=>{
       selection.offerIndex=-1;
@@ -1086,8 +1160,12 @@ function renderPriceGrid(){
 
 function updateManualBar(){
   const bar=$("manualBar");
-  if(selection.mode==="manual"){ bar.classList.add("show"); setTimeout(()=> $("inManualPrice")?.focus(), 80); }
-  else bar.classList.remove("show");
+  if(selection.mode==="manual"){
+    bar.classList.add("show");
+    setTimeout(()=> $("inManualPrice")?.focus(), 60);
+  }else{
+    bar.classList.remove("show");
+  }
 }
 
 $("inManualPrice").addEventListener("input", ()=>{
@@ -1097,7 +1175,7 @@ $("inManualPrice").addEventListener("input", ()=>{
   if(!isFinite(v)){
     selection.manualPrice=null;
     selection.price=0;
-    renderPriceGrid(); updateManualBar(); setPriceHint("", false);
+    renderPriceGrid(); updateManualBar(); setPriceHint("",false);
     return;
   }
   selection.manualPrice=round2(v);
@@ -1105,50 +1183,59 @@ $("inManualPrice").addEventListener("input", ()=>{
   renderPriceGrid(); updateManualBar(); updateMarginHint();
 });
 
-$("btnAddItem").addEventListener("click", ()=>{
+/* Agregar o Guardar */
+$("btnAddOrSave").addEventListener("click", ()=>{
   if(!currentProduct) return;
 
-  const rawQty = num($("inQty").value);
+  const rawQty=num($("inQty").value);
   if(!isFinite(rawQty) || rawQty<=0){ toast("Ingresa cantidad."); return; }
-  const qty = Math.max(1, Math.floor(rawQty));
+  const qty=Math.max(1,Math.floor(rawQty));
 
-  let unit = selection.price;
+  let unit=Number(selection.price)||0;
   if(!isFinite(unit) || unit<=0){ toast("Precio inválido."); return; }
 
-  const cost = Number(currentProduct.cost)||0;
+  const cost=Number(currentProduct.cost)||0;
   if(unit < cost){ toast("No se puede vender abajo del costo."); return; }
 
-  let isOffer=false, offerVol="";
+  // Si está en oferta, asegurar precio de oferta seleccionado
   if(selection.mode==="offer"){
-    const list = offersById.get(String(currentProduct.id)) || [];
-    const ofr = list[selection.offerIndex];
+    const list=offersById.get(String(currentProduct.id))||[];
+    const ofr=list[selection.offerIndex];
     if(ofr){
-      isOffer=true;
-      offerVol=String(ofr.volume||"").trim();
       unit=Number(ofr.price)||unit;
       if(unit < cost){ toast("No se puede vender abajo del costo."); return; }
     }
   }
 
-  const note = String($("inVar").value||"").trim();
-  const lineTotal = round2(unit*qty);
-  const lineCost = round2(cost*qty);
-  const profit = round2(lineTotal-lineCost);
+  const note=String($("inVar").value||"").trim();
+  const lineTotal=round2(unit*qty);
+  const lineCost=round2(cost*qty);
+  const profit=round2(lineTotal-lineCost);
 
-  order.push({
-    id:currentProduct.id,
-    name:currentProduct.name,
+  const updated = {
+    id: currentProduct.id,
+    name: currentProduct.name,
     qty,
     note,
-    unitPrice:round2(unit),
+    unitPrice: round2(unit),
     cost,
     lineTotal,
     lineCost,
-    profit,
-    isOffer,
-    offerVol
-  });
+    profit
+  };
 
+  if(editLineIndex >= 0 && editLineIndex < order.length){
+    order[editLineIndex] = updated;
+    editLineIndex = -1;
+    saveLocal();
+    updateBottom();
+    toast("Cambios guardados.");
+    closeModal("ovQuote");
+    requestAnimationFrame(()=> openOrder());
+    return;
+  }
+
+  order.push(updated);
   saveLocal();
   updateBottom();
   toast("Agregado.");
@@ -1156,35 +1243,29 @@ $("btnAddItem").addEventListener("click", ()=>{
 });
 
 /* ===========================
-   PEDIDO: ver + editar + quitar
-   - Editar cierra pedido y abre editor directo
-   - Editor permite modificar cantidad, precio y nota
+   PEDIDO: ver / quitar / editar (volver a cotización)
 =========================== */
-$("btnViewOrder").addEventListener("click", openOrder);
-
 function openOrder(){
-  const hasCredit = String(selectedClient.credit||"no").toLowerCase()==="si";
-  const creditTxt = hasCredit ? " · Crédito: SÍ" : "";
-  const who = selectedClient.name ? `${selectedClient.name} — 📍 ${selectedClient.loc}${creditTxt}` : "(sin cliente seleccionado)";
+  const hasCredit=String(selectedClient.credit||"no").toLowerCase()==="si";
+  const creditTxt=hasCredit ? " · Crédito: SÍ":"";
+  const who=selectedClient.name ? `${selectedClient.name} — 📍 ${selectedClient.loc}${creditTxt}` : "(sin cliente seleccionado)";
   $("orderClientLine").textContent = `Cliente: ${who}`;
-
-  $("inOrderNote").value = String(window.__orderNote || "");
+  $("inOrderNote").value = String(window.__orderNote||"");
   renderOrderItems();
   openModal("ovOrder");
 }
-
 function renderOrderItems(){
-  const box = $("orderItems");
-  box.innerHTML = "";
+  const box=$("orderItems");
+  box.innerHTML="";
 
   if(order.length===0){
-    box.innerHTML = `<div class="hint">Aún no hay productos en el pedido.</div>`;
+    box.innerHTML=`<div class="hint">Aún no hay productos en el pedido.</div>`;
   }else{
-    order.forEach((it, idx)=>{
-      const el = document.createElement("div");
-      el.className = "orderItem";
-      const noteTag = it.note ? `<span class="tag">${escapeHtml(it.note)}</span>` : "";
-      el.innerHTML = `
+    order.forEach((it,idx)=>{
+      const el=document.createElement("div");
+      el.className="orderItem";
+      const noteTag=it.note?`<span class="tag">${escapeHtml(it.note)}</span>`:"";
+      el.innerHTML=`
         <div style="min-width:0;flex:1">
           <div class="oiName">${escapeHtml(it.name)}</div>
           <div class="oiMeta">
@@ -1207,22 +1288,19 @@ function renderOrderItems(){
     });
   }
 
-  const total = round2(order.reduce((a,x)=>a+(Number(x.lineTotal)||0),0));
-  const profit = round2(order.reduce((a,x)=>a+(Number(x.profit)||0),0));
-  $("orderTotal").textContent = money(total);
-  $("orderProfit").textContent = money(profit);
+  const total=round2(order.reduce((a,x)=>a+(Number(x.lineTotal)||0),0));
+  const profit=round2(order.reduce((a,x)=>a+(Number(x.profit)||0),0));
+  $("orderTotal").textContent=money(total);
+  $("orderProfit").textContent=money(profit);
 }
-
-/* Delegación botones pedido */
-$("orderItems").addEventListener("click", (e)=>{
-  const btn = e.target.closest("button[data-action]");
+$("orderItems").addEventListener("click",(e)=>{
+  const btn=e.target.closest("button[data-action]");
   if(!btn) return;
-
-  const action = btn.getAttribute("data-action");
-  const idx = Number(btn.getAttribute("data-idx"));
+  const action=btn.getAttribute("data-action");
+  const idx=Number(btn.getAttribute("data-idx"));
   if(!Number.isFinite(idx) || idx<0 || idx>=order.length) return;
 
-  if(action === "remove"){
+  if(action==="remove"){
     order.splice(idx,1);
     saveLocal();
     renderOrderItems();
@@ -1230,124 +1308,53 @@ $("orderItems").addEventListener("click", (e)=>{
     return;
   }
 
-  if(action === "edit"){
+  if(action==="edit"){
     closeModal("ovOrder");
-    requestAnimationFrame(()=> openEditLine(idx));
+    requestAnimationFrame(()=> openQuoteForEdit(idx));
   }
-});
-
-/* Abrir editor */
-function openEditLine(idx){
-  const it = order[idx];
-  if(!it) return;
-  editIndex = idx;
-
-  $("edName").textContent = it.name;
-  $("edMeta").textContent = `Costo: ${money(Number(it.cost)||0)} · Actual: ${it.qty} pz · ${money(Number(it.unitPrice)||0)} c/u`;
-  $("edQty").value = String(it.qty);
-  $("edPrice").value = String(Number(it.unitPrice)||0);
-  $("edNote").value = String(it.note||"");
-  $("edPriceWarn").style.display = "none";
-
-  openModal("ovEditLine");
-  setTimeout(()=> $("edQty").focus(), 80);
-}
-
-/* Validación live del precio vs costo */
-$("edPrice").addEventListener("input", ()=>{
-  if(editIndex<0 || editIndex>=order.length) return;
-  const it = order[editIndex];
-  const cost = Number(it.cost)||0;
-  const p = num($("edPrice").value);
-  if(isFinite(p) && p>0 && p < cost) $("edPriceWarn").style.display = "block";
-  else $("edPriceWarn").style.display = "none";
-});
-
-/* Guardar edición (cantidad + precio + nota) */
-$("btnSaveEdit").addEventListener("click", ()=>{
-  if(editIndex < 0 || editIndex >= order.length){ closeModal("ovEditLine"); return; }
-  const it = order[editIndex];
-
-  const q = num($("edQty").value);
-  if(!isFinite(q) || q<=0){ toast("Cantidad inválida."); return; }
-  const newQty = Math.max(1, Math.floor(q));
-
-  const newPrice = num($("edPrice").value);
-  if(!isFinite(newPrice) || newPrice<=0){ toast("Precio inválido."); return; }
-
-  const cost = Number(it.cost)||0;
-  if(newPrice < cost){
-    $("edPriceWarn").style.display = "block";
-    toast("Precio abajo del costo.");
-    return;
-  }
-
-  const newNote = String($("edNote").value||"").trim();
-  const lineTotal = round2(newPrice * newQty);
-  const lineCost  = round2(cost * newQty);
-  const profit    = round2(lineTotal - lineCost);
-
-  order[editIndex] = {
-    ...it,
-    qty: newQty,
-    unitPrice: round2(newPrice),
-    note: newNote,
-    lineTotal,
-    lineCost,
-    profit
-  };
-
-  saveLocal();
-  updateBottom();
-  toast("Artículo actualizado.");
-  closeModal("ovEditLine");
-
-  // Regresar al pedido automáticamente
-  requestAnimationFrame(()=> openOrder());
 });
 
 /* ===========================
-   Candado WA
+   WhatsApp candado
 =========================== */
 $("inOrderNote").addEventListener("input", ()=>{ window.__orderNote = $("inOrderNote").value; });
 
 function buildWhatsAppText(){
-  const now = new Date();
-  const fecha = now.toLocaleDateString("es-MX", { day:"2-digit", month:"short", year:"numeric" }).replace(".", "");
-  const hora = now.toLocaleTimeString("es-MX", { hour:"numeric", minute:"2-digit" });
+  const now=new Date();
+  const fecha=now.toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"}).replace(".","");
+  const hora=now.toLocaleTimeString("es-MX",{hour:"numeric",minute:"2-digit"});
 
-  const lines = [];
+  const lines=[];
   lines.push(`PEDIDO — ${fecha} · ${hora}`);
-
   lines.push(`Cliente: ${selectedClient.name || "(no seleccionado)"}`);
   if(selectedClient.loc) lines.push(`📍 ${selectedClient.loc}`);
   if(String(selectedClient.credit||"no").toLowerCase()==="si") lines.push(`Crédito a 7 días`);
   if(selectedClient.phone) lines.push(`Tel: ${selectedClient.phone}`);
 
-  const notaPedido = String(window.__orderNote || "").trim();
+  const notaPedido=String(window.__orderNote||"").trim();
   if(notaPedido) lines.push(`Notas: ${notaPedido}`);
 
   lines.push("");
   lines.push("ARTÍCULOS");
   lines.push("--------------------------------------------------");
 
-  let totalPedido = 0;
+  let total=0;
   for(const it of order){
-    const qty = Number(it.qty)||0;
-    const unit = Number(it.unitPrice)||0;
-    const line = Math.round((qty*unit)*100)/100;
-    totalPedido += line;
+    const qty=Number(it.qty)||0;
+    const unit=Number(it.unitPrice)||0;
+    const line=Math.round(qty*unit*100)/100;
+    total+=line;
 
     lines.push(`${it.name}`);
     lines.push(`Cant: ${qty} · Precio: ${money(unit)} · Total: ${money(line)}`);
-    const nota = String(it.note||"").trim();
+    const nota=String(it.note||"").trim();
     if(nota) lines.push(`Nota: ${nota}`);
     lines.push("");
   }
 
-  totalPedido = Math.round(totalPedido*100)/100;
+  total=Math.round(total*100)/100;
   lines.push("--------------------------------------------------");
-  lines.push(`TOTAL DEL PEDIDO: ${money(totalPedido)}`);
+  lines.push(`TOTAL DEL PEDIDO: ${money(total)}`);
   return lines.join("\n");
 }
 
@@ -1359,13 +1366,13 @@ $("btnSendAndConfirm").addEventListener("click", async ()=>{
     return;
   }
 
-  const txt = buildWhatsAppText();
+  const txt=buildWhatsAppText();
   try{ await navigator.clipboard.writeText(txt); }catch(e){}
 
-  window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank");
+  window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank");
 
-  order = [];
-  window.__orderNote = "";
+  order=[];
+  window.__orderNote="";
   saveLocal();
   updateBottom();
   toast("Enviado y confirmado.");
@@ -1373,12 +1380,12 @@ $("btnSendAndConfirm").addEventListener("click", async ()=>{
 });
 
 /* ===========================
-   Botones extra
+   Botones archivos
 =========================== */
 $("btnClearData").addEventListener("click", ()=>{
   products=[]; offers=[]; offersById=new Map(); order=[];
   saveLocal(); refreshCounts(); renderResults(); updateBottom();
-  toast("Productos/ofertas borrados.");
+  toast("Datos borrados.");
 });
 
 /* ===========================
