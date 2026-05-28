@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -415,11 +415,49 @@
         <div id="reportsContent"></div>
       </div>
     </div>
-  </div><script>
+  </div>
+
+  <!-- EDITAR PEDIDO CONFIRMADO -->
+  <div class="overlay" id="ovConfirmedOrder">
+    <div class="sheet full">
+      <div class="sheetHead">
+        <div>
+          <div class="sheetTitle">Editar pedido confirmado</div>
+          <div class="hint" id="confirmedOrderMeta">Pedido del periodo</div>
+        </div>
+        <button class="xBtn" data-close="ovConfirmedOrder">Cerrar</button>
+      </div>
+      <div class="sheetBody">
+        <div class="field">
+          <div class="label">Notas del pedido</div>
+          <input class="input" id="inConfirmedNote" placeholder="Notas del pedido..." />
+        </div>
+        <div class="sheetActions">
+          <button class="btn" id="btnConfirmedAddItem" type="button">Agregar articulo</button>
+          <button class="btnGhost" id="btnConfirmedSave" type="button">Guardar cambios</button>
+        </div>
+        <div id="confirmedOrderItems"></div>
+        <div class="orderFooter">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+            <div>
+              <div class="muted">Total</div>
+              <div style="font-weight:1000;font-size:18px" id="confirmedOrderTotal">$0.00</div>
+            </div>
+            <div style="text-align:right">
+              <div class="muted">Utilidad</div>
+              <div style="font-weight:1000;font-size:18px" id="confirmedOrderProfit">$0.00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
 /* ===========================
    Config + estado
 =========================== */
-const MARGEN_PIEZA = 0.11, MARGEN_MEDIA = 0.065, MARGEN_CAJA = 0.04;
+const MARGEN_PIEZA = 0.1111, MARGEN_MEDIA = 0.08, MARGEN_CAJA = 0.0525;
 
 let products = [], offers = [], offersById = new Map();
 let clients = [], selectedClient = { name:"", loc:"", credit:"no", phone:"" };
@@ -427,7 +465,7 @@ let order = [];
 let confirmedOrders = [];
 let editingClientKey = null;
 let activeReportTab = "summary";
-let reportSort = { items:"ventas", clients:"ventas" };
+let reportSort = { items:"sales", clients:"sales" };
 
 let currentProduct = null;
 let selection = { mode:"pieza", price:0, manualPrice:null, offerIndex:-1 };
@@ -435,6 +473,9 @@ let showSuggestedWhenOffers = false;
 
 // EDIT MODE: si != -1, estamos editando esa línea del pedido con el modal de cotización
 let editLineIndex = -1;
+let quoteContext = { type:"current-add", orderIndex:-1, itemIndex:-1 };
+let confirmedEditIndex = -1;
+let confirmedAddMode = false;
 
 const $ = (id)=>document.getElementById(id);
 
@@ -450,6 +491,14 @@ function num(x){
 }
 function normKey(s){
   return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+}
+function queryTokens(value){
+  return normKey(value).split(" ").map(t=>t.trim()).filter(Boolean);
+}
+function enrichProduct(p){
+  p.normName = normKey(p.name);
+  p.normId = normKey(p.id);
+  return p;
 }
 function escapeHtml(s){
   return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
@@ -555,7 +604,7 @@ function loadLocal(){
     const sc = JSON.parse(localStorage.getItem(LS_SELCLIENT)||"null");
     const od = JSON.parse(localStorage.getItem(LS_ORDER)||"null");
     const co = JSON.parse(localStorage.getItem(LS_CONFIRMED_ORDERS)||"null");
-    if(Array.isArray(p)) products = p;
+    if(Array.isArray(p)) products = p.map(enrichProduct);
     if(Array.isArray(o)) offers = o;
     if(Array.isArray(cs)) clients = cs;
     if(sc && typeof sc==="object") selectedClient = { name:sc.name||"", loc:sc.loc||"", credit:sc.credit||"no", phone:sc.phone||"" };
@@ -773,7 +822,8 @@ function csvEscape(val){
   return s;
 }
 function downloadCSV(filename, csvText){
-  const blob=new Blob([csvText],{type:"text/csv;charset=utf-8"});
+  const body = String(csvText||"").replace(/\u00c2/g,"");
+  const blob=new Blob(["\uFEFF" + body],{type:"text/csv;charset=utf-8"});
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
   a.href=url; a.download=filename;
@@ -874,7 +924,7 @@ async function loadProductsCSV(file){
     const stock=isFinite(num(stockRaw)) ? Math.max(0, Math.floor(num(stockRaw))) : null;
     if(!id||!name) continue;
     if(!isFinite(cost)) continue;
-    out.push({id,name,cost:round2(cost),stock});
+    out.push(enrichProduct({id,name,cost:round2(cost),stock}));
   }
   return out;
 }
@@ -953,18 +1003,25 @@ $("btnClearData").addEventListener("click", ()=>{
    RESULTADOS productos
 =========================== */
 function renderResults(){
-  const q = normKey($("q").value);
+  const tokens = queryTokens($("q").value);
   const box = $("results");
   box.innerHTML = "";
 
   if(products.length===0){
-    box.innerHTML = `<div class="hint">Carga Productos en “Archivos”.</div>`;
+    box.innerHTML = `<div class="hint">Carga Productos en "Archivos".</div>`;
     return;
   }
 
   let list = products;
-  if(q) list = products.filter(p=> normKey(p.name).includes(q) || normKey(p.id).includes(q));
-  else list = products.slice(0,60);
+  if(tokens.length){
+    list = products.filter(p=>{
+      const name = p.normName || normKey(p.name);
+      const id = p.normId || normKey(p.id);
+      return tokens.every(t => name.includes(t) || id.includes(t));
+    });
+  }else{
+    list = products.slice(0,60);
+  }
 
   if(list.length===0){
     box.innerHTML = `<div class="hint">Sin resultados.</div>`;
@@ -988,7 +1045,10 @@ function renderResults(){
         <span class="tag" style="border-color:#c7d2fe;background:#eef2ff;color:#1e3a8a;">Cotizar</span>
       </div>
     `;
-    el.addEventListener("click", ()=> openQuoteForAdd(p.id));
+    el.addEventListener("click", ()=>{
+      if(confirmedAddMode && confirmedEditIndex>=0) openQuoteForConfirmedAdd(p.id);
+      else openQuoteForAdd(p.id);
+    });
     box.appendChild(el);
   }
 }
@@ -1063,6 +1123,50 @@ function rebuildOffersIndex(){
   }
 }
 
+function makeOrderLine(product, qty, unitPrice, note){
+  const cost=Number(product.cost)||0;
+  const lineTotal=round2(unitPrice*qty);
+  const lineCost=round2(cost*qty);
+  return {
+    id: product.id,
+    name: product.name,
+    qty,
+    note:String(note||"").trim(),
+    unitPrice: round2(unitPrice),
+    cost,
+    lineTotal,
+    lineCost,
+    profit: round2(lineTotal-lineCost)
+  };
+}
+function lineToConfirmedItem(line){
+  return {
+    id:String(line.id||""),
+    descripcion:String(line.name||line.descripcion||""),
+    cantidad:Number(line.qty ?? line.cantidad)||0,
+    precioUnitario:round2(Number(line.unitPrice ?? line.precioUnitario)||0),
+    costoUnitario:round2(Number(line.cost ?? line.costoUnitario)||0),
+    totalLinea:round2(Number(line.lineTotal ?? line.totalLinea)||0),
+    utilidadLinea:round2(Number(line.profit ?? line.utilidadLinea)||0),
+    notaProducto:String((line.note ?? line.notaProducto) || "")
+  };
+}
+function recalcLine(item){
+  const qty=Number(item.cantidad ?? item.qty)||0;
+  const price=Number(item.precioUnitario ?? item.unitPrice)||0;
+  const cost=Number(item.costoUnitario ?? item.cost)||0;
+  item.totalLinea = round2(qty*price);
+  item.utilidadLinea = round2(item.totalLinea - (qty*cost));
+  return item;
+}
+function recalcConfirmedOrder(po, markUpdated=true){
+  po.items = (po.items||[]).map(it=>recalcLine(it));
+  po.totalPedido = round2(po.items.reduce((a,it)=>a+(Number(it.totalLinea)||0),0));
+  po.utilidadPedido = round2(po.items.reduce((a,it)=>a+(Number(it.utilidadLinea)||0),0));
+  if(markUpdated) po.updatedAtISO = new Date().toISOString();
+  return po;
+}
+
 function openQuoteCommon(productId){
   const p=products.find(x=>String(x.id)===String(productId));
   if(!p){ toast("Producto no encontrado."); return false; }
@@ -1098,6 +1202,7 @@ function openQuoteCommon(productId){
 }
 
 function openQuoteForAdd(productId){
+  quoteContext = { type:"current-add", orderIndex:-1, itemIndex:-1 };
   editLineIndex = -1;
   $("qtHeaderTitle").textContent = "Cotizar";
   $("btnAddOrSave").textContent = "Agregar al pedido";
@@ -1118,6 +1223,7 @@ function openQuoteForAdd(productId){
 }
 
 function openQuoteForEdit(lineIdx){
+  quoteContext = { type:"current-edit", orderIndex:-1, itemIndex:lineIdx };
   const it = order[lineIdx];
   if(!it){ toast("Línea no encontrada."); return; }
 
@@ -1177,6 +1283,60 @@ function openQuoteForEdit(lineIdx){
     }
   }
 
+  renderOfferList();
+  renderPriceGrid();
+  updateManualBar();
+  updateMarginHint();
+}
+
+function openQuoteForConfirmedAdd(productId){
+  quoteContext = { type:"confirmed-add", orderIndex:confirmedEditIndex, itemIndex:-1 };
+  editLineIndex = -1;
+  $("qtHeaderTitle").textContent = "Agregar a pedido confirmado";
+  $("btnAddOrSave").textContent = "Agregar al pedido confirmado";
+  $("btnAddOrSave").classList.add("alt");
+  const p=products.find(x=>String(x.id)===String(productId));
+  if(!p){ toast("Producto no encontrado."); return; }
+  selection = { mode:"pieza", price:priceFromCost(p.cost,"pieza"), manualPrice:null, offerIndex:-1 };
+  $("inManualPrice").value="";
+  $("inQty").value="";
+  $("inVar").value="";
+  openQuoteCommon(productId);
+}
+function openQuoteForConfirmedEdit(orderIdx, itemIdx){
+  const po=confirmedOrders[orderIdx], item=po?.items?.[itemIdx];
+  if(!po || !item){ toast("Linea no encontrada."); return; }
+  quoteContext = { type:"confirmed-edit", orderIndex:orderIdx, itemIndex:itemIdx };
+  editLineIndex = -1;
+  $("qtHeaderTitle").textContent = "Modificar articulo confirmado";
+  $("btnAddOrSave").textContent = "Guardar en pedido confirmado";
+  $("btnAddOrSave").classList.add("alt");
+  let p=products.find(x=>String(x.id)===String(item.id));
+  if(!p){
+    p=enrichProduct({id:item.id,name:item.descripcion,cost:Number(item.costoUnitario)||0,stock:null});
+    products.push(p);
+  }
+  const ok = openQuoteCommon(p.id);
+  if(!ok) return;
+  $("inQty").value = String(item.cantidad||1);
+  $("inVar").value = String(item.notaProducto||"");
+  const unit = Number(item.precioUnitario)||0;
+  const cost = Number(currentProduct.cost)||0;
+  selection.offerIndex = -1;
+  selection.manualPrice = null;
+  $("inManualPrice").value = "";
+  const p1 = priceFromCost(cost,"pieza"), p2 = priceFromCost(cost,"media"), p3 = priceFromCost(cost,"caja");
+  if(Math.abs(p1-unit)<0.0001){ selection.mode="pieza"; selection.price=p1; }
+  else if(Math.abs(p2-unit)<0.0001){ selection.mode="media"; selection.price=p2; }
+  else if(Math.abs(p3-unit)<0.0001){ selection.mode="caja"; selection.price=p3; }
+  else {
+    selection.mode="manual";
+    selection.manualPrice=round2(unit);
+    selection.price=round2(unit);
+    $("inManualPrice").value = String(round2(unit));
+    $("suggestedWrap").style.display="block";
+    showSuggestedWhenOffers = true;
+  }
   renderOfferList();
   renderPriceGrid();
   updateManualBar();
@@ -1299,12 +1459,11 @@ $("btnAddOrSave").addEventListener("click", ()=>{
   const qty=Math.max(1,Math.floor(rawQty));
 
   let unit=Number(selection.price)||0;
-  if(!isFinite(unit) || unit<=0){ toast("Precio inválido."); return; }
+  if(!isFinite(unit) || unit<=0){ toast("Precio invalido."); return; }
 
   const cost=Number(currentProduct.cost)||0;
   if(unit < cost){ toast("No se puede vender abajo del costo."); return; }
 
-  // Si está en oferta, asegurar precio de oferta seleccionado
   if(selection.mode==="offer"){
     const list=offersById.get(String(currentProduct.id))||[];
     const ofr=list[selection.offerIndex];
@@ -1314,22 +1473,23 @@ $("btnAddOrSave").addEventListener("click", ()=>{
     }
   }
 
-  const note=String($("inVar").value||"").trim();
-  const lineTotal=round2(unit*qty);
-  const lineCost=round2(cost*qty);
-  const profit=round2(lineTotal-lineCost);
+  const updated = makeOrderLine(currentProduct, qty, unit, $("inVar").value);
+  const ctx = quoteContext || {type:"current-add"};
 
-  const updated = {
-    id: currentProduct.id,
-    name: currentProduct.name,
-    qty,
-    note,
-    unitPrice: round2(unit),
-    cost,
-    lineTotal,
-    lineCost,
-    profit
-  };
+  if(ctx.type==="confirmed-add" || ctx.type==="confirmed-edit"){
+    const po=confirmedOrders[ctx.orderIndex];
+    if(!po){ toast("Pedido confirmado no encontrado."); return; }
+    const confirmedItem=lineToConfirmedItem(updated);
+    if(ctx.type==="confirmed-edit" && ctx.itemIndex>=0) po.items[ctx.itemIndex]=confirmedItem;
+    else po.items.push(confirmedItem);
+    recalcConfirmedOrder(po);
+    saveLocal();
+    confirmedAddMode=false;
+    toast(ctx.type==="confirmed-edit" ? "Articulo actualizado." : "Articulo agregado.");
+    closeModal("ovQuote");
+    requestAnimationFrame(()=> openConfirmedOrder(ctx.orderIndex));
+    return;
+  }
 
   if(editLineIndex >= 0 && editLineIndex < order.length){
     order[editLineIndex] = updated;
@@ -1425,19 +1585,8 @@ $("orderItems").addEventListener("click",(e)=>{
    REPORTES
 =========================== */
 function buildConfirmedOrder(){
-  const items = order.map(it=>({
-    id:String(it.id||""),
-    descripcion:String(it.name||""),
-    cantidad:Number(it.qty)||0,
-    precioUnitario:round2(Number(it.unitPrice)||0),
-    costoUnitario:round2(Number(it.cost)||0),
-    totalLinea:round2(Number(it.lineTotal)||0),
-    utilidadLinea:round2(Number(it.profit)||0),
-    notaProducto:String(it.note||"")
-  }));
-  const totalPedido=round2(items.reduce((a,x)=>a+x.totalLinea,0));
-  const utilidadPedido=round2(items.reduce((a,x)=>a+x.utilidadLinea,0));
-  return {
+  const items = order.map(it=>lineToConfirmedItem(it));
+  const po = {
     timestampISO:new Date().toISOString(),
     cliente:{
       nombre:selectedClient.name||"",
@@ -1447,9 +1596,10 @@ function buildConfirmedOrder(){
     },
     notaPedido:String(window.__orderNote||"").trim(),
     items,
-    totalPedido,
-    utilidadPedido
+    totalPedido:0,
+    utilidadPedido:0
   };
+  return recalcConfirmedOrder(po,false);
 }
 function getReportData(){
   const summary={sales:0,profit:0,count:confirmedOrders.length};
@@ -1503,7 +1653,12 @@ function renderReports(){
   const box=$("reportsContent");
   if(activeReportTab==="summary"){
     const topBy=(key)=>[...data.items].sort((a,b)=>b[key]-a[key]).slice(0,5);
-    const rows=(list,key)=> list.length ? list.map(x=>`<div class="reportRow"><div><div class="reportName">${escapeHtml(x.name)}</div><div class="reportMeta">ID ${escapeHtml(x.id)} Â· Cant ${x.qty}</div></div><strong>${key==="qty"?x.qty:money(x[key])}</strong></div>`).join("") : `<div class="hint">Sin datos.</div>`;
+    const rows=(list,key)=> list.length ? list.map(x=>`<div class="reportRow"><div><div class="reportName">${escapeHtml(x.name)}</div><div class="reportMeta">ID ${escapeHtml(x.id)} | Cant ${x.qty}</div></div><strong>${key==="qty"?x.qty:money(x[key])}</strong></div>`).join("") : `<div class="hint">Sin datos.</div>`;
+    const orderRows = confirmedOrders.length ? confirmedOrders.map((po,idx)=>{
+      const date = po.timestampISO ? new Date(po.timestampISO).toLocaleString("es-MX",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}) : "Sin fecha";
+      const updated = po.updatedAtISO ? ` | editado ${new Date(po.updatedAtISO).toLocaleString("es-MX",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})}` : "";
+      return `<div class="reportRow"><div><div class="reportName">${escapeHtml(po.cliente?.nombre||"(sin cliente)")}</div><div class="reportMeta">${escapeHtml(date)}${updated} | Utilidad ${money(po.utilidadPedido)}</div></div><div style="text-align:right"><strong>${money(po.totalPedido)}</strong><br><button class="btnMini" type="button" data-action="edit-confirmed" data-idx="${idx}">Ver / Editar</button></div></div>`;
+    }).join("") : `<div class="hint">Sin pedidos confirmados.</div>`;
     box.innerHTML=`
       <div class="kpiGrid">
         <div class="kpiCard"><div class="kpiVal">${money(data.summary.sales)}</div><div class="kpiLbl">Ventas totales</div></div>
@@ -1511,6 +1666,7 @@ function renderReports(){
         <div class="kpiCard"><div class="kpiVal">${data.summary.count}</div><div class="kpiLbl">Pedidos</div></div>
         <div class="kpiCard"><div class="kpiVal">${money(data.summary.avg)}</div><div class="kpiLbl">Ticket promedio</div></div>
       </div>
+      <div class="reportBlock"><div class="reportTitle">Pedidos confirmados (${confirmedOrders.length})</div>${orderRows}</div>
       <div class="reportBlock"><div class="reportTitle">Top ventas</div>${rows(topBy("sales"),"sales")}</div>
       <div class="reportBlock"><div class="reportTitle">Top cantidad</div>${rows(topBy("qty"),"qty")}</div>
       <div class="reportBlock"><div class="reportTitle">Top utilidad</div>${rows(topBy("profit"),"profit")}</div>
@@ -1520,12 +1676,12 @@ function renderReports(){
   if(activeReportTab==="items"){
     const list=[...data.items].sort((a,b)=>b[reportSort.items]-a[reportSort.items]);
     box.innerHTML=`<div class="sortRow">${reportSortBtn("items","sales","Ventas")}${reportSortBtn("items","qty","Cantidad")}${reportSortBtn("items","profit","Utilidad")}</div>` +
-      (list.length ? list.map(x=>`<div class="reportBlock"><div class="reportRow"><div><div class="reportName">${escapeHtml(x.name)}</div><div class="reportMeta">ID ${escapeHtml(x.id)} Â· Cant ${x.qty} Â· Prom ${money(x.avgPrice)}</div></div><strong>${money(x.sales)}</strong></div><div class="reportMeta">Utilidad ${money(x.profit)} Â· Margen ${x.margin.toFixed(1)}%</div></div>`).join("") : `<div class="hint">Sin articulos vendidos.</div>`);
+      (list.length ? list.map(x=>`<div class="reportBlock"><div class="reportRow"><div><div class="reportName">${escapeHtml(x.name)}</div><div class="reportMeta">ID ${escapeHtml(x.id)} | Cant ${x.qty} | Prom ${money(x.avgPrice)}</div></div><strong>${money(x.sales)}</strong></div><div class="reportMeta">Utilidad ${money(x.profit)} | Margen ${x.margin.toFixed(1)}%</div></div>`).join("") : `<div class="hint">Sin articulos vendidos.</div>`);
     return;
   }
   const list=[...data.clients].sort((a,b)=>b[reportSort.clients]-a[reportSort.clients]);
   box.innerHTML=`<div class="sortRow">${reportSortBtn("clients","sales","Ventas")}${reportSortBtn("clients","profit","Utilidad")}${reportSortBtn("clients","orders","Pedidos")}</div>` +
-    (list.length ? list.map(x=>`<div class="reportBlock"><div class="reportRow"><div><div class="reportName">${escapeHtml(x.name)}</div><div class="reportMeta">${escapeHtml(x.loc)} Â· Pedidos ${x.orders}</div></div><strong>${money(x.sales)}</strong></div><div class="reportMeta">Utilidad ${money(x.profit)} Â· Ticket ${money(x.ticket)}</div></div>`).join("") : `<div class="hint">Sin clientes en reportes.</div>`);
+    (list.length ? list.map(x=>`<div class="reportBlock"><div class="reportRow"><div><div class="reportName">${escapeHtml(x.name)}</div><div class="reportMeta">${escapeHtml(x.loc)} | Pedidos ${x.orders}</div></div><strong>${money(x.sales)}</strong></div><div class="reportMeta">Utilidad ${money(x.profit)} | Ticket ${money(x.ticket)}</div></div>`).join("") : `<div class="hint">Sin clientes en reportes.</div>`);
 }
 $("ovReports").addEventListener("click",(e)=>{
   const tab=e.target.closest("[data-report-tab]");
@@ -1533,6 +1689,92 @@ $("ovReports").addEventListener("click",(e)=>{
   const sort=e.target.closest("[data-sort-key]");
   if(sort){ reportSort[sort.dataset.sortType]=sort.dataset.sortKey; renderReports(); }
 });
+function openConfirmedOrder(idx){
+  const po=confirmedOrders[idx];
+  if(!po){ toast("Pedido confirmado no encontrado."); return; }
+  confirmedEditIndex=idx;
+  confirmedAddMode=false;
+  $("inConfirmedNote").value = po.notaPedido || "";
+  renderConfirmedOrderEditor();
+  openModal("ovConfirmedOrder");
+}
+function renderConfirmedOrderEditor(){
+  const po=confirmedOrders[confirmedEditIndex];
+  const box=$("confirmedOrderItems");
+  if(!po){ box.innerHTML=`<div class="hint">Pedido no encontrado.</div>`; return; }
+  $("confirmedOrderMeta").textContent = `${po.cliente?.nombre||"(sin cliente)"} | ${po.timestampISO ? new Date(po.timestampISO).toLocaleString("es-MX") : "Sin fecha"}`;
+  $("confirmedOrderTotal").textContent = money(po.totalPedido||0);
+  $("confirmedOrderProfit").textContent = money(po.utilidadPedido||0);
+  if(!po.items || po.items.length===0){
+    box.innerHTML=`<div class="hint">Este pedido no tiene articulos.</div>`;
+    return;
+  }
+  box.innerHTML = po.items.map((it,idx)=>`
+    <div class="orderItem">
+      <div style="min-width:0;flex:1">
+        <div class="oiName">${escapeHtml(it.descripcion)}</div>
+        <div class="oiMeta">
+          <span class="tag">Cant: ${it.cantidad}</span>
+          <span class="tag">Precio: ${money(it.precioUnitario)}</span>
+          <span class="tag">Total: ${money(it.totalLinea)}</span>
+          ${it.notaProducto?`<span class="tag">${escapeHtml(it.notaProducto)}</span>`:""}
+        </div>
+        <div>
+          <button type="button" class="btnMini" data-action="edit-confirmed-item" data-idx="${idx}">Modificar</button>
+          <button type="button" class="btnMini danger" data-action="remove-confirmed-item" data-idx="${idx}">Quitar</button>
+        </div>
+      </div>
+      <div class="oiRight">
+        <div class="oiLine">${money(it.totalLinea)}</div>
+        <div class="oiUnit">${money(it.precioUnitario)} c/u</div>
+      </div>
+    </div>
+  `).join("");
+}
+$("reportsContent").addEventListener("click",(e)=>{
+  const btn=e.target.closest("button[data-action='edit-confirmed']");
+  if(!btn) return;
+  const idx=Number(btn.getAttribute("data-idx"));
+  if(Number.isFinite(idx)) openConfirmedOrder(idx);
+});
+$("confirmedOrderItems").addEventListener("click",(e)=>{
+  const btn=e.target.closest("button[data-action]");
+  if(!btn) return;
+  const idx=Number(btn.getAttribute("data-idx"));
+  const po=confirmedOrders[confirmedEditIndex];
+  if(!po || !Number.isFinite(idx)) return;
+  const action=btn.getAttribute("data-action");
+  if(action==="remove-confirmed-item"){
+    po.items.splice(idx,1);
+    recalcConfirmedOrder(po);
+    saveLocal();
+    renderConfirmedOrderEditor();
+    renderReports();
+    return;
+  }
+  if(action==="edit-confirmed-item"){
+    closeModal("ovConfirmedOrder");
+    requestAnimationFrame(()=>openQuoteForConfirmedEdit(confirmedEditIndex, idx));
+  }
+});
+$("btnConfirmedAddItem").addEventListener("click", ()=>{
+  if(confirmedEditIndex<0){ toast("Abre un pedido confirmado."); return; }
+  confirmedAddMode=true;
+  closeModal("ovConfirmedOrder");
+  $("q").focus();
+  toast("Busca y selecciona el articulo a agregar.");
+});
+$("btnConfirmedSave").addEventListener("click", ()=>{
+  const po=confirmedOrders[confirmedEditIndex];
+  if(!po) return;
+  po.notaPedido = String($("inConfirmedNote").value||"").trim();
+  recalcConfirmedOrder(po);
+  saveLocal();
+  renderReports();
+  renderConfirmedOrderEditor();
+  toast("Pedido confirmado guardado.");
+});
+
 function csvDownloadRows(filename, rows){
   downloadCSV(filename, rows.map(r=>r.map(csvEscape).join(",")).join("\n"));
 }
