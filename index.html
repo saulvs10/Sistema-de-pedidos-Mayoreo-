@@ -692,12 +692,16 @@ function normalizeMarginConfig(cfg){
   const out={...DEFAULT_MARGIN_CONFIG};
   for(const key of ["pieza","media","caja"]){
     const v=Number(cfg?.[key]);
-    if(isFinite(v) && v>=0) out[key]=v;
+    if(isFinite(v) && v>=0 && v<=5) out[key]=v;
   }
   return out;
 }
 function marginPercent(mode){
   return round2((Number(marginConfig?.[mode])||0)*100);
+}
+function marginLabel(mode){
+  const pct=marginPercent(mode);
+  return pct.toFixed(pct % 1 === 0 ? 0 : 1);
 }
 function renderAdminMargins(){
   $("inMarginPieza").value = String(marginPercent("pieza"));
@@ -772,12 +776,17 @@ $("btnSaveMargins").addEventListener("click", ()=>{
     media:(num($("inMarginMedia").value)||0)/100,
     caja:(num($("inMarginCaja").value)||0)/100
   };
-  marginConfig = normalizeMarginConfig(next);
+  const normalized=normalizeMarginConfig(next);
+  const msg=`¿Está seguro que quiere cambiar los márgenes sugeridos?\n\nPieza: ${round2(normalized.pieza*100)}%\nMedia: ${round2(normalized.media*100)}%\nCaja: ${round2(normalized.caja*100)}%`;
+  if(!confirm(msg)) return;
+  marginConfig = normalized;
+  renderAdminMargins();
   saveLocal();
   refreshQuotePricing();
   toast("Margenes guardados.");
 });
 $("btnResetMargins").addEventListener("click", ()=>{
+  if(!confirm("¿Restaurar márgenes base: Pieza 11%, Media 8%, Caja 5.5%?")) return;
   marginConfig = {...DEFAULT_MARGIN_CONFIG};
   renderAdminMargins();
   saveLocal();
@@ -1077,22 +1086,35 @@ function xlsxRows(sheetXml, shared){
   }
   return rows;
 }
-function productsFromRows(rows){
-  let headerIndex=-1;
+function productHeaderInfo(row){
+  const h=row.map(normKey);
+  const descCol=pickColIndex(row,["descripcion","descripción","desc","producto","nombre"]);
+  const idCol=pickColIndex(row,["articulo","artículo","id","sku"]);
+  const stockCol=pickColIndex(row,["existencia","stock","inventario","qty","cantidad"]);
+  const costCol=pickColIndex(row,["costo ultimo","costo último","costo","cost","precio costo","costo_base"]);
+  const valid = descCol>=0 && idCol>=0 && stockCol>=0 && costCol>=0;
+  return {valid,descCol,idCol,stockCol,costCol,headers:h};
+}
+function findProductHeaderInfo(rows){
   for(let i=0;i<Math.min(rows.length,20);i++){
-    if(looksLikeHeaderRow(rows[i])){ headerIndex=i; break; }
+    const info=productHeaderInfo(rows[i]||[]);
+    if(info.valid) return {...info,index:i};
   }
-  const hasHeader=headerIndex>=0;
-  const header=hasHeader ? rows[headerIndex] : [];
-  const start=hasHeader ? headerIndex+1 : 0;
-  let idCol=pickColIndex(header,["articulo","artículo","id","sku"]);
-  let descCol=pickColIndex(header,["descripcion","descripción","desc","producto","nombre"]);
-  let costCol=pickColIndex(header,["costo ultimo","costo último","costo","cost","precio costo","costo_base"]);
-  let stockCol=pickColIndex(header,["existencia","stock","inventario","qty","cantidad"]);
-  if(idCol<0) idCol=hasHeader ? 1 : 0;
-  if(descCol<0) descCol=hasHeader ? 0 : 1;
-  if(costCol<0) costCol=hasHeader ? 3 : 2;
-  if(stockCol<0) stockCol=hasHeader ? 2 : 3;
+  return null;
+}
+function productsFromRows(rows, opts={}){
+  const headerInfo=findProductHeaderInfo(rows);
+  const hasHeader=!!headerInfo;
+  const start=hasHeader ? headerInfo.index+1 : 0;
+  let idCol=hasHeader ? headerInfo.idCol : 0;
+  let descCol=hasHeader ? headerInfo.descCol : 1;
+  let costCol=hasHeader ? headerInfo.costCol : 2;
+  let stockCol=hasHeader ? headerInfo.stockCol : 3;
+
+  if(opts.requireHeader && !hasHeader){
+    throw new Error("No se encontraron columnas de producto, articulo, existencia y costo.");
+  }
+
   const out=[];
   for(let i=start;i<rows.length;i++){
     const r=rows[i];
@@ -1111,7 +1133,7 @@ async function loadProductsWorkbook(file){
   const entries=await unzipNeededEntries(buffer,["xl/sharedStrings.xml","xl/worksheets/sheet1.xml"]);
   if(!entries["xl/worksheets/sheet1.xml"]) throw new Error("No se encontro hoja principal.");
   const shared=entries["xl/sharedStrings.xml"] ? xlsxSharedStrings(entries["xl/sharedStrings.xml"]) : [];
-  return productsFromRows(xlsxRows(entries["xl/worksheets/sheet1.xml"], shared));
+  return productsFromRows(xlsxRows(entries["xl/worksheets/sheet1.xml"], shared), {requireHeader:true, source:"workbook"});
 }
 async function loadProductsFile(file){
   const buffer=await readFileArrayBuffer(file);
@@ -1119,10 +1141,10 @@ async function loadProductsFile(file){
     const entries=await unzipNeededEntries(buffer,["xl/sharedStrings.xml","xl/worksheets/sheet1.xml"]);
     if(!entries["xl/worksheets/sheet1.xml"]) throw new Error("No se encontro hoja principal.");
     const shared=entries["xl/sharedStrings.xml"] ? xlsxSharedStrings(entries["xl/sharedStrings.xml"]) : [];
-    return productsFromRows(xlsxRows(entries["xl/worksheets/sheet1.xml"], shared));
+    return productsFromRows(xlsxRows(entries["xl/worksheets/sheet1.xml"], shared), {requireHeader:true, source:"workbook"});
   }
   const text=new TextDecoder("utf-8").decode(buffer);
-  return productsFromRows(parseCSV(text));
+  return productsFromRows(parseCSV(text), {source:"csv"});
 }
 
 async function loadProductsCSV(file){
@@ -1197,6 +1219,7 @@ $("fileProducts").addEventListener("change", async (e)=>{
   const file=e.target.files?.[0]; if(!file) return;
   try{
     products = await loadProductsFile(file);
+    if(isZipWorkbook(await file.slice(0,4).arrayBuffer()) && products.length<1000){ toast("Se cargaron pocos productos. Revisa que el archivo sea el reporte de costos correcto."); }
     refreshCounts();
     renderResults();
     saveLocal();
@@ -1341,8 +1364,9 @@ function updateMarginHint(){
   if(!isFinite(price) || price<=0){ setPriceHint("",false); return; }
   if(price<cost){ setPriceHint("No se puede vender abajo del costo.",true); return; }
   const util=round2(price-cost);
-  const pct=price>0 ? (util/price)*100 : 0;
-  setPriceHint(`Utilidad aprox: ${money(util)} por unidad (${pct.toFixed(1)}%)`, false);
+  const markup=cost>0 ? (util/cost)*100 : 0;
+  const marginSale=price>0 ? (util/price)*100 : 0;
+  setPriceHint(`Incremento sobre costo: ${markup.toFixed(1)}% | Margen sobre venta: ${marginSale.toFixed(1)}% | Utilidad: ${money(util)} por unidad`, false);
 }
 function rebuildOffersIndex(){
   offersById = new Map();
@@ -1622,9 +1646,9 @@ function renderPriceGrid(){
     : (isFinite(selection.manualPrice) ? selection.manualPrice : null);
 
   const cards=[
-    {mode:"pieza", name:"Pieza", sub:"Precio sugerido", val:priceFromCost(p.cost,"pieza")},
-    {mode:"media", name:"Media", sub:"Precio sugerido", val:priceFromCost(p.cost,"media")},
-    {mode:"caja",  name:"Caja",  sub:"Precio sugerido", val:priceFromCost(p.cost,"caja")},
+    {mode:"pieza", name:"Pieza", sub:`Sugerido | +${marginLabel("pieza")}%`, val:priceFromCost(p.cost,"pieza")},
+    {mode:"media", name:"Media", sub:`Sugerido | +${marginLabel("media")}%`, val:priceFromCost(p.cost,"media")},
+    {mode:"caja",  name:"Caja",  sub:`Sugerido | +${marginLabel("caja")}%`, val:priceFromCost(p.cost,"caja")},
     {mode:"manual",name:"Manual",sub:"Precio manual", val:manualVal},
   ];
 
