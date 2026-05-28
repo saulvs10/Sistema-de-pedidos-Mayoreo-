@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -118,6 +118,39 @@
     .orderFooter{border-top:1px solid var(--line);margin-top:10px;padding-top:12px}
     .oneBtn{margin-top:10px;width:100%;border:0;background:var(--brand);color:#fff;font-weight:1000;border-radius:16px;padding:12px;cursor:pointer}
 
+
+    /* Clientes Iteracion 1 */
+    .clientBar{position:sticky;top:0;z-index:20;margin-bottom:10px;padding:10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+    .clientInfo{min-width:0}
+    .clientName{font-weight:1000;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .clientLoc{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .clientActions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .creditChip{font-size:11px;font-weight:1000;padding:6px 8px;border-radius:999px;border:1px solid var(--line);background:#f8fafc;color:#334155;white-space:nowrap}
+    .creditChip.yes{background:#ecfdf5;border-color:#bbf7d0;color:#065f46}
+    .clientMiniBtn{border:1px solid var(--line);background:#fff;color:var(--text);font-weight:1000;border-radius:999px;padding:8px 9px;cursor:pointer;font-size:12px;white-space:nowrap}
+    .sheet.full{width:min(640px,100%);height:min(92vh,760px)}
+    .sheetActions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .tabRow{display:flex;gap:8px;margin-bottom:12px;overflow:auto;padding-bottom:2px}
+    .tabBtn{border:1px solid var(--line);background:#fff;color:var(--text);font-weight:1000;border-radius:999px;padding:10px 12px;cursor:pointer;white-space:nowrap}
+    .tabBtn.active{background:#eef2ff;border-color:#c7d2fe;color:#1e3a8a}
+    .kpiGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+    .kpiCard{border:1px solid var(--line);border-radius:16px;background:#fff;padding:12px}
+    .kpiVal{font-size:18px;font-weight:1000}
+    .kpiLbl{font-size:12px;color:var(--muted);margin-top:2px}
+    .reportBlock{border:1px solid var(--line);border-radius:16px;background:#fff;padding:12px;margin-bottom:10px}
+    .reportTitle{font-size:13px;font-weight:1000;margin-bottom:8px}
+    .reportRow{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #f1f5f9;padding:8px 0;font-size:13px}
+    .reportRow:first-child{border-top:0}
+    .reportName{font-weight:900;min-width:0;overflow:hidden;text-overflow:ellipsis}
+    .reportMeta{font-size:12px;color:var(--muted);margin-top:2px}
+    .sortRow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .dangerBtn{border:1px solid #fecaca;background:#fff1f2;color:#9f1239;font-weight:1000;border-radius:14px;padding:12px;cursor:pointer}
+    @media (max-width:420px){
+      .clientBar{grid-template-columns:1fr}
+      .clientActions{justify-content:flex-start}
+      .kpiGrid{grid-template-columns:1fr}
+    }
+
     /* Toast */
     .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));background:rgba(15,23,42,.92);color:#fff;padding:10px 12px;border-radius:999px;font-weight:900;font-size:12px;display:none;z-index:100;max-width:calc(100% - 24px);text-align:center}
     .toast.show{display:block}
@@ -132,65 +165,20 @@
       </div>
     </div>
 
-    <!-- CLIENTES (COLAPSABLE) -->
-    <div class="card collap" id="clientsPanel">
-      <div class="collapHead" id="clientsToggle">
-        <div class="collapLeft">
-          <div class="collapLabel">Cliente seleccionado</div>
-          <div class="collapTitle" id="selClientName">—</div>
-          <div class="collapSub" id="selClientAddr">📍 —</div>
-        </div>
-        <div class="chip">Clientes</div>
+        <!-- CLIENTE BARRA MINIMA -->
+    <div class="card clientBar" id="clientBar">
+      <div class="clientInfo">
+        <div class="collapLabel">Cliente seleccionado</div>
+        <div class="clientName" id="selClientName">-</div>
+        <div class="clientLoc" id="selClientAddr">Ubicacion: -</div>
       </div>
-
-      <div class="collapBody">
-        <div class="field">
-          <div class="label">Buscar cliente (nombre o ubicación)</div>
-          <input class="input" id="qClient" placeholder='Ej. "Saul" o "Centro"...' />
-        </div>
-        <div id="clientsResults"></div>
-
-        <div class="hr"></div>
-
-        <div class="field">
-          <div class="label">Cargar clientes (CSV)</div>
-          <input class="input" type="file" accept=".csv,text/csv" id="fileClients" />
-          <div class="hint">Columnas: Nombre, Ubicación, Crédito (si/no), Teléfono (opcional). Headers flexibles.</div>
-        </div>
-
-        <div class="row2">
-          <button class="btnGhost" id="btnDownloadClients">Descargar CSV de clientes</button>
-          <button class="btnGhost" id="btnClearClients">Borrar clientes</button>
-        </div>
-
-        <div class="hr"></div>
-
-        <div class="label" style="margin-bottom:6px;">Agregar cliente</div>
-        <div class="field">
-          <div class="label">Nombre *</div>
-          <input class="input" id="inNewCName" placeholder="Ej. Tiendita Lupita" />
-        </div>
-        <div class="field">
-          <div class="label">Ubicación *</div>
-          <input class="input" id="inNewCLoc" placeholder="Ej. Centro, Calle 5 de mayo #852" />
-        </div>
-        <div class="row2">
-          <div class="field">
-            <div class="label">Crédito *</div>
-            <select class="input" id="inNewCCredit">
-              <option value="no">No</option>
-              <option value="si">Sí</option>
-            </select>
-          </div>
-          <div class="field">
-            <div class="label">Teléfono (opcional)</div>
-            <input class="input" id="inNewCPhone" inputmode="tel" placeholder="Ej. 463..." />
-          </div>
-        </div>
-        <button class="btn" id="btnAddClient" style="width:100%;">Agregar cliente</button>
+      <div class="clientActions">
+        <span id="selClientCredit" class="creditChip">Credito: No</span>
+        <button class="clientMiniBtn" id="btnClientChange" type="button">Cambiar</button>
+        <button class="clientMiniBtn" id="btnClientEdit" type="button">Editar</button>
+        <button class="clientMiniBtn" id="btnClientNew" type="button">Nuevo</button>
       </div>
     </div>
-
     <!-- BUSCADOR PRODUCTOS -->
     <div class="searchRow">
       <input id="q" class="searchInput" placeholder='Buscar producto o ID...' autocomplete="off" />
@@ -217,6 +205,63 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- CLIENTES SELECTOR -->
+  <div class="overlay" id="ovClients">
+    <div class="sheet full">
+      <div class="sheetHead">
+        <div class="sheetTitle">Clientes</div>
+        <button class="xBtn" data-close="ovClients">Cerrar</button>
+      </div>
+      <div class="sheetBody">
+        <div class="field">
+          <div class="label">Buscar cliente</div>
+          <input class="input" id="qClient" placeholder="Nombre o ubicacion..." />
+        </div>
+        <div class="sheetActions">
+          <button class="btn" id="btnClientModalNew" type="button">Nuevo cliente</button>
+          <button class="btnGhost" id="btnImportClients" type="button">Importar CSV</button>
+          <button class="btnGhost" id="btnDownloadClients" type="button">Exportar CSV</button>
+          <button class="dangerBtn" id="btnClearClients" type="button">Borrar base</button>
+        </div>
+        <input class="input" type="file" accept=".csv,text/csv" id="fileClients" style="display:none" />
+        <div id="clientsResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENTE FORMULARIO -->
+  <div class="overlay" id="ovClientForm">
+    <div class="sheet">
+      <div class="sheetHead">
+        <div class="sheetTitle" id="clientFormTitle">Nuevo cliente</div>
+        <button class="xBtn" data-close="ovClientForm">Cerrar</button>
+      </div>
+      <div class="sheetBody">
+        <div class="field">
+          <div class="label">Nombre *</div>
+          <input class="input" id="inNewCName" placeholder="Ej. Tiendita Lupita" />
+        </div>
+        <div class="field">
+          <div class="label">Ubicacion *</div>
+          <input class="input" id="inNewCLoc" placeholder="Ej. Centro, Calle 5 de mayo #852" />
+        </div>
+        <div class="row2">
+          <div class="field">
+            <div class="label">Credito *</div>
+            <select class="input" id="inNewCCredit">
+              <option value="no">No</option>
+              <option value="si">Si</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="label">Telefono (opcional)</div>
+            <input class="input" id="inNewCPhone" inputmode="tel" placeholder="Ej. 463..." />
+          </div>
+        </div>
+        <button class="btn" id="btnAddClient" style="width:100%;" type="button">Guardar cliente</button>
+      </div>
+    </div>
+  </div>
   <!-- ARCHIVOS -->
   <div class="overlay" id="ovFiles">
     <div class="sheet">
@@ -345,20 +390,32 @@
     </div>
   </div>
 
-  <!-- REPORTES (placeholder para mantener botón vivo) -->
+    <!-- REPORTES -->
   <div class="overlay" id="ovReports">
-    <div class="sheet">
+    <div class="sheet full">
       <div class="sheetHead">
-        <div class="sheetTitle">Reportes</div>
+        <div>
+          <div class="sheetTitle">Reportes del periodo</div>
+          <div class="hint" id="periodHint">Desde el ultimo reinicio</div>
+        </div>
         <button class="xBtn" data-close="ovReports">Cerrar</button>
       </div>
       <div class="sheetBody">
-        <div class="hint">Reportes deshabilitados en esta compilación.</div>
+        <div class="tabRow">
+          <button class="tabBtn active" data-report-tab="summary" type="button">Resumen</button>
+          <button class="tabBtn" data-report-tab="items" type="button">Articulos</button>
+          <button class="tabBtn" data-report-tab="clients" type="button">Clientes</button>
+        </div>
+        <div class="sheetActions">
+          <button class="btnGhost" id="btnExportOrders" type="button">CSV Pedidos</button>
+          <button class="btnGhost" id="btnExportItems" type="button">CSV Articulos</button>
+          <button class="btnGhost" id="btnExportReportClients" type="button">CSV Clientes</button>
+          <button class="dangerBtn" id="btnResetPeriod" type="button">Reiniciar periodo</button>
+        </div>
+        <div id="reportsContent"></div>
       </div>
     </div>
-  </div>
-
-<script>
+  </div><script>
 /* ===========================
    Config + estado
 =========================== */
@@ -367,6 +424,10 @@ const MARGEN_PIEZA = 0.11, MARGEN_MEDIA = 0.065, MARGEN_CAJA = 0.04;
 let products = [], offers = [], offersById = new Map();
 let clients = [], selectedClient = { name:"", loc:"", credit:"no", phone:"" };
 let order = [];
+let confirmedOrders = [];
+let editingClientKey = null;
+let activeReportTab = "summary";
+let reportSort = { items:"ventas", clients:"ventas" };
 
 let currentProduct = null;
 let selection = { mode:"pieza", price:0, manualPrice:null, offerIndex:-1 };
@@ -465,6 +526,7 @@ const LS_OFFERS="SM_OFFERS_FULL_V2";
 const LS_CLIENTS="SM_CLIENTS_FULL_V2";
 const LS_SELCLIENT="SM_SELCLIENT_FULL_V2";
 const LS_ORDER="SM_ORDER_FULL_V2";
+const LS_CONFIRMED_ORDERS="SM_CONFIRMED_ORDERS_V1";
 
 function saveLocal(){
   try{
@@ -473,6 +535,7 @@ function saveLocal(){
     localStorage.setItem(LS_CLIENTS, JSON.stringify(clients));
     localStorage.setItem(LS_SELCLIENT, JSON.stringify(selectedClient));
     localStorage.setItem(LS_ORDER, JSON.stringify(order));
+    localStorage.setItem(LS_CONFIRMED_ORDERS, JSON.stringify(confirmedOrders));
   }catch(e){}
 }
 function rebuildOffersIndex(){
@@ -491,11 +554,13 @@ function loadLocal(){
     const cs = JSON.parse(localStorage.getItem(LS_CLIENTS)||"null");
     const sc = JSON.parse(localStorage.getItem(LS_SELCLIENT)||"null");
     const od = JSON.parse(localStorage.getItem(LS_ORDER)||"null");
+    const co = JSON.parse(localStorage.getItem(LS_CONFIRMED_ORDERS)||"null");
     if(Array.isArray(p)) products = p;
     if(Array.isArray(o)) offers = o;
     if(Array.isArray(cs)) clients = cs;
     if(sc && typeof sc==="object") selectedClient = { name:sc.name||"", loc:sc.loc||"", credit:sc.credit||"no", phone:sc.phone||"" };
     if(Array.isArray(od)) order = od;
+    if(Array.isArray(co)) confirmedOrders = co;
   }catch(e){}
   rebuildOffersIndex();
   refreshCounts();
@@ -509,11 +574,19 @@ function loadLocal(){
    Modales
 =========================== */
 function openModal(id){
+  document.querySelectorAll(".overlay.show").forEach(o=>{
+    if(o.id!==id) o.classList.remove("show");
+  });
   $(id).classList.add("show");
   document.body.style.overflow="hidden";
 }
 function closeModal(id){
   $(id).classList.remove("show");
+  const any = Array.from(document.querySelectorAll(".overlay")).some(o=>o.classList.contains("show"));
+  if(!any) document.body.style.overflow="";
+}
+function closeClientSurfaces(){
+  ["ovClients","ovClientForm"].forEach(id=>$(id)?.classList.remove("show"));
   const any = Array.from(document.querySelectorAll(".overlay")).some(o=>o.classList.contains("show"));
   if(!any) document.body.style.overflow="";
 }
@@ -559,65 +632,98 @@ function updateBottom(){
 /* ===========================
    Eventos top
 =========================== */
-$("clientsToggle").addEventListener("click", ()=> $("clientsPanel").classList.toggle("open"));
+$("btnClientChange").addEventListener("click", openClientsSelector);
+$("btnClientNew").addEventListener("click", ()=> openClientForm());
+$("btnClientEdit").addEventListener("click", ()=> openClientForm(selectedClient));
+$("btnClientModalNew").addEventListener("click", ()=> openClientForm());
+$("btnImportClients").addEventListener("click", ()=> $("fileClients").click());
 $("btnFiles").addEventListener("click", ()=> openModal("ovFiles"));
 $("btnOffers").addEventListener("click", ()=>{
   renderOffersModal();
   openModal("ovOffers");
   setTimeout(()=> $("qOffers").focus(), 60);
 });
-$("btnReports").addEventListener("click", ()=> openModal("ovReports"));
+$("btnReports").addEventListener("click", openReports);
 $("btnViewOrder").addEventListener("click", openOrder);
-$("q").addEventListener("input", renderResults);
+$("q").addEventListener("focus", closeClientSurfaces);
+$("q").addEventListener("input", ()=>{ closeClientSurfaces(); renderResults(); });
 $("qOffers").addEventListener("input", renderOffersModal);
 
 /* ===========================
    CLIENTES
 =========================== */
+function clientKey(c){
+  return normKey(c?.name)+"||"+normKey(c?.loc);
+}
 function renderSelectedClient(){
-  $("selClientName").textContent = selectedClient.name ? selectedClient.name : "—";
-  $("selClientAddr").textContent = selectedClient.loc ? ("📍 " + selectedClient.loc) : "📍 —";
+  $("selClientName").textContent = selectedClient.name ? selectedClient.name : "Sin cliente seleccionado";
+  $("selClientAddr").textContent = selectedClient.loc ? ("Ubicacion: " + selectedClient.loc) : "Ubicacion: -";
+  const isCredit = String(selectedClient.credit||"no").toLowerCase()==="si";
+  $("selClientCredit").textContent = "Credito: " + (isCredit ? "Si":"No");
+  $("selClientCredit").className = "creditChip" + (isCredit ? " yes":"");
 }
 $("qClient").addEventListener("input", renderClients);
+
+function openClientsSelector(){
+  renderClients();
+  openModal("ovClients");
+  setTimeout(()=> $("qClient").focus(), 60);
+}
+
+function openClientForm(client=null){
+  editingClientKey = client && client.name && client.loc ? clientKey(client) : null;
+  $("clientFormTitle").textContent = editingClientKey ? "Editar cliente" : "Nuevo cliente";
+  $("inNewCName").value = client?.name || "";
+  $("inNewCLoc").value = client?.loc || "";
+  $("inNewCCredit").value = String(client?.credit||"no").toLowerCase()==="si" ? "si":"no";
+  $("inNewCPhone").value = client?.phone || "";
+  openModal("ovClientForm");
+  setTimeout(()=> $("inNewCName").focus(), 60);
+}
 
 function renderClients(){
   const q = normKey($("qClient").value);
   const box = $("clientsResults");
   box.innerHTML = "";
   if(clients.length===0){
-    box.innerHTML = `<div class="hint">No hay clientes cargados. Sube CSV o agrega uno.</div>`;
+    box.innerHTML = `<div class="hint">No hay clientes cargados. Importa CSV o crea uno.</div>`;
     return;
   }
   let list = clients;
   if(q) list = clients.filter(c=> normKey(c.name).includes(q) || normKey(c.loc).includes(q));
-  else list = clients.slice(0,30);
+  else list = clients.slice(0,60);
 
   if(list.length===0){
     box.innerHTML = `<div class="hint">Sin resultados.</div>`;
     return;
   }
 
-  list.slice(0,40).forEach(c=>{
+  list.slice(0,80).forEach(c=>{
     const div=document.createElement("div");
     div.className="resultCard";
-    const creditTxt = String(c.credit||"no").toLowerCase()==="si" ? "SÍ" : "NO";
+    const creditTxt = String(c.credit||"no").toLowerCase()==="si" ? "SI" : "NO";
     div.innerHTML=`
       <div class="rLeft">
         <div class="rName">${escapeHtml(c.name)}</div>
         <div class="rMeta">
-          <span class="tag">📍 ${escapeHtml(c.loc)}</span>
-          <span class="tag">Crédito: ${creditTxt}</span>
+          <span class="tag">${escapeHtml(c.loc)}</span>
+          <span class="tag">Credito: ${creditTxt}</span>
           ${c.phone?`<span class="tag">Tel: ${escapeHtml(c.phone)}</span>`:""}
         </div>
       </div>
-      <div class="tag" style="border-color:#c7d2fe;background:#eef2ff;color:#1e3a8a;">Seleccionar</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btnMini" type="button" data-action="select">Seleccionar</button>
+        <button class="btnMini" type="button" data-action="edit">Editar</button>
+      </div>
     `;
-    div.addEventListener("click", ()=>{
+    div.addEventListener("click", (e)=>{
+      const action=e.target.closest("button")?.getAttribute("data-action") || "select";
+      if(action==="edit"){ openClientForm(c); return; }
       selectedClient = { name:c.name, loc:c.loc, credit:(c.credit||"no"), phone:(c.phone||"") };
       renderSelectedClient();
       saveLocal();
       toast("Cliente seleccionado.");
-      $("clientsPanel").classList.remove("open");
+      closeModal("ovClients");
     });
     box.appendChild(div);
   });
@@ -626,29 +732,33 @@ function renderClients(){
 $("btnAddClient").addEventListener("click", ()=>{
   const name=String($("inNewCName").value||"").trim();
   const loc=String($("inNewCLoc").value||"").trim();
-  const credit=String($("inNewCCredit").value||"no").trim().toLowerCase();
+  let credit=String($("inNewCCredit").value||"no").trim().toLowerCase();
   const phone=String($("inNewCPhone").value||"").trim();
   if(!name){ toast("Falta nombre."); return; }
-  if(!loc){ toast("Falta ubicación."); return; }
-  if(credit!=="si" && credit!=="no"){ toast("Crédito inválido."); return; }
+  if(!loc){ toast("Falta ubicacion."); return; }
+  credit = credit==="si" ? "si":"no";
 
-  const key = normKey(name)+"||"+normKey(loc);
-  const idx = clients.findIndex(c=> normKey(c.name)+"||"+normKey(c.loc)===key);
   const obj = {name,loc,credit,phone};
+  const key = clientKey(obj);
+  let idx = clients.findIndex(c=> clientKey(c)===key);
+  if(idx>=0 && editingClientKey!==key && !confirm("Ese cliente ya existe. Actualizar registro?")) return;
+  if(idx<0 && editingClientKey){
+    idx = clients.findIndex(c=> clientKey(c)===editingClientKey);
+  }
   if(idx>=0) clients[idx]=obj; else clients.push(obj);
 
   selectedClient={...obj};
+  editingClientKey=null;
   renderSelectedClient();
   refreshCounts();
   renderClients();
   saveLocal();
-
-  $("inNewCName").value=""; $("inNewCLoc").value=""; $("inNewCPhone").value=""; $("inNewCCredit").value="no";
   toast(idx>=0?"Cliente actualizado.":"Cliente agregado.");
-  $("clientsPanel").classList.remove("open");
+  closeModal("ovClientForm");
 });
 
 $("btnClearClients").addEventListener("click", ()=>{
+  if(!confirm("Borrar toda la base de clientes?")) return;
   clients=[];
   selectedClient={name:"",loc:"",credit:"no",phone:""};
   renderSelectedClient();
@@ -657,10 +767,9 @@ $("btnClearClients").addEventListener("click", ()=>{
   saveLocal();
   toast("Clientes borrados.");
 });
-
 function csvEscape(val){
   const s=String(val??"");
-  if(/[",\n;]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
+  if(/[",;\r\n]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
   return s;
 }
 function downloadCSV(filename, csvText){
@@ -673,15 +782,13 @@ function downloadCSV(filename, csvText){
 }
 $("btnDownloadClients").addEventListener("click", ()=>{
   if(clients.length===0){ toast("No hay clientes."); return; }
-  const header=["Nombre","Ubicacion","Credito","Telefono"];
-  const rows=[header.join(",")];
+  const rows=[["Nombre","Ubicacion","Credito","Telefono"]];
   for(const c of clients){
-    rows.push([csvEscape(c.name),csvEscape(c.loc),csvEscape(String(c.credit||"no").toLowerCase()),csvEscape(c.phone||"")].join(","));
+    rows.push([c.name||"",c.loc||"",String(c.credit||"no").toLowerCase(),c.phone||""]);
   }
-  downloadCSV("Clientes_SuperMass.csv", rows.join("\n"));
+  downloadCSV("Clientes_SuperMass.csv", rows.map(r=>r.map(csvEscape).join(",")).join("\n"));
   toast("CSV clientes generado.");
 });
-
 async function loadClientsCSV(file){
   const text=await readFileText(file);
   const rows=parseCSV(text);
@@ -1315,6 +1422,148 @@ $("orderItems").addEventListener("click",(e)=>{
 });
 
 /* ===========================
+   REPORTES
+=========================== */
+function buildConfirmedOrder(){
+  const items = order.map(it=>({
+    id:String(it.id||""),
+    descripcion:String(it.name||""),
+    cantidad:Number(it.qty)||0,
+    precioUnitario:round2(Number(it.unitPrice)||0),
+    costoUnitario:round2(Number(it.cost)||0),
+    totalLinea:round2(Number(it.lineTotal)||0),
+    utilidadLinea:round2(Number(it.profit)||0),
+    notaProducto:String(it.note||"")
+  }));
+  const totalPedido=round2(items.reduce((a,x)=>a+x.totalLinea,0));
+  const utilidadPedido=round2(items.reduce((a,x)=>a+x.utilidadLinea,0));
+  return {
+    timestampISO:new Date().toISOString(),
+    cliente:{
+      nombre:selectedClient.name||"",
+      ubicacion:selectedClient.loc||"",
+      credito:String(selectedClient.credit||"no").toLowerCase()==="si"?"si":"no",
+      telefono:selectedClient.phone||""
+    },
+    notaPedido:String(window.__orderNote||"").trim(),
+    items,
+    totalPedido,
+    utilidadPedido
+  };
+}
+function getReportData(){
+  const summary={sales:0,profit:0,count:confirmedOrders.length};
+  const itemMap=new Map(), clientMap=new Map();
+  for(const po of confirmedOrders){
+    summary.sales += Number(po.totalPedido)||0;
+    summary.profit += Number(po.utilidadPedido)||0;
+    const ck=normKey(po.cliente?.nombre)+"||"+normKey(po.cliente?.ubicacion);
+    if(!clientMap.has(ck)) clientMap.set(ck,{name:po.cliente?.nombre||"(sin cliente)",loc:po.cliente?.ubicacion||"",orders:0,sales:0,profit:0});
+    const cr=clientMap.get(ck);
+    cr.orders++; cr.sales+=Number(po.totalPedido)||0; cr.profit+=Number(po.utilidadPedido)||0;
+    for(const it of (po.items||[])){
+      const key=String(it.id||"");
+      if(!itemMap.has(key)) itemMap.set(key,{id:key,name:it.descripcion||"",qty:0,sales:0,profit:0});
+      const r=itemMap.get(key);
+      r.qty += Number(it.cantidad)||0;
+      r.sales += Number(it.totalLinea)||0;
+      r.profit += Number(it.utilidadLinea)||0;
+    }
+  }
+  summary.sales=round2(summary.sales);
+  summary.profit=round2(summary.profit);
+  summary.avg=summary.count ? round2(summary.sales/summary.count) : 0;
+  const items=Array.from(itemMap.values()).map(r=>({
+    ...r,
+    avgPrice:r.qty ? round2(r.sales/r.qty) : 0,
+    margin:r.sales ? (r.profit/r.sales)*100 : 0,
+    sales:round2(r.sales),
+    profit:round2(r.profit)
+  }));
+  const clients=Array.from(clientMap.values()).map(r=>({
+    ...r,
+    ticket:r.orders ? round2(r.sales/r.orders) : 0,
+    sales:round2(r.sales),
+    profit:round2(r.profit)
+  }));
+  return {summary,items,clients};
+}
+function openReports(){
+  renderReports();
+  openModal("ovReports");
+}
+function reportSortBtn(type,key,label){
+  const active = reportSort[type]===key ? " active":"";
+  return `<button class="tabBtn${active}" type="button" data-sort-type="${type}" data-sort-key="${key}">${label}</button>`;
+}
+function renderReports(){
+  const data=getReportData();
+  $("periodHint").textContent = confirmedOrders.length ? `Pedidos confirmados: ${confirmedOrders.length}` : "Sin pedidos confirmados en el periodo";
+  document.querySelectorAll("[data-report-tab]").forEach(b=>b.classList.toggle("active", b.dataset.reportTab===activeReportTab));
+  const box=$("reportsContent");
+  if(activeReportTab==="summary"){
+    const topBy=(key)=>[...data.items].sort((a,b)=>b[key]-a[key]).slice(0,5);
+    const rows=(list,key)=> list.length ? list.map(x=>`<div class="reportRow"><div><div class="reportName">${escapeHtml(x.name)}</div><div class="reportMeta">ID ${escapeHtml(x.id)} Â· Cant ${x.qty}</div></div><strong>${key==="qty"?x.qty:money(x[key])}</strong></div>`).join("") : `<div class="hint">Sin datos.</div>`;
+    box.innerHTML=`
+      <div class="kpiGrid">
+        <div class="kpiCard"><div class="kpiVal">${money(data.summary.sales)}</div><div class="kpiLbl">Ventas totales</div></div>
+        <div class="kpiCard"><div class="kpiVal">${money(data.summary.profit)}</div><div class="kpiLbl">Utilidad total</div></div>
+        <div class="kpiCard"><div class="kpiVal">${data.summary.count}</div><div class="kpiLbl">Pedidos</div></div>
+        <div class="kpiCard"><div class="kpiVal">${money(data.summary.avg)}</div><div class="kpiLbl">Ticket promedio</div></div>
+      </div>
+      <div class="reportBlock"><div class="reportTitle">Top ventas</div>${rows(topBy("sales"),"sales")}</div>
+      <div class="reportBlock"><div class="reportTitle">Top cantidad</div>${rows(topBy("qty"),"qty")}</div>
+      <div class="reportBlock"><div class="reportTitle">Top utilidad</div>${rows(topBy("profit"),"profit")}</div>
+    `;
+    return;
+  }
+  if(activeReportTab==="items"){
+    const list=[...data.items].sort((a,b)=>b[reportSort.items]-a[reportSort.items]);
+    box.innerHTML=`<div class="sortRow">${reportSortBtn("items","sales","Ventas")}${reportSortBtn("items","qty","Cantidad")}${reportSortBtn("items","profit","Utilidad")}</div>` +
+      (list.length ? list.map(x=>`<div class="reportBlock"><div class="reportRow"><div><div class="reportName">${escapeHtml(x.name)}</div><div class="reportMeta">ID ${escapeHtml(x.id)} Â· Cant ${x.qty} Â· Prom ${money(x.avgPrice)}</div></div><strong>${money(x.sales)}</strong></div><div class="reportMeta">Utilidad ${money(x.profit)} Â· Margen ${x.margin.toFixed(1)}%</div></div>`).join("") : `<div class="hint">Sin articulos vendidos.</div>`);
+    return;
+  }
+  const list=[...data.clients].sort((a,b)=>b[reportSort.clients]-a[reportSort.clients]);
+  box.innerHTML=`<div class="sortRow">${reportSortBtn("clients","sales","Ventas")}${reportSortBtn("clients","profit","Utilidad")}${reportSortBtn("clients","orders","Pedidos")}</div>` +
+    (list.length ? list.map(x=>`<div class="reportBlock"><div class="reportRow"><div><div class="reportName">${escapeHtml(x.name)}</div><div class="reportMeta">${escapeHtml(x.loc)} Â· Pedidos ${x.orders}</div></div><strong>${money(x.sales)}</strong></div><div class="reportMeta">Utilidad ${money(x.profit)} Â· Ticket ${money(x.ticket)}</div></div>`).join("") : `<div class="hint">Sin clientes en reportes.</div>`);
+}
+$("ovReports").addEventListener("click",(e)=>{
+  const tab=e.target.closest("[data-report-tab]");
+  if(tab){ activeReportTab=tab.dataset.reportTab; renderReports(); return; }
+  const sort=e.target.closest("[data-sort-key]");
+  if(sort){ reportSort[sort.dataset.sortType]=sort.dataset.sortKey; renderReports(); }
+});
+function csvDownloadRows(filename, rows){
+  downloadCSV(filename, rows.map(r=>r.map(csvEscape).join(",")).join("\n"));
+}
+$("btnExportOrders").addEventListener("click", ()=>{
+  const rows=[["Fecha","Cliente","Ubicacion","Credito","Nota","ID","Producto","Cantidad","PrecioUnitario","CostoUnitario","TotalLinea","UtilidadLinea","NotaProducto","TotalPedido","UtilidadPedido"]];
+  for(const po of confirmedOrders){
+    for(const it of po.items||[]) rows.push([po.timestampISO,po.cliente?.nombre||"",po.cliente?.ubicacion||"",po.cliente?.credito||"no",po.notaPedido||"",it.id,it.descripcion,it.cantidad,it.precioUnitario,it.costoUnitario,it.totalLinea,it.utilidadLinea,it.notaProducto||"",po.totalPedido,po.utilidadPedido]);
+  }
+  csvDownloadRows("Pedidos_Periodo_SuperMass.csv", rows);
+});
+$("btnExportItems").addEventListener("click", ()=>{
+  const data=getReportData();
+  const rows=[["ID","Producto","CantidadVendida","PrecioPromedio","VentasTotales","UtilidadTotal","MargenPct"]];
+  data.items.forEach(x=>rows.push([x.id,x.name,x.qty,x.avgPrice,x.sales,x.profit,x.margin.toFixed(1)]));
+  csvDownloadRows("Articulos_Periodo_SuperMass.csv", rows);
+});
+$("btnExportReportClients").addEventListener("click", ()=>{
+  const data=getReportData();
+  const rows=[["Cliente","Ubicacion","Pedidos","Ventas","Utilidad","TicketPromedio"]];
+  data.clients.forEach(x=>rows.push([x.name,x.loc,x.orders,x.sales,x.profit,x.ticket]));
+  csvDownloadRows("Clientes_Periodo_SuperMass.csv", rows);
+});
+$("btnResetPeriod").addEventListener("click", ()=>{
+  if(!confirm("Reiniciar periodo? Se borran solo los pedidos confirmados de reportes.")) return;
+  confirmedOrders=[];
+  saveLocal();
+  renderReports();
+  toast("Periodo reiniciado.");
+});
+
+/* ===========================
    WhatsApp candado
 =========================== */
 $("inOrderNote").addEventListener("input", ()=>{ window.__orderNote = $("inOrderNote").value; });
@@ -1362,14 +1611,17 @@ $("btnSendAndConfirm").addEventListener("click", async ()=>{
   if(order.length===0){ toast("Pedido vacío."); return; }
   if(!selectedClient.name || !selectedClient.loc){
     toast("Selecciona un cliente.");
-    $("clientsPanel").classList.add("open");
+    openClientsSelector();
     return;
   }
 
+  const confirmed=buildConfirmedOrder();
   const txt=buildWhatsAppText();
   try{ await navigator.clipboard.writeText(txt); }catch(e){}
 
   window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank");
+
+  confirmedOrders.push(confirmed);
 
   order=[];
   window.__orderNote="";
