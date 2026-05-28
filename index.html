@@ -188,6 +188,7 @@
     <div class="tabs">
       <button class="pill" id="btnFiles">Archivos</button>
       <button class="pill" id="btnReports">Reportes</button>
+      <button class="pill" id="btnAdmin">Admin</button>
     </div>
 
     <div class="results" id="results"></div>
@@ -271,8 +272,8 @@
       </div>
       <div class="sheetBody">
         <div class="field">
-          <div class="label">Productos (CSV): ID, Descripción, Costo, Existencia</div>
-          <input class="input" type="file" accept=".csv,text/csv" id="fileProducts" />
+          <div class="label">Productos: CSV o Costo.xls del punto de venta</div>
+          <input class="input" type="file" accept=".csv,.xls,.xlsx,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" id="fileProducts" />
           <div class="hint">Cargados: <b id="productsLoaded">0</b></div>
         </div>
 
@@ -417,6 +418,40 @@
     </div>
   </div>
 
+
+
+  <!-- ADMINISTRACION -->
+  <div class="overlay" id="ovAdmin">
+    <div class="sheet">
+      <div class="sheetHead">
+        <div class="sheetTitle">Administracion</div>
+        <button class="xBtn" data-close="ovAdmin">Cerrar</button>
+      </div>
+      <div class="sheetBody">
+        <div class="hint">Porcentajes de utilidad sobre costo para precios sugeridos.</div>
+        <div class="hr"></div>
+        <div class="row2">
+          <div class="field">
+            <div class="label">Pieza (%)</div>
+            <input class="input" id="inMarginPieza" type="number" inputmode="decimal" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <div class="label">Media caja (%)</div>
+            <input class="input" id="inMarginMedia" type="number" inputmode="decimal" min="0" step="0.01" />
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Caja (%)</div>
+          <input class="input" id="inMarginCaja" type="number" inputmode="decimal" min="0" step="0.01" />
+        </div>
+        <div class="row2">
+          <button class="btn" id="btnSaveMargins" type="button">Guardar margenes</button>
+          <button class="btnGhost" id="btnResetMargins" type="button">Restaurar base</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- EDITAR PEDIDO CONFIRMADO -->
   <div class="overlay" id="ovConfirmedOrder">
     <div class="sheet full">
@@ -457,7 +492,8 @@
 /* ===========================
    Config + estado
 =========================== */
-const MARGEN_PIEZA = 0.1111, MARGEN_MEDIA = 0.08, MARGEN_CAJA = 0.0525;
+const DEFAULT_MARGIN_CONFIG = { pieza:0.11, media:0.08, caja:0.055 };
+let marginConfig = {...DEFAULT_MARGIN_CONFIG};
 
 let products = [], offers = [], offersById = new Map();
 let clients = [], selectedClient = { name:"", loc:"", credit:"no", phone:"" };
@@ -576,6 +612,7 @@ const LS_CLIENTS="SM_CLIENTS_FULL_V2";
 const LS_SELCLIENT="SM_SELCLIENT_FULL_V2";
 const LS_ORDER="SM_ORDER_FULL_V2";
 const LS_CONFIRMED_ORDERS="SM_CONFIRMED_ORDERS_V1";
+const LS_MARGIN_CONFIG="SM_MARGIN_CONFIG_V1";
 
 function saveLocal(){
   try{
@@ -585,6 +622,7 @@ function saveLocal(){
     localStorage.setItem(LS_SELCLIENT, JSON.stringify(selectedClient));
     localStorage.setItem(LS_ORDER, JSON.stringify(order));
     localStorage.setItem(LS_CONFIRMED_ORDERS, JSON.stringify(confirmedOrders));
+    localStorage.setItem(LS_MARGIN_CONFIG, JSON.stringify(marginConfig));
   }catch(e){}
 }
 function rebuildOffersIndex(){
@@ -604,12 +642,14 @@ function loadLocal(){
     const sc = JSON.parse(localStorage.getItem(LS_SELCLIENT)||"null");
     const od = JSON.parse(localStorage.getItem(LS_ORDER)||"null");
     const co = JSON.parse(localStorage.getItem(LS_CONFIRMED_ORDERS)||"null");
+    const mc = JSON.parse(localStorage.getItem(LS_MARGIN_CONFIG)||"null");
     if(Array.isArray(p)) products = p.map(enrichProduct);
     if(Array.isArray(o)) offers = o;
     if(Array.isArray(cs)) clients = cs;
     if(sc && typeof sc==="object") selectedClient = { name:sc.name||"", loc:sc.loc||"", credit:sc.credit||"no", phone:sc.phone||"" };
     if(Array.isArray(od)) order = od;
     if(Array.isArray(co)) confirmedOrders = co;
+    if(mc && typeof mc==="object") marginConfig = normalizeMarginConfig(mc);
   }catch(e){}
   rebuildOffersIndex();
   refreshCounts();
@@ -647,6 +687,36 @@ document.addEventListener("click",(e)=>{
 /* ===========================
    UI helpers
 =========================== */
+
+function normalizeMarginConfig(cfg){
+  const out={...DEFAULT_MARGIN_CONFIG};
+  for(const key of ["pieza","media","caja"]){
+    const v=Number(cfg?.[key]);
+    if(isFinite(v) && v>=0) out[key]=v;
+  }
+  return out;
+}
+function marginPercent(mode){
+  return round2((Number(marginConfig?.[mode])||0)*100);
+}
+function renderAdminMargins(){
+  $("inMarginPieza").value = String(marginPercent("pieza"));
+  $("inMarginMedia").value = String(marginPercent("media"));
+  $("inMarginCaja").value = String(marginPercent("caja"));
+}
+function openAdmin(){
+  renderAdminMargins();
+  openModal("ovAdmin");
+}
+function refreshQuotePricing(){
+  if(!currentProduct) return;
+  if(selection.mode==="pieza" || selection.mode==="media" || selection.mode==="caja"){
+    selection.price = priceFromCost(currentProduct.cost, selection.mode);
+  }
+  renderPriceGrid();
+  updateMarginHint();
+}
+
 function stockBadgeHTML(stock, compact=false){
   let cls="stockBadge gray";
   let label= compact ? "Stock: —" : "Existencia: —";
@@ -660,10 +730,8 @@ function stockBadgeHTML(stock, compact=false){
   return `<span class="${cls}">${label}</span>`;
 }
 function priceFromCost(cost, mode){
-  if(mode==="pieza") return round2(cost*(1+MARGEN_PIEZA));
-  if(mode==="media") return round2(cost*(1+MARGEN_MEDIA));
-  if(mode==="caja")  return round2(cost*(1+MARGEN_CAJA));
-  return round2(cost);
+  const margin = Number(marginConfig?.[mode]) || 0;
+  return round2((Number(cost)||0)*(1+margin));
 }
 function refreshCounts(){
   $("cntProducts").textContent = products.length;
@@ -687,6 +755,7 @@ $("btnClientEdit").addEventListener("click", ()=> openClientForm(selectedClient)
 $("btnClientModalNew").addEventListener("click", ()=> openClientForm());
 $("btnImportClients").addEventListener("click", ()=> $("fileClients").click());
 $("btnFiles").addEventListener("click", ()=> openModal("ovFiles"));
+$("btnAdmin").addEventListener("click", openAdmin);
 $("btnOffers").addEventListener("click", ()=>{
   renderOffersModal();
   openModal("ovOffers");
@@ -697,6 +766,24 @@ $("btnViewOrder").addEventListener("click", openOrder);
 $("q").addEventListener("focus", closeClientSurfaces);
 $("q").addEventListener("input", ()=>{ closeClientSurfaces(); renderResults(); });
 $("qOffers").addEventListener("input", renderOffersModal);
+$("btnSaveMargins").addEventListener("click", ()=>{
+  const next={
+    pieza:(num($("inMarginPieza").value)||0)/100,
+    media:(num($("inMarginMedia").value)||0)/100,
+    caja:(num($("inMarginCaja").value)||0)/100
+  };
+  marginConfig = normalizeMarginConfig(next);
+  saveLocal();
+  refreshQuotePricing();
+  toast("Margenes guardados.");
+});
+$("btnResetMargins").addEventListener("click", ()=>{
+  marginConfig = {...DEFAULT_MARGIN_CONFIG};
+  renderAdminMargins();
+  saveLocal();
+  refreshQuotePricing();
+  toast("Margenes base restaurados.");
+});
 
 /* ===========================
    CLIENTES
@@ -894,6 +981,150 @@ $("fileClients").addEventListener("change", async (e)=>{
 /* ===========================
    PRODUCTOS / OFERTAS (carga)
 =========================== */
+
+async function readFileArrayBuffer(file){
+  return await file.arrayBuffer();
+}
+function isZipWorkbook(buffer){
+  const u8=new Uint8Array(buffer);
+  return u8.length>4 && u8[0]===0x50 && u8[1]===0x4b;
+}
+function textFromBytes(bytes){
+  return new TextDecoder("utf-8").decode(bytes);
+}
+async function inflateZipEntry(bytes, method){
+  if(method===0) return bytes;
+  if(method!==8) throw new Error("Metodo ZIP no soportado: " + method);
+  if(!("DecompressionStream" in window)) throw new Error("Este navegador no soporta descompresion ZIP.");
+  const ds=new DecompressionStream("deflate-raw");
+  const stream=new Blob([bytes]).stream().pipeThrough(ds);
+  const buf=await new Response(stream).arrayBuffer();
+  return new Uint8Array(buf);
+}
+function findEndOfCentralDirectory(u8){
+  for(let i=u8.length-22;i>=0 && i>u8.length-66000;i--){
+    if(u8[i]===0x50 && u8[i+1]===0x4b && u8[i+2]===0x05 && u8[i+3]===0x06) return i;
+  }
+  throw new Error("No se encontro directorio ZIP.");
+}
+async function unzipNeededEntries(buffer, wanted){
+  const u8=new Uint8Array(buffer);
+  const dv=new DataView(buffer);
+  const eocd=findEndOfCentralDirectory(u8);
+  const total=dv.getUint16(eocd+10,true);
+  let ptr=dv.getUint32(eocd+16,true);
+  const found={};
+  const wantedSet=new Set(wanted);
+  for(let i=0;i<total;i++){
+    if(dv.getUint32(ptr,true)!==0x02014b50) break;
+    const method=dv.getUint16(ptr+10,true);
+    const compSize=dv.getUint32(ptr+20,true);
+    const nameLen=dv.getUint16(ptr+28,true);
+    const extraLen=dv.getUint16(ptr+30,true);
+    const commentLen=dv.getUint16(ptr+32,true);
+    const localOffset=dv.getUint32(ptr+42,true);
+    const name=textFromBytes(u8.slice(ptr+46,ptr+46+nameLen));
+    if(wantedSet.has(name)){
+      const localNameLen=dv.getUint16(localOffset+26,true);
+      const localExtraLen=dv.getUint16(localOffset+28,true);
+      const dataStart=localOffset+30+localNameLen+localExtraLen;
+      const comp=u8.slice(dataStart,dataStart+compSize);
+      found[name]=textFromBytes(await inflateZipEntry(comp, method));
+    }
+    ptr += 46 + nameLen + extraLen + commentLen;
+  }
+  return found;
+}
+function xmlDoc(text){
+  return new DOMParser().parseFromString(text, "application/xml");
+}
+function xlsxSharedStrings(xml){
+  const doc=xmlDoc(xml);
+  return Array.from(doc.getElementsByTagName("si")).map(si=>
+    Array.from(si.getElementsByTagName("t")).map(t=>t.textContent||"").join("")
+  );
+}
+function xlsxColNum(ref){
+  const letters=String(ref||"").replace(/[^A-Za-z]/g,"").toUpperCase();
+  let n=0;
+  for(const ch of letters) n=n*26 + ch.charCodeAt(0)-64;
+  return n;
+}
+function xlsxRows(sheetXml, shared){
+  const doc=xmlDoc(sheetXml);
+  const rows=[];
+  for(const row of Array.from(doc.getElementsByTagName("row"))){
+    const vals={};
+    let max=0;
+    for(const c of Array.from(row.getElementsByTagName("c"))){
+      const col=xlsxColNum(c.getAttribute("r"));
+      if(!col) continue;
+      max=Math.max(max,col);
+      const type=c.getAttribute("t");
+      let value="";
+      if(type==="inlineStr"){
+        value=Array.from(c.getElementsByTagName("t")).map(t=>t.textContent||"").join("");
+      }else{
+        const v=c.getElementsByTagName("v")[0];
+        value=v ? (v.textContent||"") : "";
+        if(type==="s") value=shared[Number(value)] ?? "";
+      }
+      vals[col]=String(value).trim();
+    }
+    const out=[];
+    for(let i=1;i<=max;i++) out.push(vals[i]||"");
+    if(out.some(Boolean)) rows.push(out);
+  }
+  return rows;
+}
+function productsFromRows(rows){
+  let headerIndex=-1;
+  for(let i=0;i<Math.min(rows.length,20);i++){
+    if(looksLikeHeaderRow(rows[i])){ headerIndex=i; break; }
+  }
+  const hasHeader=headerIndex>=0;
+  const header=hasHeader ? rows[headerIndex] : [];
+  const start=hasHeader ? headerIndex+1 : 0;
+  let idCol=pickColIndex(header,["articulo","artículo","id","sku"]);
+  let descCol=pickColIndex(header,["descripcion","descripción","desc","producto","nombre"]);
+  let costCol=pickColIndex(header,["costo ultimo","costo último","costo","cost","precio costo","costo_base"]);
+  let stockCol=pickColIndex(header,["existencia","stock","inventario","qty","cantidad"]);
+  if(idCol<0) idCol=hasHeader ? 1 : 0;
+  if(descCol<0) descCol=hasHeader ? 0 : 1;
+  if(costCol<0) costCol=hasHeader ? 3 : 2;
+  if(stockCol<0) stockCol=hasHeader ? 2 : 3;
+  const out=[];
+  for(let i=start;i<rows.length;i++){
+    const r=rows[i];
+    const id=String(r[idCol]??"").trim();
+    const name=String(r[descCol]??"").trim();
+    const cost=num(r[costCol]);
+    const stockRaw=r[stockCol];
+    const stock=isFinite(num(stockRaw)) ? Math.max(0, Math.floor(num(stockRaw))) : null;
+    if(!id||!name||!isFinite(cost)) continue;
+    out.push(enrichProduct({id,name,cost:round2(cost),stock}));
+  }
+  return out;
+}
+async function loadProductsWorkbook(file){
+  const buffer=await readFileArrayBuffer(file);
+  const entries=await unzipNeededEntries(buffer,["xl/sharedStrings.xml","xl/worksheets/sheet1.xml"]);
+  if(!entries["xl/worksheets/sheet1.xml"]) throw new Error("No se encontro hoja principal.");
+  const shared=entries["xl/sharedStrings.xml"] ? xlsxSharedStrings(entries["xl/sharedStrings.xml"]) : [];
+  return productsFromRows(xlsxRows(entries["xl/worksheets/sheet1.xml"], shared));
+}
+async function loadProductsFile(file){
+  const buffer=await readFileArrayBuffer(file);
+  if(isZipWorkbook(buffer)){
+    const entries=await unzipNeededEntries(buffer,["xl/sharedStrings.xml","xl/worksheets/sheet1.xml"]);
+    if(!entries["xl/worksheets/sheet1.xml"]) throw new Error("No se encontro hoja principal.");
+    const shared=entries["xl/sharedStrings.xml"] ? xlsxSharedStrings(entries["xl/sharedStrings.xml"]) : [];
+    return productsFromRows(xlsxRows(entries["xl/worksheets/sheet1.xml"], shared));
+  }
+  const text=new TextDecoder("utf-8").decode(buffer);
+  return productsFromRows(parseCSV(text));
+}
+
 async function loadProductsCSV(file){
   const text=await readFileText(file);
   const rows=parseCSV(text);
@@ -965,7 +1196,7 @@ async function loadOffersCSV(file){
 $("fileProducts").addEventListener("change", async (e)=>{
   const file=e.target.files?.[0]; if(!file) return;
   try{
-    products = await loadProductsCSV(file);
+    products = await loadProductsFile(file);
     refreshCounts();
     renderResults();
     saveLocal();
