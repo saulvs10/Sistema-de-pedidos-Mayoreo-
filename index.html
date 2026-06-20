@@ -470,6 +470,7 @@
         <div class="sheetActions">
           <button class="btn" id="btnConfirmedAddItem" type="button">Agregar articulo</button>
           <button class="btnGhost" id="btnConfirmedSave" type="button">Guardar cambios</button>
+          <button class="btn" id="btnConfirmedResend" type="button">Reenviar por WhatsApp</button>
         </div>
         <div id="confirmedOrderItems"></div>
         <div class="orderFooter">
@@ -1378,6 +1379,16 @@ function rebuildOffersIndex(){
   }
 }
 
+
+function orderLineName(it){
+  return String(it?.name || it?.descripcion || "");
+}
+function sortOrderLines(lines){
+  if(!Array.isArray(lines)) return lines;
+  lines.sort((a,b)=> normKey(orderLineName(a)).localeCompare(normKey(orderLineName(b)), "es"));
+  return lines;
+}
+
 function makeOrderLine(product, qty, unitPrice, note){
   const cost=Number(product.cost)||0;
   const lineTotal=round2(unitPrice*qty);
@@ -1415,7 +1426,7 @@ function recalcLine(item){
   return item;
 }
 function recalcConfirmedOrder(po, markUpdated=true){
-  po.items = (po.items||[]).map(it=>recalcLine(it));
+  po.items = sortOrderLines((po.items||[]).map(it=>recalcLine(it)));
   po.totalPedido = round2(po.items.reduce((a,it)=>a+(Number(it.totalLinea)||0),0));
   po.utilidadPedido = round2(po.items.reduce((a,it)=>a+(Number(it.utilidadLinea)||0),0));
   if(markUpdated) po.updatedAtISO = new Date().toISOString();
@@ -1748,6 +1759,7 @@ $("btnAddOrSave").addEventListener("click", ()=>{
 
   if(editLineIndex >= 0 && editLineIndex < order.length){
     order[editLineIndex] = updated;
+    sortOrderLines(order);
     editLineIndex = -1;
     saveLocal();
     updateBottom();
@@ -1758,6 +1770,7 @@ $("btnAddOrSave").addEventListener("click", ()=>{
   }
 
   order.push(updated);
+  sortOrderLines(order);
   saveLocal();
   updateBottom();
   toast("Agregado.");
@@ -1824,6 +1837,7 @@ $("orderItems").addEventListener("click",(e)=>{
 
   if(action==="remove"){
     order.splice(idx,1);
+    sortOrderLines(order);
     saveLocal();
     renderOrderItems();
     updateBottom();
@@ -1840,6 +1854,7 @@ $("orderItems").addEventListener("click",(e)=>{
    REPORTES
 =========================== */
 function buildConfirmedOrder(){
+  sortOrderLines(order);
   const items = order.map(it=>lineToConfirmedItem(it));
   const po = {
     timestampISO:new Date().toISOString(),
@@ -2030,6 +2045,22 @@ $("btnConfirmedSave").addEventListener("click", ()=>{
   toast("Pedido confirmado guardado.");
 });
 
+
+$("btnConfirmedResend").addEventListener("click", async ()=>{
+  const po=confirmedOrders[confirmedEditIndex];
+  if(!po){ toast("Pedido confirmado no encontrado."); return; }
+  po.notaPedido = String($("inConfirmedNote").value||"").trim();
+  recalcConfirmedOrder(po);
+  po.resentAtISO = new Date().toISOString();
+  saveLocal();
+  renderReports();
+  renderConfirmedOrderEditor();
+  const txt=buildWhatsAppTextFromOrderData(po);
+  try{ await navigator.clipboard.writeText(txt); }catch(e){}
+  window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank");
+  toast("Pedido actualizado y reenviado.");
+});
+
 function csvDownloadRows(filename, rows){
   downloadCSV(filename, rows.map(r=>r.map(csvEscape).join(",")).join("\n"));
 }
@@ -2065,44 +2096,59 @@ $("btnResetPeriod").addEventListener("click", ()=>{
 =========================== */
 $("inOrderNote").addEventListener("input", ()=>{ window.__orderNote = $("inOrderNote").value; });
 
-function buildWhatsAppText(){
-  const now=new Date();
-  const fecha=now.toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"}).replace(".","");
-  const hora=now.toLocaleTimeString("es-MX",{hour:"numeric",minute:"2-digit"});
-
+function currentOrderAsWhatsAppData(){
+  sortOrderLines(order);
+  return {
+    timestampISO:new Date().toISOString(),
+    cliente:{
+      nombre:selectedClient.name||"",
+      ubicacion:selectedClient.loc||"",
+      credito:String(selectedClient.credit||"no").toLowerCase()==="si"?"si":"no",
+      telefono:selectedClient.phone||""
+    },
+    notaPedido:String(window.__orderNote||"").trim(),
+    items:order.map(it=>lineToConfirmedItem(it)),
+    totalPedido:round2(order.reduce((a,it)=>a+(Number(it.lineTotal)||0),0))
+  };
+}
+function buildWhatsAppTextFromOrderData(po){
+  const when=po?.timestampISO ? new Date(po.timestampISO) : new Date();
+  const fecha=when.toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"}).replace(".","");
+  const hora=when.toLocaleTimeString("es-MX",{hour:"numeric",minute:"2-digit"});
+  const cliente=po?.cliente || {};
+  const items=sortOrderLines([...(po?.items||[])]);
   const lines=[];
   lines.push(`PEDIDO — ${fecha} · ${hora}`);
-  lines.push(`Cliente: ${selectedClient.name || "(no seleccionado)"}`);
-  if(selectedClient.loc) lines.push(`📍 ${selectedClient.loc}`);
-  if(String(selectedClient.credit||"no").toLowerCase()==="si") lines.push(`Crédito a 7 días`);
-  if(selectedClient.phone) lines.push(`Tel: ${selectedClient.phone}`);
-
-  const notaPedido=String(window.__orderNote||"").trim();
+  lines.push(`Cliente: ${cliente.nombre || "(no seleccionado)"}`);
+  if(cliente.ubicacion) lines.push(`📍 ${cliente.ubicacion}`);
+  if(String(cliente.credito||"no").toLowerCase()==="si") lines.push(`Crédito a 7 días`);
+  if(cliente.telefono) lines.push(`Tel: ${cliente.telefono}`);
+  const notaPedido=String(po?.notaPedido||"").trim();
   if(notaPedido) lines.push(`Notas: ${notaPedido}`);
-
   lines.push("");
   lines.push("ARTÍCULOS");
   lines.push("--------------------------------------------------");
-
   let total=0;
-  for(const it of order){
-    const qty=Number(it.qty)||0;
-    const unit=Number(it.unitPrice)||0;
+  for(const it of items){
+    const qty=Number(it.cantidad)||0;
+    const unit=Number(it.precioUnitario)||0;
     const line=Math.round(qty*unit*100)/100;
     total+=line;
-
-    lines.push(`${it.name}`);
+    lines.push(`${it.descripcion}`);
     lines.push(`Cant: ${qty} · Precio: ${money(unit)} · Total: ${money(line)}`);
-    const nota=String(it.note||"").trim();
+    const nota=String(it.notaProducto||"").trim();
     if(nota) lines.push(`Nota: ${nota}`);
     lines.push("");
   }
-
   total=Math.round(total*100)/100;
   lines.push("--------------------------------------------------");
   lines.push(`TOTAL DEL PEDIDO: ${money(total)}`);
   return lines.join("\n");
 }
+function buildWhatsAppText(){
+  return buildWhatsAppTextFromOrderData(currentOrderAsWhatsAppData());
+}
+
 
 $("btnSendAndConfirm").addEventListener("click", async ()=>{
   if(order.length===0){ toast("Pedido vacío."); return; }
